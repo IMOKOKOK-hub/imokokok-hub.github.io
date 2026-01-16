@@ -225,9 +225,16 @@
 
         <button id="analyzeBtn" onclick="startAnalysis()">로또 번호 무료 생성하기</button>
 
-        <div id="loadingOverlay" class="loading-overlay">
-            <div style="color:var(--point-color); font-weight:bold; margin-bottom:10px;">AI가 꿈속의 숫자를 찾고 있습니다...</div>
-            <div class="wave-box"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
+        <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+            <div id="loadingText" style="color:var(--point-color); font-weight:bold; margin-bottom:10px;">
+                AI가 꿈속의 숫자를 찾고 있습니다...
+            </div>
+    
+            <div class="wave-box">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
         </div>
 
         <div id="analysisBox" style="display:none; margin-top:30px;">
@@ -577,6 +584,7 @@ async function showResult(input) {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
