@@ -32,7 +32,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; 
-            justify-content: flex-start; /* ✅ 왼쪽으로 정렬! */
+            justify-content: space-between; /* ✅ 왼쪽으로 정렬! */
             gap: 20px; /* ✅ 로고와 아이콘 사이 간격 (조절 가능) */
             padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
@@ -98,15 +98,19 @@
 <body>
     <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 
-    <header class="top-nav">
-        <div class="nav-left"><a href="#" class="nav-logo">🛠️ 호들갑 LAB</a></div>
+   <header class="top-nav">
+        <div class="nav-left">
+            <a href="#" class="nav-logo">🛠️ 호들갑 LAB</a>
+            <button class="menu-btn" onclick="openSidebar()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer; margin-left:10px;">☰</button>
+        </div>
+
         <div class="nav-links">
             <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank">T</a>
             <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank">N</a>
             <span class="nav-icon" onclick="openModal()" style="cursor: pointer; color:var(--accent-color);">?</span>
             <a href="mailto:seungjunshose@gmail.com" class="nav-icon">✉️</a>
-            <button class="menu-btn" onclick="openSidebar()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">☰</button>
         </div>
+    </header>
     </header>
 
     <div id="mySidebar" class="sidebar">
@@ -337,4 +341,5 @@
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
