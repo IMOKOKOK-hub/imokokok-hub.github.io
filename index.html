@@ -18,6 +18,7 @@
         :root {
             --bg-color: #0f172a; --container-bg: rgba(30, 41, 59, 0.7); --text-main: #f1f5f9;
             --accent-color: #fcd34d; --point-color: #2dd4bf; --header-height: 65px;
+            --naver-green: #03C75A; --tistory-orange: #F46E24;
         }
 
         body {
@@ -33,8 +34,9 @@
             display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
         .nav-logo { font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none; }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-weight: bold; }
+        .bg-n { background: var(--naver-green); border:none; } .bg-t { background: var(--tistory-orange); border:none; }
 
         .container { background: var(--container-bg); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 40px 30px; border-radius: 30px; text-align: center; max-width: 500px; width: 100%; margin-bottom: 40px; }
         input { width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; margin-bottom: 15px; text-align: center; box-sizing: border-box; }
@@ -44,6 +46,12 @@
         .count-btn.active { background: var(--point-color); color: #fff; border-color: var(--point-color); box-shadow: 0 0 10px rgba(45, 212, 191, 0.3); }
 
         button#analyzeBtn { background: linear-gradient(135deg, var(--point-color), #0d9488); color: #fff; border: none; padding: 18px 0; width: 100%; font-family: 'GmarketSansBold'; font-size: 17px; border-radius: 20px; cursor: pointer; }
+
+        /* ✅ 로딩 애니메이션 스타일 복구 */
+        .loading-overlay { display: none; margin: 30px 0; }
+        .wave-box { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+        .wave { width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; animation: waveAni 1.2s infinite; }
+        @keyframes waveAni { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         .score-val { font-family: 'GmarketSansBold'; font-size: 64px; color: var(--accent-color); margin: 10px 0; display: block; }
         .comment-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; line-height: 1.6; }
@@ -60,7 +68,6 @@
         .log-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between; }
         .log-nums { color: var(--accent-color); font-weight: bold; }
 
-        /* ✅ 당첨 현황 테이블 스타일 */
         .rank-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px; color: #cbd5e1; }
         .rank-table th { text-align: left; color: var(--point-color); padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .rank-table td { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -78,6 +85,8 @@
     <header class="top-nav">
         <div class="nav-left"><a href="#" class="nav-logo">🛠️ 호들갑 LAB</a></div>
         <div class="nav-links">
+            <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank">T</a>
+            <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank">N</a>
             <span class="nav-icon" onclick="openModal()" style="cursor: pointer; color:var(--accent-color);">?</span>
             <a href="mailto:seungjunshose@gmail.com" class="nav-icon">✉️</a>
             <button class="menu-btn" onclick="openSidebar()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">☰</button>
@@ -112,6 +121,11 @@
 
         <button id="analyzeBtn" onclick="startAnalysis()">로또 번호 무료 생성하기</button>
 
+        <div id="loadingOverlay" class="loading-overlay">
+            <div style="color:var(--point-color); font-weight:bold;">꿈속의 상징을 분석 중입니다...</div>
+            <div class="wave-box"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
+        </div>
+
         <div id="analysisBox" style="display:none; margin-top:30px;">
             <span id="scoreValue" class="score-val">0</span>
             <div id="commentBox" class="comment-box">
@@ -140,9 +154,6 @@
                     <tr><td>3등</td><td>5개 일치</td><td id="rank3">0명</td></tr>
                     <tr><td>4등</td><td>4개 일치</td><td id="rank4">0명</td></tr>
                 </table>
-                <div style="margin-top:10px; font-size:11px; color:var(--point-color); text-align:right;" id="checkStatus">
-                    분석 중...
-                </div>
             </div>
         </div>
     </div>
@@ -150,18 +161,18 @@
     <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
-        // ✅ 성준님이 주신 키 적용 완료
+        // ✅ 성준님이 주신 키 적용 완료 (절대 건드리지 마세요)
         const SUPABASE_URL = 'https://eapzpnrdjkeovemjsgvb.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_B1_XVxDgSC62iXuKdNm-Xg_5353cXcn'; 
 
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 카카오 키
         const KAKAO_KEY = 'cf95e23dab0df4c6d229a734e0180def';
         try { if (!Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
 
         let generateCount = 1;
+
         function setCount(n) {
             generateCount = n;
             document.getElementById('btn1').classList.toggle('active', n === 1);
@@ -171,16 +182,32 @@
         async function startAnalysis() {
             const input = document.getElementById('dreamInput').value;
             if (input.length < 2) { alert("꿈 내용을 적어주세요!"); return; }
-            document.getElementById('analyzeBtn').innerText = "분석 중...";
             
-            // 결과 바로 표시
+            // ✅ 버튼 숨기고 로딩 보여주기
+            document.getElementById('analyzeBtn').style.display = 'none';
+            document.getElementById('loadingOverlay').style.display = 'block';
+            document.getElementById('analysisBox').style.display = 'none';
+
+            // ✅ 3초 뜸 들이기 (생각하는 척)
+            setTimeout(async () => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('analyzeBtn').style.display = 'block';
+                document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 받기";
+                
+                showResult(input); // 결과 보여주기
+                
+            }, 3000); // 3000ms = 3초
+        }
+
+        async function showResult(input) {
             document.getElementById('analysisBox').style.display = 'block';
+            
             let kwd = input.includes("돼지") ? "돼지" : input.includes("똥") ? "똥" : "일상";
             let score = kwd === "일상" ? 70 + Math.floor(Math.random()*20) : 90 + Math.floor(Math.random()*9);
             
             document.getElementById('kwdText').innerText = kwd;
             document.getElementById('scoreValue').innerText = score;
-            document.getElementById('commentText').innerText = kwd + " 관련 꿈은 아주 좋은 징조입니다!";
+            document.getElementById('commentText').innerText = kwd + " 관련 꿈은 아주 좋은 징조입니다! 긍정적인 기운이 느껴집니다.";
 
             const area = document.getElementById('resultArea'); area.innerHTML = '';
             let saveNums = []; 
@@ -189,6 +216,7 @@
                 let nums = []; 
                 while(nums.length < 6) { let n = Math.floor(Math.random()*45)+1; if(!nums.includes(n)) nums.push(n); }
                 nums.sort((a,b)=>a-b);
+                
                 let div = document.createElement('div'); div.className = 'lotto-row';
                 nums.forEach(n => {
                     let c = n<=10?'y':n<=20?'b':n<=30?'r':n<=40?'g':'gr';
@@ -198,18 +226,29 @@
                 saveNums.push(nums.join(', '));
             }
 
-            document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 받기";
-
-            // DB 저장
+            // ✅ DB 저장
             const randomNick = "익명" + Math.floor(Math.random() * 9999);
-            await _supabase.from('lotto_logs').insert([{ nickname: randomNick, numbers: saveNums.join(' | ') }]);
+            await _supabase.from('lotto_logs').insert([
+                { nickname: randomNick, numbers: saveNums.join(' | ') }
+            ]);
+            
             fetchRecentLogs();
         }
 
         async function fetchRecentLogs() {
-            const { data, error } = await _supabase.from('lotto_logs').select('*').order('created_at', { ascending: false }).limit(10);
+            const { data, error } = await _supabase
+                .from('lotto_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
             const list = document.getElementById('realTimeLog');
-            if (data && data.length > 0) {
+            
+            if (error) {
+                console.error("DB Error:", error);
+                // 🚨 로그 안 뜨는 이유: 권한 문제일 확률 99%
+                list.innerHTML = `<div style="text-align:center; padding:20px; color:#fb7185;">로그 로딩 실패.<br>슈파베이스 RLS를 꺼주세요!</div>`;
+            } else if (data && data.length > 0) {
                 list.innerHTML = "";
                 data.forEach(log => {
                     let displayNums = log.numbers.length > 25 ? log.numbers.substring(0, 25) + "..." : log.numbers;
@@ -220,10 +259,8 @@
             }
         }
 
-        // ✅ [진짜 기능] 지난주 당첨자 확인 로직
-        // 1154회 당첨번호 (예시): 4, 8, 30, 37, 40, 44 + 보너스 18 (성준님이 매주 토요일 밤에 여기 숫자만 바꿔주면 됨!)
         async function checkWinningStatus() {
-            // 여기에 지난주 당첨번호를 입력하세요!
+            // 지난주 당첨 번호 (1154회)
             const winNums = [4, 8, 30, 37, 40, 44]; 
             const bonusNum = 18;
 
@@ -233,7 +270,7 @@
             
             if (data) {
                 data.forEach(row => {
-                    // "1, 2, 3 | 4, 5, 6" 처럼 저장된거 분리
+                    if(!row.numbers) return;
                     let sets = row.numbers.split(' | ');
                     sets.forEach(setStr => {
                         let myNums = setStr.split(', ').map(Number);
@@ -252,7 +289,6 @@
             document.getElementById('rank2').innerText = ranks[2] + "명";
             document.getElementById('rank3').innerText = ranks[3] + "명";
             document.getElementById('rank4').innerText = ranks[4] + "명";
-            document.getElementById('checkStatus').innerText = "✅ DB 전수 조사 완료 (1154회 기준)";
         }
 
         function shareKakao() { try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또', description: '내 꿈이 1등 당첨 꿈일까?', imageUrl: '', link: { mobileWebUrl: location.href, webUrl: location.href } } }); } catch(e) {} }
