@@ -12,7 +12,7 @@
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
     <title>호들갑 로또 꿈 상점 - AI 해몽 번호 생성기</title>
-    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? AI 꿈해몽 분석을 통해 당첨 확률 높은 번호를 추천해 드립니다.">
+    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? AI 꿈해몽 분석을 통해 당첨 확률 높은 번호를 추천해 드립니다. 무료 운세와 로또 조합기.">
     <meta property="og:title" content="호들갑 로또 꿈 상점" />
     <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/1041/1041168.png" />
     <meta property="og:url" content="https://imokokok-hub.github.io" />
@@ -25,9 +25,9 @@
             --bg-color: #0f172a; 
             --container-bg: rgba(30, 41, 59, 0.7); 
             --text-main: #f1f5f9;
-            --accent-color: #fcd34d; /* 노란색 강조 */
+            --accent-color: #fcd34d;
             --point-color: #2dd4bf;
-            --header-height: 60px;
+            --header-height: 65px;
             /* 브랜드 컬러 */
             --naver-green: #03C75A;
             --tistory-orange: #F46E24;
@@ -40,45 +40,42 @@
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
             color: var(--text-main);
             display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; margin: 0; padding: 0 15px 40px 15px;
-            padding-top: calc(var(--header-height) + 30px);
+            min-height: 100vh; margin: 0; padding: 0 15px 60px 15px;
+            padding-top: calc(var(--header-height) + 20px);
             overflow-x: hidden;
         }
 
-        /* 🛠️ 상단 헤더 */
+        /* 🛠️ 상단 헤더 (로고 선명도 개선) */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; box-sizing: border-box; z-index: 1000;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
 
-        /* 왼쪽 그룹: 로고 + 메뉴 버튼 (딱 붙여서 배치) */
-        .nav-left {
-            display: flex; align-items: center; gap: 10px;
-        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
 
+        /* 로고: 줄바꿈 금지(nowrap) 적용하여 뭉개짐 해결 */
         .nav-logo {
-            font-family: 'GmarketSansBold'; font-size: 18px; color: #fff; text-decoration: none;
-            display: flex; align-items: center; white-space: nowrap;
+            font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none;
+            display: flex; align-items: center; white-space: nowrap; flex-shrink: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
+        /* 메뉴 버튼: 로고 옆에 배치, 크기 최적화 */
         .menu-btn { 
             font-size: 28px; cursor: pointer; background: none; border: none; 
-            color: var(--accent-color); /* 노란색 */
-            padding: 0 5px; display: flex; align-items: center; justify-content: center;
+            color: var(--accent-color); padding: 0; display: flex; align-items: center; 
+            transition: transform 0.2s;
         }
         .menu-btn:hover { transform: scale(1.1); }
 
-        /* 오른쪽 아이콘 그룹 */
-        .nav-links {
-            display: flex; gap: 8px; align-items: center;
-        }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
         .nav-icon {
-            width: 32px; height: 32px; border-radius: 8px;
+            width: 34px; height: 34px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; text-decoration: none; font-size: 14px; font-weight: bold;
+            color: #fff; text-decoration: none; font-size: 15px; font-weight: bold;
             transition: all 0.2s;
         }
         .nav-icon:hover { transform: translateY(-2px); filter: brightness(1.1); }
@@ -110,32 +107,23 @@
         .menu-item:hover { background: rgba(255,255,255,0.05); padding-left: 30px; color: #fff; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #fff; background-color: var(--kuji-purple); }
 
-        /* 오버레이 */
+        /* 오버레이 & 모달 */
         .overlay {
             position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0;
             background-color: rgba(0,0,0,0.7); z-index: 1500; cursor: pointer; backdrop-filter: blur(3px);
         }
-
-        /* 📖 가이드 모달 (스크롤 가능하게 수정) */
         .modal {
             display: none; position: fixed; z-index: 3000; left: 50%; top: 50%;
             transform: translate(-50%, -50%); width: 90%; max-width: 400px;
-            max-height: 80vh; /* 화면 80% 높이 제한 */
-            background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
+            max-height: 80vh; background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px; padding: 25px; text-align: left;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            overflow-y: auto; /* 내용 길면 스크롤 생김 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto;
         }
         .modal h2 { 
             color: var(--point-color); margin-top: 0; font-family: 'GmarketSansBold'; 
-            text-align: center; margin-bottom: 20px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+            text-align: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
         }
         .modal-content { color: #cbd5e1; font-size: 15px; line-height: 1.7; }
-        .modal-content h3 { color: #fff; margin-top: 20px; font-size: 16px; font-weight: bold; }
-        .modal-content ul { padding-left: 20px; margin: 10px 0; }
-        .modal-content li { margin-bottom: 8px; }
-        
         .close-modal-btn {
             display: block; width: 100%; margin-top: 20px; padding: 12px; 
             background: var(--point-color); border: none; border-radius: 12px; 
@@ -161,12 +149,16 @@
             border: none; padding: 18px 0; width: 100%; font-family: 'GmarketSansBold';
             font-size: 17px; border-radius: 20px; cursor: pointer;
         }
+        
+        /* 점수 텍스트 크기 복구 */
+        .score-val { font-family: 'GmarketSansBold'; font-size: 48px; color: var(--accent-color); text-shadow: 0 0 20px rgba(252, 211, 77, 0.3); display: block; margin-top: 10px;}
+        
         .lotto-row { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.07); padding: 12px; border-radius: 50px; margin-top: 10px; }
         .row-label { font-weight: bold; color: #94a3b8; margin-right: 15px; width: 40px; }
         .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; }
         .y { background: #fde047; } .b { background: #67e8f9; } .r { background: #fca5a5; } .g { background: #d1d5db; } .gr { background: #86efac; }
         
-        .input-alert { font-size: 13px; color: #fb7185; margin-bottom: 20px; display: none; }
+        .input-alert { font-size: 13px; color: #fb7185; margin-bottom: 20px; display: none; font-weight: bold; }
         .loading-overlay { display: none; margin: 40px 0; color: var(--point-color); }
         .wave-box { display: flex; justify-content: center; gap: 5px; margin-top: 15px; }
         .wave { width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; animation: waveAni 1.2s infinite; }
@@ -179,7 +171,7 @@
         
         details { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 0; border: 1px solid rgba(255,255,255,0.1); }
         summary { padding: 18px; cursor: pointer; color: #94a3b8; font-weight: bold; list-style: none; }
-        .details-content { padding: 25px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; }
+        .details-content { padding: 25px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; line-height: 1.6; }
         .ad-placeholder { margin-top: 40px; width: 100%; height: 100px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #555; font-size: 12px; border: 1px dashed #444; }
         footer { margin-top: 60px; font-size: 12px; color: #475569; text-align: center; }
     </style>
@@ -192,7 +184,6 @@
             <a href="#" class="nav-logo">🛠️ 호들갑 LAB</a>
             <button class="menu-btn" onclick="openSidebar()">☰</button>
         </div>
-
         <div class="nav-links">
             <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank" title="티스토리">T</a>
             <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank" title="네이버">N</a>
@@ -239,7 +230,7 @@
         <p class="subtitle">꿈해몽으로 찾는 나만의 1등 당첨 번호 🌙</p>
         
         <input type="text" id="dreamInput" placeholder="어젯밤 꿈 내용을 적고 로또 번호 받기">
-        <div id="inputAlert" class="input-alert">📝 꿈 내용을 5글자 이상 자세히 적어주세요!</div>
+        <div id="inputAlert" class="input-alert">⚠️ 꿈 내용을 5글자 이상 자세히 적어주세요!</div>
         
         <button id="analyzeBtn" onclick="startAnalysis()">로또 번호 무료 생성하기</button>
 
@@ -270,6 +261,24 @@
         <div class="ad-placeholder">구글 광고가 표시되는 공간입니다</div>
     </div>
 
+    <div style="max-width: 500px; width: 100%;">
+        <details open>
+            <summary>📖 로또 당첨의 비밀: 꿈해몽 가이드</summary>
+            <div class="details-content">
+                <h3>왜 꿈해몽으로 로또를 사야 할까요?</h3>
+                <p>로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다. 실제로 수많은 1등 당첨자들이 "조상님이 번호를 알려줬다"거나 "돼지를 잡는 꿈을 꿨다"고 인터뷰합니다.</p>
+                <h3>반드시 로또를 사야 하는 '대박 꿈' 3가지</h3>
+                <ul>
+                    <li><strong>1. 황금과 배설물(똥) 꿈:</strong> 불쾌해하지 마세요! 꿈속의 배설물은 현실에서 막대한 자산과 당첨금을 상징하는 최고의 길몽입니다.</li>
+                    <li><strong>2. 불이 활활 타오르는 꿈:</strong> 집이나 산이 불타는 꿈은 운세가 불길처럼 번창한다는 뜻입니다. 이번 주 로또 명당은 바로 당신입니다.</li>
+                    <li><strong>3. 피를 많이 흘리는 꿈:</strong> 꿈에서의 피는 생명력이자 재물입니다. 피가 철철 흐를수록 당첨 금액이 커진다고 해석합니다.</li>
+                </ul>
+                <h3>흉몽을 꿨다면? '로또 액땜'의 법칙</h3>
+                <p>이빨이 빠지거나, 누군가에게 쫓기는 꿈을 꾸셨나요? 너무 걱정하지 마세요. 꿈해몽학에서는 이를 미리 나쁜 일을 겪는 '액땜'으로 봅니다. 이때 로또를 구매하는 행위는 "불운을 희망(복권)으로 바꾸는 의식"이 됩니다.</p>
+            </div>
+        </details>
+    </div>
+
     <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
@@ -291,7 +300,11 @@
 
         function startAnalysis() {
             const input = document.getElementById('dreamInput');
-            if (input.value.replace(/\s/g, "").length < 5) { document.getElementById('inputAlert').style.display = 'block'; return; }
+            // 🛑 [복구됨] 입력 방지 기능: 공백 제거 후 5글자 미만이면 경고
+            if (input.value.replace(/\s/g, "").length < 5) { 
+                document.getElementById('inputAlert').style.display = 'block'; 
+                return; 
+            }
             document.getElementById('inputAlert').style.display = 'none';
             document.getElementById('analyzeBtn').style.display = 'none';
             document.getElementById('loadingOverlay').style.display = 'block';
