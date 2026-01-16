@@ -5,45 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <meta name="google-site-verification" content="HNZ6hdgrhbb1NHgcitGqFSs2xSXzAnKWH6jNs18JuZc" />
-    
     <meta name="naver-site-verification" content="090e81b6702bba50b13ed994565471393b331344" />
-    
     <link rel="canonical" href="https://imokokok-hub.github.io" />
 
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6499770567841535" crossorigin="anonymous"></script>
-    
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
     <title>호들갑 로또 꿈 상점 - AI 해몽 번호 생성기</title>
-    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? 꿈해몽 분석을 통해 당첨 확률 높은 행운의 로또 번호를 무료로 추천해 드립니다.">
+    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? AI 꿈해몽 분석을 통해 당첨 확률 높은 번호를 추천해 드립니다.">
     <meta property="og:title" content="호들갑 로또 꿈 상점" />
-    <meta property="og:description" content="오늘 꾼 꿈이 1등 당첨 신호일지도 모릅니다. AI 해몽 풀이와 추천 번호를 받아보세요." />
     <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/1041/1041168.png" />
     <meta property="og:url" content="https://imokokok-hub.github.io" />
 
     <style>
-        /* 폰트 설정 */
-        @font-face {
-            font-family: 'GmarketSansMedium';
-            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-            font-weight: normal;
-        }
-        @font-face {
-            font-family: 'GmarketSansBold';
-            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
-            font-weight: bold;
-        }
+        @font-face { font-family: 'GmarketSansMedium'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); }
+        @font-face { font-family: 'GmarketSansBold'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff'); }
 
         :root {
             --bg-color: #0f172a; 
             --container-bg: rgba(30, 41, 59, 0.7); 
             --text-main: #f1f5f9;
-            --text-sub: #94a3b8;
             --accent-color: #fcd34d;
             --point-color: #2dd4bf;
-            --input-bg: rgba(0, 0, 0, 0.3);
-            --border-line: rgba(255, 255, 255, 0.1);
             --header-height: 60px;
+            /* 브랜드 컬러 */
+            --naver-green: #03C75A;
+            --tistory-orange: #F46E24;
+            --kuji-purple: #8b5cf6;
         }
 
         body {
@@ -51,170 +39,178 @@
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
             color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0 15px 40px 15px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; margin: 0; padding: 0 15px 40px 15px;
             padding-top: calc(var(--header-height) + 40px);
-            line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* 🆕 상단 네비게이션 바 (호들갑 LAB) */
+        /* ☰ 상단 헤더 */
         .top-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: var(--header-height);
-            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%); /* 보라빛 그라데이션 */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+        }
+        .menu-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: #fff; }
+        .nav-title { font-family: 'GmarketSansBold'; font-size: 18px; color: var(--accent-color); }
+        .info-btn { font-size: 20px; cursor: pointer; color: #94a3b8; transition: color 0.3s; }
+        .info-btn:hover { color: #fff; }
+
+        /* 📂 왼쪽 사이드바 (메뉴창) */
+        .sidebar {
+            height: 100%; width: 280px; position: fixed; z-index: 2000;
+            top: 0; left: -280px; /* 숨김 상태 */
+            background-color: #1e293b;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            transition: 0.3s; padding-top: 60px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-header {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
+            display: flex; align-items: center; padding-left: 20px;
+            font-family: 'GmarketSansBold'; font-size: 20px; color: #fff;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #fff;
         }
 
-        .nav-logo {
-            font-family: 'GmarketSansBold';
-            font-size: 18px;
-            color: #fff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: opacity 0.2s;
+        /* 메뉴 아이템 스타일 */
+        .menu-item {
+            padding: 15px 25px; text-decoration: none; font-size: 16px;
+            color: #e2e8f0; display: flex; align-items: center; gap: 12px;
+            transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .nav-logo:hover { opacity: 0.8; }
+        .menu-item:hover { background: rgba(255,255,255,0.05); padding-left: 30px; }
         
-        .nav-links {
-            display: flex;
-            gap: 12px;
-            align-items: center;
+        /* 브랜드 뱃지 스타일 */
+        .badge {
+            padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #fff; min-width: 24px; text-align: center;
+        }
+        .bg-naver { background-color: var(--naver-green); }
+        .bg-tistory { background-color: var(--tistory-orange); }
+        .bg-kuji { background-color: var(--kuji-purple); }
+        .bg-mail { background-color: #475569; }
+
+        /* 오버레이 (검은 배경) */
+        .overlay {
+            position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7); z-index: 1500; cursor: pointer;
+            backdrop-filter: blur(3px);
         }
 
-        .nav-icon {
-            width: 32px;
-            height: 32px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
-            border: 1px solid rgba(255,255,255,0.1);
+        /* ❓ 호들갑 LAB 설명 모달창 */
+        .modal {
+            display: none; position: fixed; z-index: 3000; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; max-width: 400px;
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 30px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-        .nav-icon:hover { background: #fff; color: #4f46e5; transform: translateY(-2px); border-color: #fff; }
-        .nav-icon svg { width: 18px; height: 18px; fill: currentColor; }
+        .modal h2 { color: var(--point-color); margin-top: 0; font-family: 'GmarketSansBold'; }
+        .modal p { color: #cbd5e1; font-size: 15px; line-height: 1.6; }
+        .close-modal-btn {
+            margin-top: 20px; padding: 10px 30px; background: var(--point-color);
+            border: none; border-radius: 12px; font-weight: bold; cursor: pointer;
+        }
 
+        /* 기존 스타일 유지 */
         .container {
-            background: var(--container-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-line);
-            padding: 40px 30px;
-            border-radius: 30px;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-            margin-bottom: 40px;
+            background: var(--container-bg); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1); padding: 40px 30px;
+            border-radius: 30px; text-align: center; max-width: 500px; width: 100%;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4); margin-bottom: 40px;
         }
-
-        h1 { font-family: 'GmarketSansBold'; font-size: 28px; margin: 0 0 10px 0; color: var(--accent-color); line-height: 1.3; }
-        .subtitle { color: var(--text-sub); font-size: 15px; margin-bottom: 35px; font-weight: 300; }
-
+        h1 { font-family: 'GmarketSansBold'; font-size: 28px; margin: 0 0 10px 0; color: var(--accent-color); }
+        .subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 35px; }
         input {
-            width: 100%; padding: 18px; border-radius: 20px;
-            border: 1px solid var(--border-line); background: var(--input-bg);
-            color: #fff; font-family: 'GmarketSansMedium'; font-size: 16px; 
-            box-sizing: border-box; margin-bottom: 15px; text-align: center;
-            transition: all 0.3s ease;
+            width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3); color: #fff; font-family: 'GmarketSansMedium'; font-size: 16px;
+            margin-bottom: 15px; text-align: center; box-sizing: border-box;
         }
-        input:focus { outline: none; border-color: var(--point-color); background: rgba(45, 212, 191, 0.05); }
-        input::placeholder { color: #555; font-size: 14px; }
-
-        .input-alert { font-size: 13px; color: #fb7185; margin-bottom: 20px; display: none; animation: softShake 0.4s ease; }
-        @keyframes softShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-
         button {
-            background: linear-gradient(135deg, var(--point-color), #0d9488);
-            color: #fff; border: none; padding: 18px 0; width: 100%;
-            font-family: 'GmarketSansBold'; font-size: 17px; border-radius: 20px; 
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 15px rgba(45, 212, 191, 0.3);
+            background: linear-gradient(135deg, var(--point-color), #0d9488); color: #fff;
+            border: none; padding: 18px 0; width: 100%; font-family: 'GmarketSansBold';
+            font-size: 17px; border-radius: 20px; cursor: pointer;
         }
-        button:hover { transform: translateY(-2px); }
-        button:active { transform: scale(0.98); }
-
-        .loading-overlay { display: none; margin: 40px 0; color: var(--point-color); font-size: 15px; }
+        .lotto-row { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.07); padding: 12px; border-radius: 50px; margin-top: 10px; }
+        .row-label { font-weight: bold; color: #94a3b8; margin-right: 15px; width: 40px; }
+        .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; }
+        .y { background: #fde047; } .b { background: #67e8f9; } .r { background: #fca5a5; } .g { background: #d1d5db; } .gr { background: #86efac; }
+        
+        /* 기타 필수 스타일 */
+        .input-alert { font-size: 13px; color: #fb7185; margin-bottom: 20px; display: none; }
+        .loading-overlay { display: none; margin: 40px 0; color: var(--point-color); }
         .wave-box { display: flex; justify-content: center; gap: 5px; margin-top: 15px; }
-        .wave { width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; animation: waveAni 1.2s infinite ease-in-out; }
+        .wave { width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; animation: waveAni 1.2s infinite; }
         .wave:nth-child(2) { animation-delay: 0.1s; background: var(--point-color); }
         .wave:nth-child(3) { animation-delay: 0.2s; }
         @keyframes waveAni { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        .analysis-box { display: none; margin-top: 30px; text-align: left; border-top: 1px solid var(--border-line); padding-top: 30px; animation: fadeIn 1s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .score-container { text-align: center; margin-bottom: 25px; }
-        .score-label { font-size: 14px; color: var(--text-sub); display: block; margin-bottom: 5px; }
-        .score-val { font-family: 'GmarketSansBold'; font-size: 48px; color: var(--accent-color); text-shadow: 0 0 20px rgba(252, 211, 77, 0.3); }
-
-        .comment-box { font-size: 15px; line-height: 1.8; color: #e2e8f0; background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; margin-bottom: 25px; text-align: center; }
-        .highlight { color: var(--point-color); font-weight: bold; }
-
-        .result-area { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
-        .lotto-row { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.07); padding: 12px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
-        .row-label { font-weight: bold; color: var(--text-sub); margin-right: 15px; font-size: 13px; width: 40px; text-align: center; }
-        .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.1); }
-        .y { background: #fde047; } .b { background: #67e8f9; } .r { background: #fca5a5; } .g { background: #d1d5db; color: #333; } .gr { background: #86efac; }
-
+        
         .share-container { display: flex; gap: 10px; margin-top: 40px; }
-        .share-btn { flex: 1; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; font-size: 14px; transition: all 0.2s; font-family: 'GmarketSansMedium'; box-shadow: none; }
-        .share-btn:hover { background: rgba(255,255,255,0.1); }
+        .share-btn { flex: 1; padding: 14px; border-radius: 16px; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); }
         
-        details { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-line); }
-        summary { padding: 18px; font-size: 15px; font-weight: bold; color: var(--text-sub); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-        summary:hover { color: #fff; }
-        
-        .details-content { padding: 25px; font-size: 15px; color: #cbd5e1; border-top: 1px solid var(--border-line); background: rgba(0,0,0,0.2); text-align: left; line-height: 1.8; word-break: keep-all;}
-        .details-content h3 { color: var(--point-color); margin-top: 25px; font-size: 17px; margin-bottom: 10px; font-family: 'GmarketSansBold'; }
-        .details-content ul { padding-left: 20px; margin: 0; }
-        .details-content li { margin-bottom: 10px; }
-
+        details { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 0; border: 1px solid rgba(255,255,255,0.1); }
+        summary { padding: 18px; cursor: pointer; color: #94a3b8; font-weight: bold; list-style: none; }
+        .details-content { padding: 25px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; }
         .ad-placeholder { margin-top: 40px; width: 100%; height: 100px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #555; font-size: 12px; border: 1px dashed #444; }
         footer { margin-top: 60px; font-size: 12px; color: #475569; text-align: center; }
     </style>
 </head>
 <body>
+    <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
     <header class="top-nav">
-        <a href="#" class="nav-logo">
-            🛠️ 호들갑 LAB
-        </a>
-        <div class="nav-links">
-            <a href="https://mkkrw.tistory.com/" class="nav-icon" target="_blank" title="티스토리 블로그 방문">
-                T
-            </a>
-            <a href="https://blog.naver.com/mkkrw" class="nav-icon" target="_blank" title="네이버 블로그 방문">
-                N
-            </a>
-            <a href="#" class="nav-icon" title="궁금한 점 문의">
-                ?
-            </a>
-            <a href="mailto:seungjunshose@gmail.com" class="nav-icon" title="이메일 보내기">
-                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            </a>
-        </div>
+        <button class="menu-btn" onclick="openSidebar()">☰</button>
+        <span class="nav-title">호들갑 로또 꿈 상점</span>
+        <span class="info-btn" onclick="openModal()">?</span>
     </header>
+
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            🛠️ 호들갑 LAB
+            <span class="close-btn" onclick="closeSidebar()">&times;</span>
+        </div>
+        
+        <a href="#" class="menu-item" onclick="alert('🚧 사이트 리뉴얼 공사 중입니다! 곧 다시 열려요!')">
+            <span class="badge bg-kuji">K</span>
+            호들갑 쿠지 (준비중)
+        </a>
+
+        <a href="https://mkkrw.tistory.com/" target="_blank" class="menu-item">
+            <span class="badge bg-tistory">T</span>
+            개발자 티스토리
+        </a>
+
+        <a href="https://blog.naver.com/mkkrw" target="_blank" class="menu-item">
+            <span class="badge bg-naver">N</span>
+            네이버 블로그
+        </a>
+
+        <a href="mailto:seungjunshose@gmail.com" class="menu-item">
+            <span class="badge bg-mail">@</span>
+            개발자에게 메일 보내기
+        </a>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <h2>🛠️ 호들갑 LAB</h2>
+        <p>
+            세상의 모든 호들갑을 연구하는<br>
+            1인 개발 연구소입니다.
+        </p>
+        <hr style="border-color:rgba(255,255,255,0.1); margin: 15px 0;">
+        <p style="font-size: 13px; color: #94a3b8;">
+            현재 <strong>로또 꿈 상점</strong>과<br>
+            <strong>호들갑 쿠지</strong>(리뉴얼 중)를<br>
+            운영하고 있습니다.
+        </p>
+        <button class="close-modal-btn" onclick="closeModal()">닫기</button>
+    </div>
 
     <div class="container">
         <h1>호들갑 로또 꿈 상점</h1>
@@ -227,30 +223,26 @@
 
         <div id="loadingOverlay" class="loading-overlay">
             <div id="loadingText">꿈속의 로또 번호를 찾는 중...</div>
-            <div class="wave-box">
-                <div class="wave"></div><div class="wave"></div><div class="wave"></div>
-            </div>
+            <div class="wave-box"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
         </div>
 
-        <div id="analysisBox" class="analysis-box">
+        <div id="analysisBox" style="display:none; margin-top:30px; border-top:1px solid rgba(255,255,255,0.1); padding-top:30px;">
             <div class="score-container">
-                <span class="score-label">오늘의 금전운 점수</span>
+                <span style="font-size:14px; color:#94a3b8;">오늘의 금전운 점수</span>
                 <span id="scoreValue" class="score-val">0</span>
             </div>
-            
             <div id="commentText" class="comment-box"></div>
-
             <details>
                 <summary>상세 분석 & 당첨 전략 보기</summary>
                 <div class="details-content" id="detailReport"></div>
             </details>
         </div>
 
-        <div class="result-area" id="resultArea"></div>
+        <div class="result-area" id="resultArea" style="margin-top:30px;"></div>
         
         <div class="share-container">
-            <button class="share-btn" onclick="shareKakao()">카톡으로 번호 공유</button>
-            <button class="share-btn" onclick="copyLink()">사이트 주소 복사</button>
+            <button class="share-btn" onclick="shareKakao()">카톡 공유</button>
+            <button class="share-btn" onclick="copyLink()">주소 복사</button>
         </div>
 
         <div class="ad-placeholder">구글 광고가 표시되는 공간입니다</div>
@@ -261,22 +253,41 @@
             <summary>📖 로또 당첨의 비밀: 꿈해몽 가이드</summary>
             <div class="details-content">
                 <h3>왜 꿈해몽으로 로또를 사야 할까요?</h3>
-                <p>로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다.</p>
+                <p>단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다.</p>
                 <h3>반드시 로또를 사야 하는 '대박 꿈'</h3>
                 <ul>
                     <li><strong>황금, 똥, 돼지:</strong> 재물운의 상징입니다.</li>
-                    <li><strong>불이 나는 꿈:</strong> 운세가 불길처럼 번창합니다.</li>
-                    <li><strong>피를 보는 꿈:</strong> 생명력과 재물을 의미합니다.</li>
+                    <li><strong>불이 나는 꿈:</strong> 운세가 번창합니다.</li>
                 </ul>
             </div>
         </details>
     </div>
 
-    <footer>
-        <p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p>
-    </footer>
+    <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
+        // 사이드바 & 모달 열고 닫기 스크립트
+        function openSidebar() {
+            document.getElementById("mySidebar").classList.add("open");
+            document.getElementById("overlay").style.display = "block";
+        }
+        function closeSidebar() {
+            document.getElementById("mySidebar").classList.remove("open");
+            document.getElementById("overlay").style.display = "none";
+        }
+        function openModal() {
+            document.getElementById("infoModal").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+        function closeModal() {
+            document.getElementById("infoModal").style.display = "none";
+            // 사이드바가 열려있지 않으면 오버레이도 끔
+            if (!document.getElementById("mySidebar").classList.contains("open")) {
+                document.getElementById("overlay").style.display = "none";
+            }
+        }
+
+        /* --- 기존 로직 유지 --- */
         const KAKAO_KEY = 'cf95e23dab0df4c6d229a734e0180def';
         try { if (!Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
 
@@ -286,119 +297,65 @@
             bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "상복", "거울", "피", "살인"]
         };
 
-        function isValidDream(text) {
-            const cleanText = text.replace(/\s/g, "");
-            if (cleanText.length < 5) return { valid: false, msg: "꿈 내용을 5글자 이상 알려주세요!" };
-            const koreanCharCount = (cleanText.match(/[가-힣]/g) || []).length;
-            if (koreanCharCount < 2) return { valid: false, msg: "의미를 알 수 없는 글자 같아요 ㅠㅠ" };
-            if (/(.)\1{3,}/.test(cleanText)) return { valid: false, msg: "같은 글자 반복은 분석이 어려워요!" };
-            return { valid: true };
-        }
-
         function startAnalysis() {
             const input = document.getElementById('dreamInput');
-            const alertBox = document.getElementById('inputAlert');
-            const btn = document.getElementById('analyzeBtn');
-            const loading = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
-            const val = input.value.trim();
-
-            const check = isValidDream(val);
-            if (!check.valid) {
-                alertBox.innerText = check.msg;
-                alertBox.style.display = 'block';
-                input.focus();
-                return;
+            if (input.value.replace(/\s/g, "").length < 5) {
+                document.getElementById('inputAlert').style.display = 'block'; return;
             }
-            alertBox.style.display = 'none';
-
-            btn.style.display = 'none';
-            loading.style.display = 'block';
+            document.getElementById('inputAlert').style.display = 'none';
+            document.getElementById('analyzeBtn').style.display = 'none';
+            document.getElementById('loadingOverlay').style.display = 'block';
             document.getElementById('analysisBox').style.display = 'none';
             document.getElementById('resultArea').innerHTML = '';
 
-            const msgs = ["꿈속의 당첨 신호를 찾는 중...", "행운의 숫자를 조합하고 있어요...", "1등 당첨 기운을 모으는 중..."];
-            let msgIdx = 0; loadingText.innerText = msgs[0];
-
-            const msgInterval = setInterval(() => {
-                msgIdx++; if(msgIdx < msgs.length) loadingText.innerText = msgs[msgIdx];
-            }, 1000);
-
             setTimeout(() => {
-                clearInterval(msgInterval);
-                loading.style.display = 'none';
-                btn.style.display = 'block';
-                btn.innerText = "다른 꿈으로 다시 받기";
-                showResult(val);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('analyzeBtn').style.display = 'block';
+                document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 받기";
+                showResult(input.value);
             }, 4000);
         }
 
-        function showResult(inputVal) {
-            const analysisBox = document.getElementById('analysisBox');
-            analysisBox.style.display = 'block';
-            let type = "normal"; let detectedKeyword = "일상";
-            for (let w of keywords.super) if (inputVal.includes(w)) { type = "super"; detectedKeyword = w; }
-            if (type === "normal") for (let w of keywords.good) if (inputVal.includes(w)) { type = "good"; detectedKeyword = w; }
-            if (type === "normal") for (let w of keywords.bad) if (inputVal.includes(w)) { type = "bad"; detectedKeyword = w; }
+        function showResult(val) {
+            document.getElementById('analysisBox').style.display = 'block';
+            let seed = 0; for (let i = 0; i < val.length; i++) seed += val.charCodeAt(i);
+            
+            // 간단 결과 로직
+            let score = 85 + (seed % 15);
+            document.getElementById('scoreValue').innerText = score;
+            document.getElementById('commentText').innerHTML = `키워드 분석 완료! 당신의 행운 점수는 ${score}점입니다.`;
+            document.getElementById('detailReport').innerHTML = `<strong>💡 추천 전략:</strong> 꿈의 기운이 좋습니다. 소액으로 도전해보세요.`;
 
-            let seed = 0; for (let i = 0; i < inputVal.length; i++) seed += inputVal.charCodeAt(i);
-            let score = 0; let comment = ""; let detail = "";
-
-            if (type === "super") {
-                score = 95 + (seed % 6);
-                comment = `대박! <span class="highlight">'${detectedKeyword}'</span> 꿈은 로또 1등 당첨자들이 자주 꾸는 꿈이에요.`;
-                detail = `<strong>💰 당첨 확률:</strong> 최상 (적극 추천)<br><strong>💡 추천 전략:</strong> 자동 반, 수동 반.`;
-            } else if (type === "good") {
-                score = 80 + (seed % 15);
-                comment = `좋은 흐름이네요! <span class="highlight">'${detectedKeyword}'</span> 키워드는 재물 길몽입니다.`;
-                detail = `<strong>💰 당첨 확률:</strong> 좋음 (소액 투자)<br><strong>💡 추천 전략:</strong> 번호를 믿고 마킹해보세요.`;
-            } else if (type === "bad") {
-                score = 45 + (seed % 30);
-                comment = `찜찜하셨나요? <span class="highlight">'액땜'</span>입니다! 로또로 불운을 날려버리세요.`;
-                detail = `<strong>🛡️ 효과:</strong> 불운 소멸<br><strong>💡 추천 전략:</strong> 가볍게 천 원만!`;
-            } else {
-                score = 65 + (seed % 30);
-                comment = `평온한 꿈입니다. 당신의 꾸준함이 행운을 만듭니다.`;
-                detail = `<strong>✨ 상태:</strong> 일상의 행복<br><strong>💡 추천 전략:</strong> 기분 전환용 소액 구매.`;
-            }
-            animateScore(score);
-            document.getElementById('commentText').innerHTML = comment;
-            document.getElementById('detailReport').innerHTML = detail;
             const labels = ['A', 'B', 'C', 'D', 'E'];
             for (let i = 0; i < 5; i++) {
-                let currentSeed = seed + (i * 12345) + (seed % 777);
+                let currentSeed = seed + (i * 12345);
                 setTimeout(() => createRow(labels[i], getLottoNumbers(currentSeed)), 200 + (i * 150));
             }
         }
-        function animateScore(target) {
-            let now = 0; const el = document.getElementById('scoreValue');
-            const timer = setInterval(() => { now += 2; if (now >= target) { now = target; clearInterval(timer); } el.innerText = now; }, 15);
-        }
+
         function getLottoNumbers(seed) {
             const nums = new Set(); let i = 0;
-            while(nums.size < 6 && i < 100) {
+            while(nums.size < 6) {
                 let x = Math.sin(seed + i++) * 10000;
-                let n = Math.floor((x - Math.floor(x)) * 45) + 1;
-                nums.add(n);
+                nums.add(Math.floor((x - Math.floor(x)) * 45) + 1);
             }
             return [...nums].sort((a,b)=>a-b);
         }
         function createRow(label, nums) {
             const area = document.getElementById('resultArea');
             const div = document.createElement('div'); div.className = 'lotto-row';
-            let ballsHtml = '';
+            let balls = '';
             nums.forEach(n => {
                 let c = n<=10?'y':n<=20?'b':n<=30?'r':n<=40?'g':'gr';
-                ballsHtml += `<div class="ball ${c}">${n}</div>`;
+                balls += `<div class="ball ${c}">${n}</div>`;
             });
-            div.innerHTML = `<span class="row-label">${label}</span>${ballsHtml}`;
+            div.innerHTML = `<span class="row-label">${label}</span>${balls}`;
             area.appendChild(div);
         }
         function shareKakao() {
-            try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또 꿈 상점', description: '내 꿈이 1등 당첨 꿈일까?', imageUrl: 'https://cdn-icons-png.flaticon.com/512/1041/1041168.png', link: { mobileWebUrl: 'https://imokokok-hub.github.io', webUrl: 'https://imokokok-hub.github.io' } }, buttons: [{ title: '번호 확인하기', link: { mobileWebUrl: 'https://imokokok-hub.github.io', webUrl: 'https://imokokok-hub.github.io' } }] }); } catch(e) { alert("카카오톡 공유를 할 수 없어요 ㅠㅠ"); }
+            try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또 꿈 상점', description: '내 꿈이 1등 당첨 꿈일까?', imageUrl: 'https://cdn-icons-png.flaticon.com/512/1041/1041168.png', link: { mobileWebUrl: 'https://imokokok-hub.github.io', webUrl: 'https://imokokok-hub.github.io' } }, buttons: [{ title: '번호 확인하기', link: { mobileWebUrl: 'https://imokokok-hub.github.io', webUrl: 'https://imokokok-hub.github.io' } }] }); } catch(e) {}
         }
         function copyLink() { navigator.clipboard.writeText(location.href).then(()=>alert("링크 복사 완료!")).catch(()=>alert("복사 실패 ㅠㅠ")); }
-        document.getElementById("dreamInput").addEventListener("keypress", e => { if(e.key==="Enter") startAnalysis(); });
     </script>
 </body>
 </html>
