@@ -36,7 +36,7 @@
             padding-top: calc(var(--header-height) + 20px); overflow-x: hidden;
         }
 
-        /* 헤더 스타일 (로고 뭉개짐 방지 적용됨) */
+        /* 헤더 스타일 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
@@ -61,7 +61,7 @@
         .bg-mail { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); }
         .nav-icon svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* 사이드바 & 모달 */
+        /* 사이드바 */
         .sidebar {
             height: 100%; width: 260px; position: fixed; z-index: 2000; top: 0; left: -260px;
             background: #1e293b; box-shadow: 5px 0 15px rgba(0,0,0,0.5); transition: 0.3s; padding-top: 60px;
@@ -80,6 +80,8 @@
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; background: var(--kuji-purple); color: #fff; }
         
         .overlay { position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.7); z-index: 1500; }
+        
+        /* 모달 스타일 (스크롤 가능) */
         .modal {
             display: none; position: fixed; z-index: 3000; left: 50%; top: 50%; transform: translate(-50%, -50%);
             width: 90%; max-width: 400px; max-height: 80vh; background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
@@ -103,10 +105,11 @@
             padding: 18px 0; width: 100%; font-family: 'GmarketSansBold'; font-size: 17px; border-radius: 20px; cursor: pointer;
         }
 
-        /* 점수 크기 64px로 확대 */
+        /* 점수 크기 64px */
         .score-val { font-family: 'GmarketSansBold'; font-size: 64px; color: var(--accent-color); margin: 10px 0; display: block; text-shadow: 0 0 20px rgba(252, 211, 77, 0.5); }
-        /* 결과 멘트 박스 스타일 */
-        .comment-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 16px; line-height: 1.6; color: #e2e8f0; word-break: keep-all; }
+        
+        /* 상세 분석 박스 */
+        .comment-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 15px; line-height: 1.6; color: #e2e8f0; word-break: keep-all; }
 
         .lotto-row { display: flex; justify-content: center; background: rgba(255,255,255,0.07); padding: 12px; border-radius: 50px; margin-top: 10px; }
         .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; }
@@ -229,7 +232,7 @@
             "돼지": "축하합니다! 돼지는 예로부터 다산과 풍요, 그리고 막대한 부를 상징하는 최고의 영물입니다. 꿈속에서 돼지를 보셨다는 것은, 마치 굴러들어오는 복덩어리를 품에 안은 것과 같습니다. 이는 뜻하지 않은 횡재수나 사업의 번창, 혹은 직장에서의 승진과 같은 강력한 재물운을 암시합니다. 지금 당장 로또를 사셔도 좋을 만큼 기운이 차고 넘칩니다.",
             "똥": "더럽다고 피하지 마세요! 꿈속의 배설물은 현실 세계의 '황금'이자 성공을 위한 '거름'입니다. 배설물을 뒤집어쓰거나 밟는 꿈은, 현실에서 막대한 자금이 융통되거나 생각지 못한 큰돈을 만지게 될 확실한 징조입니다. 몸속의 독소가 빠져나가고 그 빈자리에 재물이 가득 채워지는 형국이니, 이번 주는 과감하게 투자해보셔도 좋습니다.",
             "조상": "돌아가신 조상님이 꿈에 나타나셨나요? 만약 밝은 표정이셨거나 무언가를 건네주셨다면, 이는 가문을 지켜주는 수호신이 당신을 돕고 있다는 강력한 신호입니다. 조상님이 불러주신 숫자가 있다면 그게 바로 1등 번호입니다. 기억나지 않더라도, 조상님의 가호가 깃든 이번 주는 당첨 확률이 그 어느 때보다 높습니다.",
-            "불": "활활 타오르는 불길은 당신의 운세가 맹렬한 기세로 일어나고 있음을 의미합니다. 집이나 산이 불타는 꿈은 사업의 확장과 자산의 증식을 암시하며, 불길이 거셀수록 들어올 재물의 크기도 커집니다. 꺼져가는 불씨가 아닌 거센 화염이었다면, 이번 주 당신의 금전운은 '폭발적'입니다.",
+            "불": "활활 타오르는 불길은 당신의 운세가 맹렬한 기세로 일어나고 있음을 의미합니다. 집이나 산이 불타는 꿈은 사업의 확장과 자산의 증식을 암시하며, 불길이 거셀수록 들어올 재물의 크기도 커질 것입니다. 꺼져가는 불씨가 아닌 거센 화염이었다면, 이번 주 당신의 금전운은 '폭발적'입니다.",
             "피": "꿈에서의 피는 생명력이자, 경제적으로는 '자금의 흐름'을 상징합니다. 피를 많이 흘릴수록 현실에서는 금전적인 이득이 커진다고 해석합니다. 꽉 막혀있던 돈맥경화가 뚫리고 시원하게 재물이 들어올 징조입니다. 두려워 말고 이 붉은 기운을 로또 당첨의 에너지로 바꾸세요.",
             "뱀": "뱀은 지혜와 재물을 지키는 영물입니다. 뱀이 집으로 들어오거나 몸을 감는 꿈은, 권력과 명예 그리고 그에 따른 부가 함께 들어옴을 의미합니다. 특히 구렁이 같은 큰 뱀일수록 당첨 확률은 더욱 높아집니다. 태몽이 아니라면, 이는 확실한 횡재수입니다.",
             "이빨": "이빨이 빠지거나 흔들리는 꿈은 흔히 흉몽이라 하여 걱정하시지만, 로또의 관점에서는 '액땜'으로 해석합니다. 닥쳐올 불운을 꿈으로 미리 해소한 것이죠. 이럴 때 로또를 구매하는 것은 남은 찜찜함과 불운을 희망으로 승화시키는 최고의 개운법입니다. 천 원의 투자가 나쁜 운을 막아줄 부적이 될 것입니다.",
@@ -355,6 +358,4 @@
         function copyLink() { navigator.clipboard.writeText(location.href).then(()=>alert("복사 완료!")).catch(()=>alert("실패!")); }
     </script>
 </body>
-
-
-
+</html>
