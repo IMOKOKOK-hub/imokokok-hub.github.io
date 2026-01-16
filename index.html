@@ -147,19 +147,29 @@
     </div>
 
     <div id="infoModal" class="modal">
-        <h2 style="color:#2dd4bf; text-align:center; margin-top:0;">📖 로또 꿈해몽 가이드</h2>
-        <div style="color:#cbd5e1; line-height:1.6;">
-            <p><strong>왜 꿈해몽으로 로또를 사야 할까요?</strong><br>
-            로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다.</p>
-            <h3 style="color:#fff; margin-top:20px;">🔥 반드시 사야 하는 '대박 꿈'</h3>
+        <h2 style="color:#2dd4bf; text-align:center; margin-top:0; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">📖 호들갑 꿈해몽 대백과</h2>
+        <div style="color:#cbd5e1; line-height:1.8; text-align: left;">
+            <p><strong>💡 왜 꿈해몽일까요?</strong><br>
+            로또 1등 당첨 확률은 814만 분의 1입니다. 이 기적 같은 확률을 뚫으려면 단순한 운을 넘어, 무의식이 보내는 강력한 시그널인 '꿈'을 잡아야 합니다.</p>
+            
+            <h3 style="color:#fff; margin-top:25px; border-left: 3px solid #fcd34d; padding-left:10px;">🔥 필승! 3대 길몽</h3>
             <ul>
-                <li><strong>황금, 똥:</strong> 막대한 재물과 자산을 상징하는 최고의 길몽입니다.</li>
-                <li><strong>불이 타오르는 꿈:</strong> 집이나 산이 불타는 꿈은 운세가 불길처럼 번창한다는 뜻입니다.</li>
-                <li><strong>피를 보는 꿈:</strong> 피는 생명력이자 재물입니다. 많이 흘릴수록 좋습니다.</li>
-                <li><strong>조상님 꿈:</strong> 조상님이 웃거나 숫자를 주면 즉시 복권방으로 가세요.</li>
+                <li><strong>🐷 돼지:</strong> 재물운의 황제입니다. 돼지가 달려들거나 집으로 들어오면 묻지도 따지지도 말고 복권을 사세요. 떼돈을 벌 상징입니다.</li>
+                <li><strong>💩 똥(배설물):</strong> 더러울수록 좋습니다! 온몸에 똥을 뒤집어쓰거나 밟는 꿈은 현실의 황금을 의미합니다. 막대한 자산이 굴러들어올 징조입니다.</li>
+                <li><strong>🔥 불:</strong> 활활 타오르는 불길은 당신의 운세가 폭발적으로 상승함을 의미합니다. 집이나 산이 다 타버릴수록 재물운은 더 커집니다.</li>
             </ul>
+
+            <h3 style="color:#fff; margin-top:25px; border-left: 3px solid #2dd4bf; padding-left:10px;">✨ 놓치면 안 될 대박 신호</h3>
+            <ul>
+                <li><strong>👴 조상님:</strong> 돌아가신 조상님이 밝은 얼굴로 나오거나 숫자를 주신다면? 그건 당첨 번호 그 자체입니다.</li>
+                <li><strong>🩸 피:</strong> 피는 생명력이자 돈의 흐름입니다. 피가 철철 흐르는 꿈은 막혔던 돈줄이 터진다는 최고의 길몽입니다.</li>
+                <li><strong>🌊 물:</strong> 맑은 물이 집안으로 밀려오거나 홍수가 나는 꿈은 거대한 부의 파도가 당신을 덮치는 형국입니다.</li>
+            </ul>
+
+            <h3 style="color:#fff; margin-top:25px; border-left: 3px solid #fb7185; padding-left:10px;">😱 흉몽? 아니요, 액땜입니다!</h3>
+            <p>이빨이 빠지거나, 쫓기거나, 떨어지는 꿈을 꾸셨나요? 걱정 마세요. 꿈해몽학에서는 이를 <strong>'액땜(불운 해소)'</strong>으로 봅니다. 로또를 구매하는 행위로 남은 찜찜함을 날려버리고 희망을 품으세요.</p>
         </div>
-        <button onclick="closeModal()" style="width:100%; padding:12px; margin-top:20px; background:var(--point-color); border:none; border-radius:12px; font-weight:bold; cursor:pointer;">닫기</button>
+        <button onclick="closeModal()" style="width:100%; padding:15px; margin-top:25px; background:linear-gradient(135deg, var(--point-color), #0d9488); border:none; border-radius:12px; font-weight:bold; color:white; cursor:pointer; font-size:16px;">닫기</button>
     </div>
 
     <div class="container">
@@ -183,8 +193,8 @@
             </div>
             
             <div id="commentBox" class="comment-box" style="text-align: left;">
-                <h3 id="keywordBadge" style="color:var(--accent-color); margin-top:0;">키워드: 분석중</h3>
-                <div id="commentText"></div>
+                <h3 id="keywordBadge" style="color:var(--accent-color); margin-top:0; font-size: 18px;">🔍 분석 키워드: <span id="kwdText"></span></h3>
+                <div id="commentText" style="margin-top: 15px;"></div>
             </div>
             
             <details>
@@ -203,22 +213,6 @@
         <div class="ad-placeholder">구글 광고가 표시되는 공간입니다</div>
     </div>
 
-    <div style="max-width: 500px; width: 100%;">
-        <details open>
-            <summary>📖 로또 당첨의 비밀: 꿈해몽 가이드</summary>
-            <div class="details-content">
-                <h3>왜 꿈해몽으로 로또를 사야 할까요?</h3>
-                <p>로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다. 실제로 수많은 1등 당첨자들이 "조상님이 번호를 알려줬다"거나 "돼지를 잡는 꿈을 꿨다"고 인터뷰합니다.</p>
-                <h3>반드시 로또를 사야 하는 '대박 꿈' 3가지</h3>
-                <ul>
-                    <li><strong>1. 황금과 배설물(똥) 꿈:</strong> 불쾌해하지 마세요! 꿈속의 배설물은 현실에서 막대한 자산과 당첨금을 상징하는 최고의 길몽입니다.</li>
-                    <li><strong>2. 불이 활활 타오르는 꿈:</strong> 집이나 산이 불타는 꿈은 운세가 불길처럼 번창한다는 뜻입니다. 이번 주 로또 명당은 바로 당신입니다.</li>
-                    <li><strong>3. 피를 많이 흘리는 꿈:</strong> 꿈에서의 피는 생명력이자 재물입니다. 피가 철철 흐를수록 당첨 금액이 커진다고 해석합니다.</li>
-                </ul>
-            </div>
-        </details>
-    </div>
-
     <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
@@ -230,29 +224,47 @@
         const KAKAO_KEY = 'cf95e23dab0df4c6d229a734e0180def';
         try { if (!Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
         
-        // 🔥 키워드별 상세 해석 사전 (여기가 핵심!)
+        // 🔥 [장문 해석 사전] 키워드별로 진짜 길고 성의 있는 멘트 준비
         const dreamDictionary = {
-            "돼지": "돼지는 전통적으로 부와 다산을 상징하는 최고의 길조입니다. 꿈속에서 돼지가 품에 안기거나 집으로 들어왔다면, 이는 굴러들어오는 복덩어리와 같습니다. 뜻하지 않은 횡재수나 사업의 번창을 암시하며, 지금 당장 로또를 사도 좋을 만큼 강력한 재물운을 의미합니다.",
-            "똥": "더럽다고 피하지 마세요! 꿈속의 배설물은 현실의 '황금'이자 '거름'입니다. 배설물을 뒤집어쓰거나 밟는 꿈은 막대한 자금이 융통되거나 큰돈을 만지게 될 징조입니다. 독소가 빠져나가고 그 자리에 재물이 채워지는 형국이니, 과감한 투자가 필요합니다.",
-            "조상": "돌아가신 조상님이 밝은 표정으로 나타났다면, 이는 가문을 지켜주는 수호신이 돕고 있다는 뜻입니다. 조상님이 숫자를 불러주거나 돈을 건네주셨다면 더할 나위 없는 1등 당첨 신호입니다. 꿈에서 본 숫자나 느낌을 믿고 실행에 옮기세요.",
-            "불": "활활 타오르는 불은 당신의 운세가 불길처럼 일어나고 있음을 의미합니다. 집이나 산이 불타는 꿈은 사업의 확장과 자산의 증식을 암시합니다. 불이 꺼지지 않고 거셀수록 당첨금의 규모도 커질 것입니다.",
-            "피": "꿈에서의 피는 생명력이자 곧 재물의 흐름입니다. 피를 많이 흘릴수록 현실에서는 금전적인 이득이 커집니다. 막혀있던 돈맥경화가 뚫리고 시원하게 재물이 들어올 징조이니 걱정 말고 복권을 구매하세요.",
-            "뱀": "뱀은 지혜와 재물을 지키는 영물입니다. 뱀이 집으로 들어오거나 몸을 감는 꿈은, 권력과 명예 그리고 그에 따른 부가 함께 들어옴을 의미합니다. 특히 구렁이 같은 큰 뱀일수록 당첨 확률은 더욱 높아집니다.",
-            "이빨": "이빨이 빠지는 꿈은 흔히 흉몽이라 하지만, 로또의 관점에서는 '액땜'입니다. 닥쳐올 불운을 꿈으로 미리 해소한 것이죠. 이럴 때 로또를 구매하는 것은 남은 불운을 희망으로 승화시키는 최고의 개운법입니다.",
-            "물": "맑은 물이 집안으로 들어오거나 홍수가 나는 꿈은 거대한 재물의 파도가 밀려오는 것과 같습니다. 물의 양이 많을수록 금전운도 비례하여 상승합니다."
+            "돼지": "축하합니다! 돼지는 예로부터 다산과 풍요, 그리고 막대한 부를 상징하는 최고의 영물입니다. 꿈속에서 돼지를 보셨다는 것은, 마치 굴러들어오는 복덩어리를 품에 안은 것과 같습니다. 이는 뜻하지 않은 횡재수나 사업의 번창, 혹은 직장에서의 승진과 같은 강력한 재물운을 암시합니다. 지금 당장 로또를 사셔도 좋을 만큼 기운이 차고 넘칩니다.",
+            "똥": "더럽다고 피하지 마세요! 꿈속의 배설물은 현실 세계의 '황금'이자 성공을 위한 '거름'입니다. 배설물을 뒤집어쓰거나 밟는 꿈은, 현실에서 막대한 자금이 융통되거나 생각지 못한 큰돈을 만지게 될 확실한 징조입니다. 몸속의 독소가 빠져나가고 그 빈자리에 재물이 가득 채워지는 형국이니, 이번 주는 과감하게 투자해보셔도 좋습니다.",
+            "조상": "돌아가신 조상님이 꿈에 나타나셨나요? 만약 밝은 표정이셨거나 무언가를 건네주셨다면, 이는 가문을 지켜주는 수호신이 당신을 돕고 있다는 강력한 신호입니다. 조상님이 불러주신 숫자가 있다면 그게 바로 1등 번호입니다. 기억나지 않더라도, 조상님의 가호가 깃든 이번 주는 당첨 확률이 그 어느 때보다 높습니다.",
+            "불": "활활 타오르는 불길은 당신의 운세가 맹렬한 기세로 일어나고 있음을 의미합니다. 집이나 산이 불타는 꿈은 사업의 확장과 자산의 증식을 암시하며, 불길이 거셀수록 들어올 재물의 크기도 커집니다. 꺼져가는 불씨가 아닌 거센 화염이었다면, 이번 주 당신의 금전운은 '폭발적'입니다.",
+            "피": "꿈에서의 피는 생명력이자, 경제적으로는 '자금의 흐름'을 상징합니다. 피를 많이 흘릴수록 현실에서는 금전적인 이득이 커진다고 해석합니다. 꽉 막혀있던 돈맥경화가 뚫리고 시원하게 재물이 들어올 징조입니다. 두려워 말고 이 붉은 기운을 로또 당첨의 에너지로 바꾸세요.",
+            "뱀": "뱀은 지혜와 재물을 지키는 영물입니다. 뱀이 집으로 들어오거나 몸을 감는 꿈은, 권력과 명예 그리고 그에 따른 부가 함께 들어옴을 의미합니다. 특히 구렁이 같은 큰 뱀일수록 당첨 확률은 더욱 높아집니다. 태몽이 아니라면, 이는 확실한 횡재수입니다.",
+            "이빨": "이빨이 빠지거나 흔들리는 꿈은 흔히 흉몽이라 하여 걱정하시지만, 로또의 관점에서는 '액땜'으로 해석합니다. 닥쳐올 불운을 꿈으로 미리 해소한 것이죠. 이럴 때 로또를 구매하는 것은 남은 찜찜함과 불운을 희망으로 승화시키는 최고의 개운법입니다. 천 원의 투자가 나쁜 운을 막아줄 부적이 될 것입니다.",
+            "물": "맑은 물이 집안으로 들어오거나 홍수가 나는 꿈은 거대한 재물의 파도가 밀려오는 것과 같습니다. 물의 양이 많을수록, 물살이 셀수록 금전운도 비례하여 상승합니다. 흐르는 물처럼 돈이 당신에게로 흘러들어올 기세입니다.",
+            "돈": "꿈에서 돈을 줍거나 받는 것은 현실에서도 그대로 이루어질 가능성이 높은 예지몽 중 하나입니다. 지폐 뭉치였다면 더할 나위 없고, 동전이라도 그 개수만큼의 행운이 따릅니다. 재물운이 눈앞에 와 있으니 손을 뻗어 잡기만 하면 됩니다.",
+            "대통령": "최고의 권력자인 대통령이나 유명인을 만나는 꿈은, 당신의 신분 상승과 명예운을 상징합니다. 귀인의 도움으로 큰 성과를 얻거나, 복권 당첨과 같은 국가적인 행운이 따를 수 있습니다. 로또 1등 당첨자의 단골 꿈 메뉴 중 하나입니다."
+        };
+
+        // 점수대별 장문 멘트 (키워드 없을 때 사용)
+        const scoreComments = {
+            high: [
+                "이 꿈은 천 년에 한 번 올까 말까 한 대박 꿈입니다! 😲 온 우주가 당신의 당첨을 돕고 있습니다. 꿈속의 기운이 너무나 강렬하여, 이번 주는 복권방을 그냥 지나치시면 평생 후회할지도 모릅니다. 망설이지 말고 당장 달려가세요!",
+                "믿을 수 없는 기운이 느껴집니다. 전설적인 1등 당첨자들에게서나 나타나는 강력한 횡재수가 보입니다. 당신의 무의식이 '지금이야!'라고 외치고 있습니다. 인생 역전의 주인공은 바로 당신입니다.",
+                "축하합니다! 하늘의 문이 열리고 재물이 쏟아져 들어올 징조입니다. 이 정도 꿈이라면 로또 1등은 물론이고, 연금복권까지 노려볼 만합니다. 주변에 알리지 말고 조용히 구매하세요."
+            ],
+            mid: [
+                "상당히 좋은 흐름입니다! 🌊 재물운이 상승 곡선을 그리고 있어, 무엇을 해도 잘 풀릴 시기입니다. 1등까지는 아니더라도 2, 3등의 고액 당첨은 충분히 노려볼 만한 훌륭한 꿈입니다.",
+                "긍정적인 기운이 가득합니다. 꽉 막혀있던 운이 트이면서 생각지 못한 곳에서 돈이 들어올 수 있습니다. 로또 한 장으로 이 좋은 기운을 확실하게 잡아두시는 것을 추천합니다."
+            ],
+            low: [
+                "꿈자리가 조금 뒤숭숭하셨나요? 😅 하지만 걱정 마세요. 꿈해몽에서는 이를 현실의 나쁜 운을 미리 몰아내는 '액땜'으로 봅니다. 지금 로또를 사는 건 불운을 행운으로 바꾸는 최고의 반전 카드입니다.",
+                "평범해 보이는 꿈이지만, 꾸준함이 모여 큰 행운을 만듭니다. 특별한 계시는 없어도 당신의 긍정적인 마음가짐이 당첨운을 불러올 것입니다. 가벼운 마음으로 도전해보세요."
+            ]
         };
 
         const keywords = {
-            super: ["돼지", "똥", "조상", "불", "대통령", "1등", "당첨", "40억", "황금", "시신", "피", "할머니", "복권", "용", "보석"],
-            good: ["뱀", "물", "바다", "연예인", "돈", "합격", "비행기", "대변", "지폐", "강아지", "차", "집"],
-            bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "상복", "거울", "살인", "쫓기"]
+            super: ["돼지", "똥", "조상", "불", "대통령", "1등", "당첨", "40억", "황금", "시신", "피", "할머니", "복권", "용", "보석", "유명인"],
+            good: ["뱀", "물", "바다", "연예인", "돈", "합격", "비행기", "대변", "지폐", "강아지", "차", "집", "산", "나무"],
+            bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "상복", "거울", "살인", "쫓기", "분실"]
         };
 
         function startAnalysis() {
             const input = document.getElementById('dreamInput');
             if (input.value.replace(/\s/g, "").length < 5) { 
-                document.getElementById('inputAlert').style.display = 'block'; 
-                return; 
+                document.getElementById('inputAlert').style.display = 'block'; return; 
             }
             document.getElementById('inputAlert').style.display = 'none';
             document.getElementById('analyzeBtn').style.display = 'none';
@@ -260,7 +272,7 @@
             document.getElementById('analysisBox').style.display = 'none';
             document.getElementById('resultArea').innerHTML = '';
             
-            let msgIdx = 0; const msgs = ["꿈속의 당첨 신호를 찾는 중...", "빅데이터와 대조하는 중...", "1등 당첨 기운을 모으는 중..."];
+            let msgIdx = 0; const msgs = ["꿈속의 상징을 추출하는 중...", "빅데이터와 대조하는 중...", "당첨 확률을 계산하는 중..."];
             document.getElementById('loadingText').innerText = msgs[0];
             const msgInterval = setInterval(() => { msgIdx++; if(msgIdx < msgs.length) document.getElementById('loadingText').innerText = msgs[msgIdx]; }, 1000);
 
@@ -278,54 +290,45 @@
             
             // 1. 키워드 분석
             let type = "normal";
-            let detectedKeyword = "일상";
+            let detectedKeyword = "";
             
-            // 키워드 우선순위 검색
             for (let w of keywords.super) if (val.includes(w)) { type = "super"; detectedKeyword = w; break; }
-            if (type === "normal" || detectedKeyword === "일상") {
-                for (let w of keywords.good) if (val.includes(w)) { type = "good"; detectedKeyword = w; break; }
-            }
-            if (type === "normal" || detectedKeyword === "일상") {
-                for (let w of keywords.bad) if (val.includes(w)) { type = "bad"; detectedKeyword = w; break; }
-            }
+            if (!detectedKeyword) for (let w of keywords.good) if (val.includes(w)) { type = "good"; detectedKeyword = w; break; }
+            if (!detectedKeyword) for (let w of keywords.bad) if (val.includes(w)) { type = "bad"; detectedKeyword = w; break; }
+            
+            if (!detectedKeyword) detectedKeyword = "종합 운세";
 
-            // 2. 점수 계산
+            // 2. 점수 계산 (타입에 따라 점수대 강제 배정)
             let seed = 0; for (let i = 0; i < val.length; i++) seed += val.charCodeAt(i);
             let randomPart = seed % 10; 
             let score = 0;
-            if (type === 'super') score = 95 + (randomPart % 5);
-            else if (type === 'good') score = 80 + (randomPart % 15);
-            else if (type === 'bad') score = 50 + (randomPart % 20);
-            else score = 70 + (randomPart % 10);
 
-            // 3. 상세 해석 생성 (여기가 핵심!)
+            if (type === 'super') score = 92 + (randomPart % 8); // 92~99점 (무조건 대박)
+            else if (type === 'good') score = 80 + (randomPart % 10); // 80~89점
+            else if (type === 'bad') score = 50 + (randomPart % 20); // 50~69점 (액땜)
+            else score = 70 + (randomPart % 10); // 70~79점 (보통)
+
+            // 3. 텍스트 생성 (사전 우선 -> 없으면 점수대별 랜덤 멘트)
             let explanation = "";
             
-            // 사전에 있는 키워드면 사전 내용 사용
             if (dreamDictionary[detectedKeyword]) {
                 explanation = dreamDictionary[detectedKeyword];
             } else {
-                // 사전에 없으면 타입별 긴 템플릿 사용
-                if (type === "super") {
-                    explanation = `입력하신 꿈에서 발견된 <span style='color:#fcd34d'>'${detectedKeyword}'</span> 키워드는 로또 1등 당첨자들이 자주 언급하는 강력한 재물 신호입니다. 우주의 기운이 당신의 지갑을 향해 모이고 있습니다. 이 꿈은 단순한 우연이 아니며, 당신의 인생을 바꿀 절호의 기회일 수 있습니다. 망설이지 말고 지금 당장 행동하세요.`;
-                } else if (type === "good") {
-                    explanation = `꿈속의 <span style='color:#2dd4bf'>'${detectedKeyword}'</span> 키워드는 긍정적인 변화와 소소한 행운을 암시합니다. 막혀있던 일들이 풀리고 금전적인 흐름이 원활해질 징조입니다. 큰 욕심보다는 즐기는 마음으로 로또를 구매하신다면, 기대 이상의 좋은 결과를 얻을 수도 있습니다.`;
-                } else if (type === "bad") {
-                    explanation = `꿈 내용이 조금 뒤숭숭하셨나요? 하지만 걱정하지 마세요. 꿈해몽에서 <span style='color:#fb7185'>'${detectedKeyword}'</span> 같은 부정적인 요소는 현실의 불운을 미리 해소하는 '액땜'으로 해석됩니다. 지금 로또를 구매하는 행위는 남은 불운을 털어내고 새로운 희망을 사는 부적과도 같습니다.`;
-                } else {
-                    explanation = `당신의 꿈은 평온하고 잔잔한 일상의 행복을 담고 있습니다. 특별한 대박 신호는 없지만, 꾸준하고 성실한 당신의 태도가 결국엔 행운을 만들어낼 것입니다. 기분 전환 삼아 가벼운 마음으로 도전해보세요. 행운은 예고 없이 찾아오는 법이니까요.`;
-                }
+                // 키워드 사전 없을 때 점수 기반 멘트
+                if (score >= 90) explanation = scoreComments.high[seed % scoreComments.high.length];
+                else if (score >= 80) explanation = scoreComments.mid[seed % scoreComments.mid.length];
+                else explanation = scoreComments.low[seed % scoreComments.low.length];
             }
 
             // 4. 화면 표시
-            document.getElementById('keywordBadge').innerText = `분석 키워드: ${detectedKeyword}`;
+            document.getElementById('kwdText').innerText = detectedKeyword;
             document.getElementById('scoreValue').innerText = score;
             document.getElementById('commentText').innerHTML = explanation;
             
             let detail = "";
-            if(score >= 90) detail = `<strong>💰 당첨 확률:</strong> 최상 (인생 역전)<br><strong>💡 추천 전략:</strong> 자동 5천원, 수동 5천원 구매 추천.`;
-            else if(score >= 80) detail = `<strong>💰 당첨 확률:</strong> 좋음<br><strong>💡 추천 전략:</strong> 느낌 오는 번호로 수동 구매.`;
-            else detail = `<strong>🛡️ 효과:</strong> 액땜 및 기분 전환<br><strong>💡 추천 전략:</strong> 소액으로 가볍게 즐기세요.`;
+            if(score >= 90) detail = `<strong>💰 당첨 확률:</strong> <span style='color:#fcd34d'>최상 (강력 추천)</span><br><strong>💡 전략:</strong> 운이 절정에 달했습니다. 자동 5천원, 수동 5천원 분산 투자하세요.`;
+            else if(score >= 80) detail = `<strong>💰 당첨 확률:</strong> 좋음<br><strong>💡 전략:</strong> 좋은 기운이 들어왔습니다. 평소 생각했던 번호로 도전해보세요.`;
+            else detail = `<strong>🛡️ 효과:</strong> 액땜 및 기분 전환<br><strong>💡 전략:</strong> 큰 기대보다는 소액으로 불운을 씻어내는 느낌으로!`;
             
             document.getElementById('detailReport').innerHTML = detail;
 
@@ -352,6 +355,6 @@
         function copyLink() { navigator.clipboard.writeText(location.href).then(()=>alert("복사 완료!")).catch(()=>alert("실패!")); }
     </script>
 </body>
-</html>
+
 
 
