@@ -29,26 +29,12 @@
         }
 
         .top-nav {
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: var(--header-height);
-            background: rgba(15, 23, 42, 0.95); 
-            backdrop-filter: blur(12px); 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; /* ✅ 양쪽 끝으로 쫙 벌려주는 핵심 코드 */
-            padding: 0 20px; 
-            box-sizing: border-box; 
-            z-index: 10000; /* ✅ 숫자를 높여서 다른 화면에 가려지지 않게 함 */
-        }
-
-        .nav-left { 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; 
+            justify-content: space-between; /* ✅ 왼쪽으로 정렬! */
+            gap: 20px; /* ✅ 로고와 아이콘 사이 간격 (조절 가능) */
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
         .nav-logo { font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none; }
         .nav-links { display: flex; gap: 8px; align-items: center; }
@@ -110,80 +96,36 @@
     </style>
 </head>
 <body>
-    <div id="infoModal" class="modal">
-        <h2 style="color:#2dd4bf; text-align:center; margin-top:0; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; font-family:'GmarketSansBold';">📖 호들갑 꿈해몽 대백과</h2>
-        
-        <div style="color:#cbd5e1; line-height:1.8; font-size:14px;">
-            <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: rgba(45, 212, 191, 0.05); border-radius: 15px;">
-                <p style="margin: 0; color: #fff; font-size: 15px;">
-                    "로또 1등 당첨자의 약 <strong>40%</strong>가<br>
-                    구매 전 <strong>특별한 꿈</strong>을 꾸었다고 답했습니다."
-                </p>
-                <p style="margin-top: 10px; font-size: 13px; color: #94a3b8;">
-                    무의식이 보내는 숫자 시그널을 절대 놓치지 마세요.
-                </p>
-            </div>
+    <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 
-            <h3 style="color:#fcd34d; margin-top:35px; border-left:4px solid #fcd34d; padding-left:10px; font-family:'GmarketSansBold';">🔥 인생역전! 역대급 '5대 길몽'</h3>
-            <ul style="padding-left: 20px; margin-top: 15px;">
-                <li style="margin-bottom: 15px;">
-                    <strong style="color:#fff;">🐷 돼지가 품 안으로 들어오는 꿈</strong><br>
-                    재물운의 상징인 돼지는 그 자체로 '돈'입니다. 특히 흰 돼지나 황금 돼지가 나타나거나, 돼지 떼가 집안으로 몰려오는 꿈은 가문이 번창할 대박 징조입니다.
-                </li>
-                <li style="margin-bottom: 15px;">
-                    <strong style="color:#fff;">💩 온몸에 똥을 뒤집어쓰는 꿈</strong><br>
-                    현실에서는 불쾌하지만 꿈에서는 '황금'과 같습니다. 똥통에 빠지거나, 똥을 손으로 만지거나, 밟는 꿈은 막대한 자본이 융통되거나 유산 상속 등의 횡재수를 암시합니다.
-                </li>
-                <li style="margin-bottom: 15px;">
-                    <strong style="color:#fff;">👴 돌아가신 조상님이 밝게 웃는 꿈</strong><br>
-                    조상님은 가문을 지키는 수호신입니다. 인자한 모습으로 무언가를 건네주거나 숫자를 불러주었다면, 그것은 하늘이 내린 1등 번호입니다. 즉시 메모하세요!
-                </li>
-                <li style="margin-bottom: 15px;">
-                    <strong style="color:#fff;">🔥 집이나 산에 불이 활활 타는 꿈</strong><br>
-                    불길은 '상승의 기운'입니다. 꺼지지 않고 번져나갈수록 당신의 운세가 폭발적으로 커짐을 의미합니다. 불길이 거셀수록 들어올 당첨금의 규모도 커집니다.
-                </li>
-                <li style="margin-bottom: 15px;">
-                    <strong style="color:#fff;">🩸 내 몸에서 피가 철철 흐르는 꿈</strong><br>
-                    꿈에서의 피는 생명력이자 경제적 흐름입니다. 내 몸에서 피가 나거나 피바다를 보는 꿈은 막혔던 금전운이 시원하게 뚫린다는 최고의 신호입니다.
-                </li>
-            </ul>
-
-            <h3 style="color:#2dd4bf; margin-top:40px; border-left:4px solid #2dd4bf; padding-left:10px; font-family:'GmarketSansBold';">🐉 신비로운 동물과 자연의 계시</h3>
-            <ul style="padding-left: 20px; margin-top: 15px;">
-                <li style="margin-bottom: 12px;"><strong>용/호랑이:</strong> 명예와 큰 재물을 동시에 얻습니다. 리더가 되거나 큰 상을 받을 운세입니다.</li>
-                <li style="margin-bottom: 12px;"><strong>뱀(구렁이):</strong> 영리하게 재물을 모으는 꿈입니다. 뱀이 몸을 감싸면 놓치지 말아야 할 기회가 왔음을 뜻합니다.</li>
-                <li style="margin-bottom: 12px;"><strong>거북이:</strong> 장수와 안정적인 부를 뜻합니다. 거북이를 타고 바다를 건너면 일확천금의 기회가 옵니다.</li>
-                <li style="margin-bottom: 12px;"><strong>물/홍수:</strong> 맑은 물이 집안을 가득 채우면 부귀영화가 찾아옵니다. 물살이 셀수록 재물의 유입도 빠릅니다.</li>
-                <li style="margin-bottom: 12px;"><strong>대통령/유명인:</strong> 귀인의 도움을 받거나 신분이 상승합니다. 당신이 특별한 존재가 될 시간입니다.</li>
-            </ul>
-
-            <h3 style="color:#fb7185; margin-top:40px; border-left:4px solid #fb7185; padding-left:10px; font-family:'GmarketSansBold';">🛡️ 뒤숭숭한 꿈? '액땜'으로 승화!</h3>
-            <div style="margin-top: 15px; padding: 15px; background: rgba(251, 113, 133, 0.05); border-radius: 12px; border: 1px solid rgba(251, 113, 133, 0.1);">
-                <p style="margin-top: 0;">
-                    이빨이 빠지는 꿈, 누군가에게 쫓겨 공포에 떠는 꿈, 싸우거나 죽는 꿈을 꾸고 기분이 찝찝하신가요? 
-                </p>
-                <p style="margin-bottom: 0;">
-                    걱정하지 마세요! 이것은 현실의 나쁜 기운을 꿈속에서 미리 털어버린 <strong>'액땜'</strong>입니다. 
-                    이런 날 로또를 사는 행위는 <strong>불운을 행운으로 반전시키는 최고의 기술</strong>입니다. 찜찜함을 희망으로 바꾸는 강력한 개운법을 사용하세요!
-                </p>
-            </div>
-
-            <h3 style="color:#fff; margin-top:40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; font-family:'GmarketSansBold';">💡 꿈을 숫자로 바꾸는 팁</h3>
-            <div style="margin-top: 15px;">
-                <p>1. <strong>숫자를 보았다면:</strong> 기억나는 숫자는 무조건 포함하세요. (강력한 예지)</p>
-                <p>2. <strong>사물을 세어보세요:</strong> 과일 3개를 땄다면 3번, 신발 2켤레를 샀다면 2번이 행운의 번호입니다.</p>
-                <p>3. <strong>등장인물:</strong> 가족이나 지인이 나왔다면 그들의 생일이나 나이를 조합해보는 것도 좋은 전략입니다.</p>
-                <p>4. <strong>기분:</strong> 꿈에서 깼을 때 기분이 아주 좋았다면, 그날이 바로 당신의 당첨일입니다.</p>
-            </div>
-
-            <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px;">
-                * 호들갑 꿈 상점은 당신의 행운을 진심으로 기원합니다. *
-            </div>
+   <header class="top-nav">
+        <div class="nav-left">
+            <a href="#" class="nav-logo">🛠️ 호들갑 LAB</a>
+            <button class="menu-btn" onclick="openSidebar()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer; margin-left:10px;">☰</button>
         </div>
-        
-        <button onclick="closeModal()" style="width:100%; padding:18px; margin-top:30px; background:linear-gradient(135deg, var(--point-color), #0d9488); border:none; border-radius:15px; font-weight:bold; color:white; cursor:pointer; font-size:16px; box-shadow: 0 4px 15px rgba(45, 212, 191, 0.3);">
-            기운 받아 로또 생성하기
-        </button>
+
+        <div class="nav-links">
+            <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank">T</a>
+            <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank">N</a>
+            <span class="nav-icon" onclick="openModal()" style="cursor: pointer; color:var(--accent-color);">?</span>
+            <a href="mailto:seungjunshose@gmail.com" class="nav-icon">✉️</a>
+        </div>
+    </header>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <div style="padding:20px; color:#fff; font-weight:bold; background:linear-gradient(90deg, #6366f1, #8b5cf6);">🛠️ 호들갑 LAB</div>
+        <a href="#" style="display:block; padding:20px; color:#e2e8f0; text-decoration:none; border-bottom:1px solid rgba(255,255,255,0.05);" onclick="alert('🚧 곧 공개됩니다!')">호들갑 쿠지 (준비중)</a>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <h2 style="color:#2dd4bf; text-align:center; margin-top:0;">📖 호들갑 꿈해몽 가이드</h2>
+        <div style="color:#cbd5e1; font-size:14px; line-height:1.6;">
+            <p><strong>🐷 돼지 / 💩 똥 / 🔥 불:</strong> 재물운의 상징! 인생 역전의 기회이니 5게임 풀매수 추천!</p>
+            <p><strong>👴 조상님:</strong> 밝은 표정으로 숫자를 주셨다면? 그건 1등 당첨 번호입니다.</p>
+            <p><strong>🦷 이빨 / 🏃 쫓김:</strong> 흉몽은 '액땜'입니다. 로또로 나쁜 운을 희망으로 바꾸세요.</p>
+        </div>
+        <button onclick="closeModal()" style="width:100%; padding:12px; margin-top:20px; background:var(--point-color); border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer;">닫기</button>
     </div>
 
     <div class="container">
@@ -399,7 +341,4 @@
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
-
-
-
 
