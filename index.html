@@ -329,41 +329,110 @@
             }, 3000);
         }
 
-        async function showResult(input) {
-            document.getElementById('analysisBox').style.display = 'block';
-            
-            let kwd = input.includes("돼지") ? "돼지" : input.includes("똥") ? "똥" : "일상";
-            let score = kwd === "일상" ? 70 + Math.floor(Math.random()*20) : 90 + Math.floor(Math.random()*9);
-            
-            document.getElementById('kwdText').innerText = kwd;
-            document.getElementById('scoreValue').innerText = score;
-            document.getElementById('commentText').innerText = kwd + " 관련 꿈은 아주 좋은 징조입니다! 긍정적인 기운이 느껴집니다.";
+       async function showResult(input) {
+    document.getElementById('analysisBox').style.display = 'block';
+    
+    // 1. 키워드 DB (기존보다 2배 이상 확장)
+    const dreamDB = [
+        { keys: ["돼지", "멧돼지", "아기돼지"], name: "꿀꿀이의 축복", bonus: 15 },
+        { keys: ["똥", "대변", "오물", "변기"], name: "황금빛 횡재", bonus: 14 },
+        { keys: ["불", "화재", "산불", "폭발"], name: "운기 대폭발", bonus: 13 },
+        { keys: ["조상", "할머니", "할아버지", "부모님"], name: "천기누설", bonus: 15 },
+        { keys: ["뱀", "구렁이", "실뱀"], name: "영물 출현", bonus: 11 },
+        { keys: ["용", "여의주", "비룡"], name: "승천할 기운", bonus: 15 },
+        { keys: ["호랑이", "사자", "맹수"], name: "용맹한 운세", bonus: 12 },
+        { keys: ["물", "바다", "홍수", "강물"], name: "재물의 범람", bonus: 10 },
+        { keys: ["피", "상처", "수혈"], name: "혈기왕성", bonus: 10 },
+        { keys: ["황금", "금괴", "보석", "다이아"], name: "럭셔리 예지", bonus: 14 },
+        { keys: ["대통령", "연예인", "유명인"], name: "귀인 상봉", bonus: 12 },
+        { keys: ["이빨", "발치", "치아"], name: "액땜 완료", bonus: 8 },
+        { keys: ["죽음", "시체", "장례"], name: "새로운 시작", bonus: 13 },
+        { keys: ["비행기", "하늘", "구름"], name: "고속 상승", bonus: 9 },
+        { keys: ["벌레", "바퀴벌레", "거미"], name: "성가신 번뇌", bonus: 7 }
+    ];
 
-            const area = document.getElementById('resultArea'); area.innerHTML = '';
-            let saveNums = []; 
+    // 2. 랜덤 기본 코멘트 (8가지)
+    const baseComments = [
+        "어젯밤 우주의 기운이 당신의 머리맡에 머물렀군요!",
+        "이런 꿈은 평생에 한 번 꿀까 말까 한 아주 귀한 계시입니다.",
+        "당신의 무의식이 복권 판매점으로 당신을 등 떠밀고 있네요.",
+        "무릎을 탁! 칠 정도로 놀라운 영험함이 느껴지는 꿈입니다.",
+        "오늘 하루는 길 가다 100원짜리 하나라도 꼭 주울 운세입니다.",
+        "해몽 데이터베이스가 요동칠 정도로 강력한 시그널입니다.",
+        "당신의 꿈속에 숨겨진 숫자들이 1등의 문을 두드리고 있습니다.",
+        "기분 좋은 예감이 드시나요? 그 직감이 바로 정답입니다."
+    ];
 
-            for (let i = 0; i < generateCount; i++) {
-                let nums = []; 
-                while(nums.length < 6) { let n = Math.floor(Math.random()*45)+1; if(!nums.includes(n)) nums.push(n); }
-                nums.sort((a,b)=>a-b);
-                
-                let div = document.createElement('div'); div.className = 'lotto-row';
-                nums.forEach(n => {
-                    let c = n<=10?'y':n<=20?'b':n<=30?'r':n<=40?'g':'gr';
-                    div.innerHTML += `<div class="ball ${c}">${n}</div>`;
-                });
-                area.appendChild(div);
-                saveNums.push(nums.join(', '));
-            }
+    // 3. 점수대별 멘트 (5단계로 세분화)
+    const scoreComments = {
+        high: [ // 95점 이상
+            "인생 역전의 기회가 왔습니다! 지금 당장 판매점으로 달려가세요.",
+            "천운이 따르는 꿈입니다. 오늘 당신은 세상에서 가장 운 좋은 사람입니다.",
+            "이 점수는 조상님이 번호를 직접 찍어주신 수준입니다!"
+        ],
+        good: [ // 85~94점
+            "당첨권에 근접한 아주 강력한 에너지입니다. 기대하셔도 좋습니다.",
+            "재물운이 꽉 들어찼습니다. 번호 생성 버튼에 기운을 담아보세요.",
+            "긍정적인 변화가 시작될 징조입니다. 숫자가 선명하게 보이지 않나요?"
+        ],
+        normal: [ // 70~84점
+            "나쁘지 않은 흐름입니다. 소소한 횡재수가 당신을 기다립니다.",
+            "무난한 예지몽입니다. 행운의 숫자들이 당신의 선택을 기다리네요.",
+            "평온한 운세 속에 깜짝 놀랄 행운이 숨어있을 수 있습니다."
+        ],
+        etc: [ // 그 외
+            "안 좋은 기운은 꿈에서 다 썼으니, 이제 현실에선 행운만 남았습니다!",
+            "액땜 제대로 하셨네요! 비워진 운 그릇에 당첨금을 채울 시간입니다.",
+            "가벼운 마음으로 도전해 보세요. 의외의 결과가 당신을 반길지도 모릅니다."
+        ]
+    };
 
-            // DB 저장
-            const randomNick = "익명" + Math.floor(Math.random() * 9999);
-            await _supabase.from('lotto_logs').insert([
-                { nickname: randomNick, numbers: saveNums.join(' | ') }
-            ]);
-            
-            fetchRecentLogs(); 
+    let detected = dreamDB.find(item => item.keys.some(k => input.includes(k)));
+    let kwdName = detected ? detected.name : "신비한 예지";
+    let bonus = detected ? detected.bonus : 5;
+
+    // 점수 계산 (기본 70~85 + 키워드 보너스)
+    let score = (70 + Math.floor(Math.random() * 15)) + bonus;
+    if (score > 100) score = 100;
+
+    // 점수대별 멘트 선택
+    let finalMsgList = score >= 95 ? scoreComments.high : 
+                       score >= 85 ? scoreComments.good : 
+                       score >= 70 ? scoreComments.normal : scoreComments.etc;
+    let finalMsg = finalMsgList[Math.floor(Math.random() * finalMsgList.length)];
+    let baseMsg = baseComments[Math.floor(Math.random() * baseComments.length)];
+
+    // 화면 업데이트
+    document.getElementById('kwdText').innerText = kwdName;
+    document.getElementById('scoreValue').innerText = score;
+    document.getElementById('commentText').innerHTML = `
+        <div style="font-size:14px; color:var(--point-color); margin-bottom:8px;">✨ 분석 결과 리포트</div>
+        <div style="color:#fff; margin-bottom:10px; font-weight:bold;">${baseMsg}</div>
+        <div style="color:#cbd5e1; font-size:13px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">${finalMsg}</div>
+    `;
+
+    // 번호 생성 로직 (기존 유지)
+    const area = document.getElementById('resultArea'); 
+    area.innerHTML = '';
+    let saveNums = []; 
+    for (let i = 0; i < generateCount; i++) {
+        let nums = []; 
+        while(nums.length < 6) { 
+            let n = Math.floor(Math.random() * 45) + 1; 
+            if(!nums.includes(n)) nums.push(n); 
         }
+        nums.sort((a,b) => a-b);
+        let div = document.createElement('div'); div.className = 'lotto-row';
+        nums.forEach(n => { div.innerHTML += `<div class="ball ${getBallColor(n)}">${n}</div>`; });
+        area.appendChild(div);
+        saveNums.push(nums.join(', '));
+    }
+
+    // DB 저장
+    const randomNick = "익명" + Math.floor(Math.random() * 9999);
+    await _supabase.from('lotto_logs').insert([{ nickname: randomNick, numbers: saveNums.join(' | ') }]);
+    fetchRecentLogs(); 
+}
 
         // ✅ [핵심 기능] 5개면 접고, 1개면 그냥 보여주기
         async function fetchRecentLogs() {
@@ -464,6 +533,7 @@
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
