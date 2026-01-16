@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="google-site-verification" content="HNZ6hdgrhbb1NHgcitGqFSs2xSXzAnKWH6jNs18JuZc" />
     <meta name="naver-site-verification" content="090e81b6702bba50b13ed994565471393b331344" />
     <link rel="canonical" href="https://imokokok-hub.github.io" />
@@ -13,8 +14,8 @@
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
     <title>호들갑 로또 꿈 상점 - AI 해몽 번호 생성기</title>
-    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? 실시간 생성 현황과 당첨 번호를 확인하세요.">
-    
+    <meta name="description" content="돼지꿈, 조상꿈 꿨을 때 로또 사야 할까? AI 꿈해몽 분석을 통해 당첨 확률 높은 번호를 추천해 드립니다.">
+
     <style>
         @font-face { font-family: 'GmarketSansMedium'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); }
         @font-face { font-family: 'GmarketSansBold'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff'); }
@@ -34,7 +35,7 @@
             padding-top: calc(var(--header-height) + 20px); overflow-x: hidden;
         }
 
-        /* 헤더 */
+        /* 헤더 스타일 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
@@ -42,10 +43,10 @@
             justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
         .nav-left { display: flex; align-items: center; gap: 10px; }
-        .nav-logo { font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .nav-logo { font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: -0.5px; }
         .menu-btn { font-size: 30px; cursor: pointer; background: none; border: none; color: var(--accent-color); padding: 0 5px; }
         .nav-links { display: flex; gap: 8px; align-items: center; }
-        .nav-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 15px; font-weight: bold; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 15px; font-weight: bold; transition: 0.2s; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); }
         .bg-n { background: var(--naver-green); } .bg-t { background: var(--tistory-orange); }
 
         /* 사이드바 & 모달 */
@@ -55,24 +56,24 @@
         .close-btn { position: absolute; right: 20px; font-size: 24px; cursor: pointer; color: #fff; }
         .menu-item { padding: 18px 25px; text-decoration: none; font-size: 16px; color: #e2e8f0; display: flex; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .overlay { position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.7); z-index: 1500; }
-        .modal { display: none; position: fixed; z-index: 3000; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; max-height: 80vh; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; overflow-y: auto; }
+        .modal { display: none; position: fixed; z-index: 3000; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; max-height: 80vh; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; overflow-y: auto; text-align: left; }
 
-        /* 컨테이너 */
+        /* 메인 박스 */
         .container { background: var(--container-bg); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 40px 30px; border-radius: 30px; text-align: center; max-width: 500px; width: 100%; margin-bottom: 40px; }
         h1 { font-family: 'GmarketSansBold'; font-size: 28px; margin: 0 0 10px 0; color: var(--accent-color); }
         .subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 35px; }
         input { width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; font-family: 'GmarketSansMedium'; font-size: 16px; margin-bottom: 15px; text-align: center; box-sizing: border-box; }
         button { background: linear-gradient(135deg, var(--point-color), #0d9488); color: #fff; border: none; padding: 18px 0; width: 100%; font-family: 'GmarketSansBold'; font-size: 17px; border-radius: 20px; cursor: pointer; }
-        
+
         .score-val { font-family: 'GmarketSansBold'; font-size: 64px; color: var(--accent-color); margin: 10px 0; display: block; text-shadow: 0 0 20px rgba(252, 211, 77, 0.5); }
-        .comment-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 15px; line-height: 1.6; color: #e2e8f0; word-break: keep-all; text-align: left; }
+        .comment-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 15px; line-height: 1.7; color: #e2e8f0; word-break: keep-all; text-align: left; }
         .lotto-row { display: flex; justify-content: center; background: rgba(255,255,255,0.07); padding: 12px; border-radius: 50px; margin-top: 10px; }
         .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; }
         .y { background: #fde047; } .b { background: #67e8f9; } .r { background: #fca5a5; } .g { background: #d1d5db; } .gr { background: #86efac; }
         
         .input-alert { font-size: 14px; color: #fb7185; margin-bottom: 20px; display: none; font-weight: bold; }
         .loading-overlay { display: none; margin: 40px 0; color: var(--point-color); }
-
+        
         /* 🏆 실시간 현황판 스타일 */
         .live-board { margin-top: 40px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; }
         .board-title { font-size: 18px; color: #fff; font-family: 'GmarketSansBold'; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
@@ -81,13 +82,10 @@
         .rank-table th { text-align: left; color: var(--point-color); padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .rank-table td { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        /* 로그 스타일 */
         .live-log { height: 180px; overflow: hidden; position: relative; }
-        .log-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; animation: slideDown 0.5s ease; }
+        .log-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
         .log-nums { color: var(--accent-color); font-weight: bold; letter-spacing: 1px; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .ad-placeholder { margin-top: 40px; width: 100%; height: 100px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #555; font-size: 12px; border: 1px dashed #444; }
         footer { margin-top: 60px; font-size: 12px; color: #475569; text-align: center; }
         details { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
         summary { padding: 18px; cursor: pointer; color: #94a3b8; font-weight: bold; }
@@ -112,17 +110,21 @@
 
     <div id="mySidebar" class="sidebar">
         <div class="sidebar-header">🛠️ 호들갑 LAB <span class="close-btn" onclick="closeSidebar()">&times;</span></div>
-        <a href="#" class="menu-item" onclick="alert('🚧 곧 공개됩니다!')">호들갑 쿠지 (준비중)</a>
+        <a href="#" class="menu-item" onclick="alert('🚧 곧 공개됩니다!')"><span class="badge">K</span>호들갑 쿠지 (준비중)</a>
     </div>
 
     <div id="infoModal" class="modal">
-        <h2 style="color:#2dd4bf; text-align:center; margin-top:0;">📖 호들갑 꿈해몽 대백과</h2>
+        <h2 style="color:#2dd4bf; text-align:center; margin-top:0; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">📖 호들갑 꿈해몽 대백과</h2>
         <div style="color:#cbd5e1; line-height:1.8; text-align: left;">
-            <p><strong>왜 꿈해몽일까요?</strong><br>로또 1등 당첨 확률은 814만 분의 1입니다. 무의식이 보내는 강력한 시그널인 '꿈'을 잡아 확률을 높이세요.</p>
-            <h3 style="color:#fff; margin-top:20px;">🔥 필승! 3대 길몽</h3>
-            <ul><li><strong>돼지:</strong> 재물운의 황제입니다.</li><li><strong>똥:</strong> 더러울수록 좋습니다! 현실의 황금을 의미합니다.</li><li><strong>불:</strong> 활활 타오를수록 재물운이 커집니다.</li></ul>
-            <h3 style="color:#fff; margin-top:20px;">✨ 대박 신호</h3>
-            <ul><li><strong>조상님:</strong> 숫자를 주신다면 1등 당첨 번호입니다.</li><li><strong>피:</strong> 생명력이자 돈의 흐름입니다.</li></ul>
+            <p><strong>💡 왜 꿈해몽일까요?</strong><br>로또 1등 당첨 확률은 814만 분의 1입니다. 이 기적 같은 확률을 뚫으려면 단순한 운을 넘어, 무의식이 보내는 강력한 시그널인 '꿈'을 잡아야 합니다.</p>
+            <h3 style="color:#fff; margin-top:25px; border-left: 3px solid #fcd34d; padding-left:10px;">🔥 필승! 3대 길몽</h3>
+            <ul>
+                <li><strong>🐷 돼지:</strong> 재물운의 황제입니다. 돼지가 달려들거나 집으로 들어오면 묻지도 따지지도 말고 복권을 사세요. 떼돈을 벌 상징입니다.</li>
+                <li><strong>💩 똥(배설물):</strong> 더러울수록 좋습니다! 현실의 황금을 의미하며 막대한 자산이 굴러들어올 징조입니다.</li>
+                <li><strong>🔥 불:</strong> 활활 타오르는 불길은 당신의 운세가 폭발적으로 상승함을 의미합니다.</li>
+            </ul>
+            <h3 style="color:#fff; margin-top:25px; border-left: 3px solid #fb7185; padding-left:10px;">😱 흉몽? 아니요, 액땜입니다!</h3>
+            <p>이빨이 빠지거나 떨어지는 꿈은 <strong>'액땜'</strong>으로 봅니다. 로또를 구매하여 남은 찜찜함을 날려버리세요.</p>
         </div>
         <button onclick="closeModal()" style="width:100%; padding:15px; margin-top:25px; background:var(--point-color); border:none; border-radius:12px; font-weight:bold; color:white; cursor:pointer;">닫기</button>
     </div>
@@ -132,12 +134,12 @@
         <p class="subtitle">꿈해몽으로 찾는 나만의 1등 당첨 번호 🌙</p>
         
         <input type="text" id="dreamInput" placeholder="어젯밤 꿈 내용을 적고 로또 번호 받기">
-        <div id="inputAlert" class="input-alert">⚠️ 꿈 내용을 5글자 이상 자세히 적어주세요!</div>
+        <div id="inputAlert" class="input-alert">⚠️ 꿈 내용을 5글자 이상 자세히 적어주세요! (장난 금지)</div>
         
         <button id="analyzeBtn" onclick="startAnalysis()">로또 번호 무료 생성하기</button>
 
         <div id="loadingOverlay" class="loading-overlay">
-            <div id="loadingText">꿈속의 로또 번호를 찾는 중...</div>
+            <div id="loadingText">꿈속의 상징을 분석 중...</div>
             <div class="wave-box"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
         </div>
 
@@ -147,21 +149,21 @@
                 <span id="scoreValue" class="score-val">0</span>
             </div>
             <div id="commentBox" class="comment-box">
-                <h3 id="keywordBadge" style="color:var(--accent-color); margin-top:0;">🔍 분석 키워드: <span id="kwdText"></span></h3>
+                <h3 id="keywordBadge" style="color:var(--accent-color); margin-top:0; font-size: 18px;">🔍 분석 키워드: <span id="kwdText"></span></h3>
                 <div id="commentText" style="margin-top: 15px;"></div>
             </div>
             <div id="resultArea"></div>
+            <details>
+                <summary>상세 분석 & 당첨 전략 보기</summary>
+                <div class="details-content" id="detailReport"></div>
+            </details>
         </div>
 
         <div class="live-board">
-            <div class="board-title">🏆 실시간 생성 현황 <span style="font-size:12px; color:#94a3b8; margin-left:auto;">LIVE</span></div>
-            <div class="winning-box">
-                <div class="live-log" id="realTimeLog">
-                    <div style="text-align:center; padding:20px; color:#64748b;">데이터를 불러오는 중...</div>
-                </div>
-            </div>
+            <div class="board-title">🏆 실시간 생성 로그 <span style="font-size:12px; color:#94a3b8; margin-left:auto;">LIVE</span></div>
+            <div class="winning-box"><div class="live-log" id="realTimeLog"><div style="text-align:center; padding:20px; color:#64748b;">데이터 로딩 중...</div></div></div>
 
-            <div class="board-title" style="margin-top:30px;">📊 지난주(1154회) 호들갑 회원 당첨</div>
+            <div class="board-title" style="margin-top:30px;">📊 지난주(1154회) 회원 당첨 현황</div>
             <div class="winning-box">
                 <table class="rank-table">
                     <tr><th>순위</th><th>당첨 기준</th><th>배출 명수</th></tr>
@@ -179,12 +181,10 @@
     <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
-        // 🔴🔴🔴 여기에 아까 복사한 URL과 KEY를 넣으세요 🔴🔴🔴
-        const SUPABASE_URL = 'https://eapzpnrdjkeovemjsgvb.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_B1_XVxDgSC62iXuKdNm-Xg_5353cXcn ';
-        // --------------------------------------------------------
+        // 🔑 [중요] 여기에 본인의 슈파베이스 URL과 anon public Key를 넣으세요!
+        const SUPABASE_URL = 'https://eapzpnrdjkeovemjsgvb.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_B1_XVxDgSC62iXuKdNm-Xg_5353cXcn'; 
 
-        // 슈파베이스 연결 (이제 가짜 데이터 아님)
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -194,21 +194,22 @@
         function openModal() { document.getElementById("infoModal").style.display = "block"; document.getElementById("overlay").style.display = "block"; }
         function closeModal() { document.getElementById("infoModal").style.display = "none"; if(!document.getElementById("mySidebar").classList.contains("open")) document.getElementById("overlay").style.display = "none"; }
 
-        const KAKAO_KEY = 'cf95e23dab0df4c6d229a734e0180def';
-        try { if (!Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
-        
-        const keywords = {
-            super: ["돼지", "똥", "조상", "불", "대통령", "1등", "당첨", "40억", "황금", "시신", "피", "할머니"],
-            good: ["뱀", "물", "바다", "연예인", "돈", "합격", "비행기", "대변", "지폐", "강아지", "차"],
-            bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "상복", "거울"]
-        };
+        // 꿈해몽 사전 복구
         const dreamDictionary = {
-            "돼지": "축하합니다! 돼지는 부와 다산을 상징하는 최고의 영물입니다. 굴러들어오는 복덩어리를 잡으세요!",
-            "똥": "더럽다고 피하지 마세요! 꿈속의 배설물은 현실의 황금입니다. 막대한 자금이 들어올 징조입니다.",
-            "불": "활활 타오르는 불길은 당신의 운세가 폭발적으로 상승함을 의미합니다.",
-            "조상": "조상님이 도우십니다. 이 기회를 절대 놓치지 마세요.",
-            "피": "피는 생명력이자 돈의 흐름입니다. 막혔던 돈줄이 터질 것입니다.",
-            "일상": "평온한 꿈입니다. 꾸준함이 모여 큰 행운을 만듭니다."
+            "돼지": "축하합니다! 돼지는 전통적으로 부와 다산을 상징하는 최고의 길조입니다. 뜻하지 않은 횡재수나 사업의 번창을 암시하며, 지금 당장 로또를 사셔도 좋을 만큼 강력한 재물운을 의미합니다.",
+            "똥": "더럽다고 피하지 마세요! 현실의 '황금'이자 '거름'입니다. 막대한 자금이 융통되거나 큰돈을 만지게 될 확실한 징조이니 과감한 투자가 필요합니다.",
+            "조상": "조상님이 밝은 표정으로 숫자를 불러주거나 돈을 건네주셨다면 더할 나위 없는 1등 당첨 신호입니다. 조상님의 가호를 믿고 실행에 옮기세요.",
+            "불": "활활 타오르는 불길은 당신의 운세가 맹렬히 일어나고 있음을 의미합니다. 불이 거셀수록 들어올 재물의 크기도 커질 것입니다.",
+            "피": "피는 생명력이자 자금의 흐름입니다. 꽉 막혀있던 돈맥경화가 뚫리고 시원하게 재물이 들어올 징조이니 걱정 말고 구매하세요.",
+            "뱀": "지혜와 재물을 지키는 영물입니다. 권력과 명예, 부가 함께 들어옴을 의미합니다. 큰 뱀일수록 확률은 더욱 높아집니다.",
+            "물": "맑은 물이 집안으로 들어오는 꿈은 거대한 부의 파도가 밀려오는 것과 같습니다. 금전운이 비례하여 상승합니다.",
+            "일상": "평온한 꿈이지만 꾸준함이 모여 행운이 됩니다. 긍정적인 마음으로 가볍게 도전해보세요."
+        };
+
+        const keywords = {
+            super: ["돼지", "똥", "조상", "불", "대통령", "1등", "당첨", "40억", "황금", "시신", "피", "할머니", "복권"],
+            good: ["뱀", "물", "바다", "연예인", "돈", "보석", "합격", "비행기", "용", "대변", "지폐", "차"],
+            bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "거울"]
         };
 
         function startAnalysis() {
@@ -222,7 +223,6 @@
             setTimeout(() => {
                 document.getElementById('loadingOverlay').style.display = 'none';
                 document.getElementById('analyzeBtn').style.display = 'block';
-                document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 받기";
                 showResult(input.value);
             }, 3000);
         }
@@ -234,12 +234,11 @@
             if (type=="normal") for (let w of keywords.good) if (val.includes(w)) { type = "good"; keyword = w; break; }
             
             let seed = 0; for (let i = 0; i < val.length; i++) seed += val.charCodeAt(i);
-            let score = type === 'super' ? 95 + (seed % 5) : (type === 'good' ? 85 + (seed % 10) : 70 + (seed % 20));
+            let score = type === 'super' ? 95 + (seed % 5) : (type === 'good' ? 85 + (seed % 10) : 72 + (seed % 15));
             
-            let explanation = dreamDictionary[keyword] || dreamDictionary["일상"];
             document.getElementById('kwdText').innerText = keyword;
             document.getElementById('scoreValue').innerText = score;
-            document.getElementById('commentText').innerHTML = explanation;
+            document.getElementById('commentText').innerHTML = dreamDictionary[keyword] || dreamDictionary["일상"];
 
             const nums = new Set();
             while(nums.size < 6) nums.add(Math.floor(Math.random() * 45) + 1);
@@ -253,45 +252,32 @@
             });
             area.appendChild(div);
 
-            // 🔥 진짜 DB에 저장 (닉네임 자동 생성)
-            const randomNick = "익명" + Math.floor(Math.random() * 9999);
+            document.getElementById('detailReport').innerHTML = score >= 90 ? "<strong>💰 당첨 확률:</strong> 최상 (인생 역전)<br><strong>💡 추천 전략:</strong> 자동 반, 수동 반 추천." : "<strong>💡 추천 전략:</strong> 기분 전환 삼아 소액으로 구매해 보세요.";
+
+            // 🔥 [DB 저장]
+            const randomNick = "행운의주인공" + Math.floor(Math.random() * 9999);
             saveLog(randomNick, sortedNums.join(', '));
         }
 
         async function saveLog(nick, nums) {
-            const { error } = await _supabase
-                .from('lotto_logs')
-                .insert({ nickname: nick, numbers: nums });
-            if (error) console.error('저장 실패:', error);
+            await _supabase.from('lotto_logs').insert([{ nickname: nick, numbers: nums }]);
+            fetchRecentLogs();
         }
 
-        // 🔥 실시간 로그 불러오기 (Realtime)
-        function fetchLogs() {
-            _supabase
-                .from('lotto_logs')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(10)
-                .then(({ data, error }) => {
-                    if (!error && data) {
-                        const list = document.getElementById('realTimeLog');
-                        list.innerHTML = "";
-                        data.forEach(log => {
-                            const div = document.createElement('div');
-                            div.className = 'log-item';
-                            div.innerHTML = `<span>👤 ${log.nickname}님</span> <span class="log-nums">${log.numbers}</span>`;
-                            list.appendChild(div);
-                        });
-                    }
+        async function fetchRecentLogs() {
+            const { data } = await _supabase.from('lotto_logs').select('*').order('created_at', { ascending: false }).limit(5);
+            if (data) {
+                const list = document.getElementById('realTimeLog'); list.innerHTML = "";
+                data.forEach(log => {
+                    const div = document.createElement('div'); div.className = 'log-item';
+                    div.innerHTML = `<span>👤 ${log.nickname}</span> <span class="log-nums">${log.numbers}</span>`;
+                    list.appendChild(div);
                 });
+            }
         }
-        
-        // 2초마다 새로운 로그 확인
-        setInterval(fetchLogs, 2000);
-        fetchLogs();
 
-        function shareKakao() { try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또', description: '꿈해몽 대박!', imageUrl: '', link: { mobileWebUrl: location.href, webUrl: location.href } } }); } catch(e) {} }
-        function copyLink() { navigator.clipboard.writeText(location.href).then(()=>alert("주소 복사 완료!")).catch(()=>alert("실패")); }
+        window.onload = fetchRecentLogs;
+        document.getElementById('dreamInput').addEventListener('keypress', e => { if(e.key === 'Enter') startAnalysis(); });
     </script>
 </body>
 </html>
