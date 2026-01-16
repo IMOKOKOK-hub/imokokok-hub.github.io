@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://imokokok-hub.github.io/sitemap.xml
