@@ -307,46 +307,59 @@
         }
 
         async function startAnalysis() {
-    const input = document.getElementById('dreamInput').value;
-    
-    if (input.replace(/\s/g, "").length < 5) { 
-        alert("🚫 꿈 내용이 너무 짧아요! 5글자 이상 구체적으로 적어주세요."); 
-        return; 
-    }
+    try {
+        const input = document.getElementById('dreamInput').value;
+        
+        // 1. 입력값 체크
+        if (input.replace(/\s/g, "").length < 5) { 
+            alert("🚫 꿈 내용이 너무 짧아요! 5글자 이상 구체적으로 적어주세요."); 
+            return; 
+        }
 
-    // 1. 로딩창 띄우기
-    document.getElementById('analyzeBtn').style.display = 'none';
-    document.getElementById('loadingOverlay').style.display = 'block';
-    document.getElementById('analysisBox').style.display = 'none';
+        // 2. 화면 정리 (로딩 시작)
+        document.getElementById('analyzeBtn').style.display = 'none';
+        document.getElementById('loadingOverlay').style.display = 'block';
+        document.getElementById('analysisBox').style.display = 'none';
 
-    // 2. 1초마다 바뀔 대사 리스트 (단계별로 보여주면 더 신뢰도 상승!)
-    const step1 = ["무의식 시그널 스캔 중...", "꿈의 선명도 측정 중...", "조상님 접속 시도 중..."];
-    const step2 = ["재물운 파동 에너지 분석 중...", "1,450만 건 해몽 DB 대조 중...", "황금 숫자 데이터 마이닝 중..."];
-    const step3 = ["당첨 기운 필터링 완료!", "운명의 번호 추출 성공!", "최종 분석 결과 생성 중..."];
+        const loadingText = document.getElementById('loadingText');
 
-    const loadingText = document.getElementById('loadingText');
+        // 3. 1초마다 바뀌는 찰진 멘트 리스트
+        const steps = [
+            ["🔍 꿈의 파편 수집 중...", "🌀 무의식 시그널 스캔 중...", "📡 뇌파 데이터 동기화 중..."],
+            ["📚 1,450만 건 해몽 DB 대조 중...", "💎 재물 기운 마이닝 중...", "⚡ 당첨 에너지 증폭 중..."],
+            ["🧧 천기누설 번호 추출 완료!", "🎯 운명의 숫자 정렬 중...", "✨ 최종 분석 리포트 생성 중..."]
+        ];
 
-    // [0초] 첫 번째 대사
-    loadingText.innerText = step1[Math.floor(Math.random() * step1.length)];
+        // [0초] 첫 번째 랜덤 멘트
+        if(loadingText) loadingText.innerText = steps[0][Math.floor(Math.random() * steps[0].length)];
 
-    // [1초 뒤] 두 번째 대사
-    setTimeout(() => {
-        loadingText.innerText = step2[Math.floor(Math.random() * step2.length)];
-    }, 1000);
+        // [1초 뒤] 두 번째 랜덤 멘트
+        setTimeout(() => {
+            if(loadingText) loadingText.innerText = steps[1][Math.floor(Math.random() * steps[1].length)];
+        }, 1000);
 
-    // [2초 뒤] 세 번째 대사
-    setTimeout(() => {
-        loadingText.innerText = step3[Math.floor(Math.random() * step3.length)];
-    }, 2000);
+        // [2초 뒤] 세 번째 랜덤 멘트
+        setTimeout(() => {
+            if(loadingText) loadingText.innerText = steps[2][Math.floor(Math.random() * steps[2].length)];
+        }, 2000);
 
-    // 3. [3초 뒤] 최종 결과 표시
-    setTimeout(async () => {
+        // [3초 뒤] 무조건 결과창으로 이동 (안전장치)
+        setTimeout(async () => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('analyzeBtn').style.display = 'block';
+            document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 분석하기";
+            
+            // 결과 표시 함수 실행
+            await showResult(input); 
+        }, 3000);
+
+    } catch (e) {
+        console.error("에러 발생:", e);
+        // 혹시나 에러 나면 로딩창이라도 끄기
         document.getElementById('loadingOverlay').style.display = 'none';
         document.getElementById('analyzeBtn').style.display = 'block';
-        document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 분석하기";
-        
-        showResult(input); 
-    }, 3000);
+        alert("⚠️ 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    }
 }
 
 async function showResult(input) {
@@ -564,8 +577,6 @@ async function showResult(input) {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
-
-
 
 
 
