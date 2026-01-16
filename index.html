@@ -31,7 +31,10 @@
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            display: flex; align-items: center; 
+            justify-content: flex-start; /* ✅ 왼쪽으로 정렬! */
+            gap: 20px; /* ✅ 로고와 아이콘 사이 간격 (조절 가능) */
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
         }
         .nav-logo { font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none; }
         .nav-links { display: flex; gap: 8px; align-items: center; }
@@ -334,3 +337,4 @@
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
