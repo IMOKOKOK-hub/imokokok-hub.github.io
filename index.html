@@ -27,7 +27,7 @@
             --text-main: #f1f5f9;
             --accent-color: #fcd34d; /* 노란색 강조 */
             --point-color: #2dd4bf;
-            --header-height: 65px; /* 헤더 높이 약간 증가 */
+            --header-height: 60px;
             /* 브랜드 컬러 */
             --naver-green: #03C75A;
             --tistory-orange: #F46E24;
@@ -45,47 +45,43 @@
             overflow-x: hidden;
         }
 
-        /* ☰ 상단 헤더 (디자인 개선) */
+        /* 🛠️ 상단 헤더 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            padding: 0 15px; box-sizing: border-box; z-index: 1000;
         }
 
-        /* 왼쪽 그룹 (로고 + 메뉴 버튼) */
+        /* 왼쪽 그룹: 로고 + 메뉴 버튼 (딱 붙여서 배치) */
         .nav-left {
-            display: flex; align-items: center; gap: 15px;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* 로고 스타일 */
         .nav-logo {
-            font-family: 'GmarketSansBold'; font-size: 20px; color: #fff; text-decoration: none;
-            display: flex; align-items: center;
+            font-family: 'GmarketSansBold'; font-size: 18px; color: #fff; text-decoration: none;
+            display: flex; align-items: center; white-space: nowrap;
         }
 
-        /* 메뉴 버튼 (눈에 띄게 수정!) */
         .menu-btn { 
-            font-size: 32px; /* 크기 확대 */
-            cursor: pointer; background: none; border: none; 
-            color: var(--accent-color); /* 노란색으로 강조 */
-            padding: 5px; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
+            font-size: 28px; cursor: pointer; background: none; border: none; 
+            color: var(--accent-color); /* 노란색 */
+            padding: 0 5px; display: flex; align-items: center; justify-content: center;
         }
         .menu-btn:hover { transform: scale(1.1); }
 
         /* 오른쪽 아이콘 그룹 */
         .nav-links {
-            display: flex; gap: 10px; align-items: center;
+            display: flex; gap: 8px; align-items: center;
         }
         .nav-icon {
-            width: 34px; height: 34px; border-radius: 10px;
+            width: 32px; height: 32px; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; text-decoration: none; font-size: 15px; font-weight: bold;
+            color: #fff; text-decoration: none; font-size: 14px; font-weight: bold;
             transition: all 0.2s;
         }
-        .nav-icon:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .nav-icon:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .bg-n { background-color: var(--naver-green); }
         .bg-t { background-color: var(--tistory-orange); }
         .bg-mail { background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); }
@@ -114,23 +110,39 @@
         .menu-item:hover { background: rgba(255,255,255,0.05); padding-left: 30px; color: #fff; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #fff; background-color: var(--kuji-purple); }
 
-        /* 오버레이 & 모달 */
+        /* 오버레이 */
         .overlay {
             position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0;
             background-color: rgba(0,0,0,0.7); z-index: 1500; cursor: pointer; backdrop-filter: blur(3px);
         }
+
+        /* 📖 가이드 모달 (스크롤 가능하게 수정) */
         .modal {
             display: none; position: fixed; z-index: 3000; left: 50%; top: 50%;
-            transform: translate(-50%, -50%); width: 85%; max-width: 350px;
+            transform: translate(-50%, -50%); width: 90%; max-width: 400px;
+            max-height: 80vh; /* 화면 80% 높이 제한 */
             background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 20px; padding: 25px; text-align: left;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow-y: auto; /* 내용 길면 스크롤 생김 */
         }
+        .modal h2 { 
+            color: var(--point-color); margin-top: 0; font-family: 'GmarketSansBold'; 
+            text-align: center; margin-bottom: 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+        }
+        .modal-content { color: #cbd5e1; font-size: 15px; line-height: 1.7; }
+        .modal-content h3 { color: #fff; margin-top: 20px; font-size: 16px; font-weight: bold; }
+        .modal-content ul { padding-left: 20px; margin: 10px 0; }
+        .modal-content li { margin-bottom: 8px; }
+        
         .close-modal-btn {
-            margin-top: 20px; padding: 10px 30px; background: var(--point-color);
-            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: #fff;
+            display: block; width: 100%; margin-top: 20px; padding: 12px; 
+            background: var(--point-color); border: none; border-radius: 12px; 
+            font-weight: bold; cursor: pointer; color: #fff; font-size: 16px;
         }
 
-        /* 메인 컨텐츠 스타일 (기존 유지) */
+        /* 메인 컨텐츠 */
         .container {
             background: var(--container-bg); backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.1); padding: 40px 30px;
@@ -153,6 +165,7 @@
         .row-label { font-weight: bold; color: #94a3b8; margin-right: 15px; width: 40px; }
         .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'GmarketSansBold'; font-size: 14px; color: #333; margin: 0 4px; }
         .y { background: #fde047; } .b { background: #67e8f9; } .r { background: #fca5a5; } .g { background: #d1d5db; } .gr { background: #86efac; }
+        
         .input-alert { font-size: 13px; color: #fb7185; margin-bottom: 20px; display: none; }
         .loading-overlay { display: none; margin: 40px 0; color: var(--point-color); }
         .wave-box { display: flex; justify-content: center; gap: 5px; margin-top: 15px; }
@@ -160,8 +173,10 @@
         .wave:nth-child(2) { animation-delay: 0.1s; background: var(--point-color); }
         .wave:nth-child(3) { animation-delay: 0.2s; }
         @keyframes waveAni { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
         .share-container { display: flex; gap: 10px; margin-top: 40px; }
         .share-btn { flex: 1; padding: 14px; border-radius: 16px; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;}
+        
         details { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 0; border: 1px solid rgba(255,255,255,0.1); }
         summary { padding: 18px; cursor: pointer; color: #94a3b8; font-weight: bold; list-style: none; }
         .details-content { padding: 25px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; }
@@ -179,10 +194,10 @@
         </div>
 
         <div class="nav-links">
-            <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank">T</a>
-            <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank">N</a>
-            <span class="nav-icon bg-mail" onclick="openModal()" style="cursor: pointer;">?</span>
-            <a href="mailto:seungjunshose@gmail.com" class="nav-icon bg-mail">
+            <a href="https://mkkrw.tistory.com/" class="nav-icon bg-t" target="_blank" title="티스토리">T</a>
+            <a href="https://blog.naver.com/mkkrw" class="nav-icon bg-n" target="_blank" title="네이버">N</a>
+            <span class="nav-icon bg-mail" onclick="openModal()" style="cursor: pointer;" title="꿈해몽 가이드">?</span>
+            <a href="mailto:seungjunshose@gmail.com" class="nav-icon bg-mail" title="메일 문의">
                 <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
             </a>
         </div>
@@ -200,13 +215,22 @@
     </div>
 
     <div id="infoModal" class="modal">
-        <h2 style="color:#2dd4bf; margin-top:0;">호들갑 LAB</h2>
-        <p style="color:#cbd5e1; line-height:1.6;">
-            세상의 모든 호들갑을 연구하는<br>
-            1인 개발 연구소입니다.<br><br>
-            현재 <strong>로또 꿈 상점</strong>과<br>
-            <strong>호들갑 쿠지</strong>를 운영 중입니다.
-        </p>
+        <h2>📖 로또 당첨 가이드</h2>
+        <div class="modal-content">
+            <p><strong>왜 꿈해몽으로 로또를 사야 할까요?</strong><br>
+            로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다.</p>
+            
+            <h3>🔥 반드시 로또를 사야 하는 '대박 꿈'</h3>
+            <ul>
+                <li><strong>황금, 배설물(똥):</strong> 막대한 재물과 자산을 상징하는 최고의 길몽입니다.</li>
+                <li><strong>불이 활활 타오르는 꿈:</strong> 집이나 산이 불타는 꿈은 운세가 불길처럼 번창한다는 뜻입니다.</li>
+                <li><strong>피를 많이 흘리는 꿈:</strong> 꿈에서의 피는 생명력이자 재물입니다. 피가 철철 흐를수록 당첨금이 커집니다.</li>
+                <li><strong>조상님 꿈:</strong> 조상님이 숫자를 불러주거나 밝은 표정으로 나타나면 즉시 복권 판매점으로 달려가세요.</li>
+            </ul>
+
+            <h3>😱 흉몽을 꿨다면?</h3>
+            <p>이빨이 빠지거나 쫓기는 꿈은 '액땜'입니다. 로또 천 원어치 구매로 불운을 희망으로 바꾸는 의식을 치르세요.</p>
+        </div>
         <button class="close-modal-btn" onclick="closeModal()">닫기</button>
     </div>
 
@@ -246,21 +270,6 @@
         <div class="ad-placeholder">구글 광고가 표시되는 공간입니다</div>
     </div>
 
-    <div style="max-width: 500px; width: 100%;">
-        <details open>
-            <summary>📖 로또 당첨의 비밀: 꿈해몽 가이드</summary>
-            <div class="details-content">
-                <h3>왜 꿈해몽으로 로또를 사야 할까요?</h3>
-                <p>로또 1등 당첨 확률은 814만 분의 1입니다. 단순한 '자동' 구매보다는, 당신의 무의식이 보내는 신호인 '꿈'을 숫자로 해석하는 것이 당첨의 지름길일 수 있습니다.</p>
-                <h3>반드시 로또를 사야 하는 '대박 꿈'</h3>
-                <ul>
-                    <li><strong>황금, 똥, 돼지:</strong> 재물운의 상징입니다.</li>
-                    <li><strong>불이 나는 꿈:</strong> 운세가 번창합니다.</li>
-                </ul>
-            </div>
-        </details>
-    </div>
-
     <footer><p>© 2026 호들갑 로또 꿈 상점. All rights reserved.</p></footer>
 
     <script>
@@ -273,6 +282,13 @@
         // 로직
         const KAKAO_KEY = 'cf95e23dab0df4c6d229a734e0180def';
         try { if (!Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
+        
+        const keywords = {
+            super: ["돼지", "똥", "조상", "불", "대통령", "1등", "당첨", "40억", "황금", "시신", "피", "할머니", "복권"],
+            good: ["뱀", "물", "바다", "연예인", "돈", "보석", "합격", "비행기", "용", "대변", "지폐", "강아지", "차"],
+            bad: ["이빨", "귀신", "싸움", "죽음", "떨어", "도망", "경찰", "지각", "상복", "거울", "피", "살인"]
+        };
+
         function startAnalysis() {
             const input = document.getElementById('dreamInput');
             if (input.value.replace(/\s/g, "").length < 5) { document.getElementById('inputAlert').style.display = 'block'; return; }
@@ -281,20 +297,52 @@
             document.getElementById('loadingOverlay').style.display = 'block';
             document.getElementById('analysisBox').style.display = 'none';
             document.getElementById('resultArea').innerHTML = '';
+            
+            const msgs = ["꿈속의 당첨 신호를 찾는 중...", "행운의 숫자를 조합하고 있어요...", "1등 당첨 기운을 모으는 중..."];
+            let msgIdx = 0; document.getElementById('loadingText').innerText = msgs[0];
+            const msgInterval = setInterval(() => { msgIdx++; if(msgIdx < msgs.length) document.getElementById('loadingText').innerText = msgs[msgIdx]; }, 1000);
+
             setTimeout(() => {
+                clearInterval(msgInterval);
                 document.getElementById('loadingOverlay').style.display = 'none';
                 document.getElementById('analyzeBtn').style.display = 'block';
                 document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 받기";
                 showResult(input.value);
             }, 4000);
         }
+
         function showResult(val) {
             document.getElementById('analysisBox').style.display = 'block';
+            let type = "normal"; let detectedKeyword = "일상";
+            for (let w of keywords.super) if (val.includes(w)) { type = "super"; detectedKeyword = w; }
+            if (type === "normal") for (let w of keywords.good) if (val.includes(w)) { type = "good"; detectedKeyword = w; }
+            if (type === "normal") for (let w of keywords.bad) if (val.includes(w)) { type = "bad"; detectedKeyword = w; }
+
             let seed = 0; for (let i = 0; i < val.length; i++) seed += val.charCodeAt(i);
-            let score = 85 + (seed % 15);
+            let score = 0; let comment = ""; let detail = "";
+
+            if (type === "super") {
+                score = 95 + (seed % 6);
+                comment = `대박! <span style="color:#2dd4bf; font-weight:bold;">'${detectedKeyword}'</span> 꿈은 1등 당첨 신호입니다!`;
+                detail = `<strong>💰 당첨 확률:</strong> 최상<br><strong>💡 전략:</strong> 자동 반, 수동 반.`;
+            } else if (type === "good") {
+                score = 80 + (seed % 15);
+                comment = `좋은 흐름! <span style="color:#2dd4bf; font-weight:bold;">'${detectedKeyword}'</span> 키워드는 재물 길몽입니다.`;
+                detail = `<strong>💰 당첨 확률:</strong> 좋음<br><strong>💡 전략:</strong> 번호를 믿어보세요.`;
+            } else if (type === "bad") {
+                score = 45 + (seed % 30);
+                comment = `찜찜하셨나요? 이건 <span style="color:#2dd4bf; font-weight:bold;">'액땜'</span>입니다!`;
+                detail = `<strong>🛡️ 효과:</strong> 불운 소멸<br><strong>💡 전략:</strong> 가볍게 도전!`;
+            } else {
+                score = 65 + (seed % 30);
+                comment = `평온한 꿈입니다. 당신의 꾸준함이 행운을 만듭니다.`;
+                detail = `<strong>✨ 상태:</strong> 일상<br><strong>💡 전략:</strong> 기분 전환용 소액.`;
+            }
+
             document.getElementById('scoreValue').innerText = score;
-            document.getElementById('commentText').innerHTML = `분석 결과: <strong>${score}점</strong><br>재물운이 상승하고 있습니다.`;
-            document.getElementById('detailReport').innerHTML = `<strong>💡 추천 전략:</strong> 꿈의 기운이 좋습니다. 소액으로 도전해보세요.`;
+            document.getElementById('commentText').innerHTML = comment;
+            document.getElementById('detailReport').innerHTML = detail;
+
             const labels = ['A', 'B', 'C', 'D', 'E'];
             for (let i = 0; i < 5; i++) {
                 let currentSeed = seed + (i * 12345);
