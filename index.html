@@ -314,58 +314,56 @@
         }
 
      async function startAnalysis() {
-    const input = document.getElementById('dreamInput').value;
-    if (input.replace(/\s/g, "").length < 5) { 
-        alert("🚫 꿈 내용이 너무 짧아요! 5글자 이상 구체적으로 적어주세요."); 
-        return; 
-    }
+            try {
+                const input = document.getElementById('dreamInput').value;
+                if (input.replace(/\s/g, "").length < 5) { 
+                    alert("🚫 꿈 내용이 너무 짧아요! 5글자 이상 구체적으로 적어주세요."); 
+                    return; 
+                }
 
-    // 1. 화면 초기 세팅
-    const loadingText = document.getElementById('loadingText');
-    document.getElementById('analyzeBtn').style.display = 'none';
-    document.getElementById('loadingOverlay').style.display = 'block';
-    document.getElementById('analysisBox').style.display = 'none';
+                // 1. 화면 초기 세팅
+                const loadingText = document.getElementById('loadingText');
+                document.getElementById('analyzeBtn').style.display = 'none';
+                document.getElementById('loadingOverlay').style.display = 'block';
+                document.getElementById('analysisBox').style.display = 'none';
 
-    // 2. 멘트 단계별 주머니
-    const steps = [
-        ["🔍 무의식 시그널 정밀 스캔 중...", "🌀 꿈의 선명도 파동 측정 중...", "📡 뇌파 데이터 동기화 시도 중..."], // 0~1초
-        ["📚 1,450만 건 해몽 DB 대조 중...", "💎 재물운 황금 입자 추출 중...", "⚡ 당첨 에너지 300% 증폭 중..."], // 1~2초
-        ["🎯 운명의 숫자 배열 완료!", "🧧 천기누설 리포트 작성 중...", "✨ 최종 분석 결과 생성 성공!"]  // 2~3초
-    ];
+                // 2. 멘트 단계별 주머니
+                const steps = [
+                    ["🔍 무의식 시그널 정밀 스캔 중...", "🌀 꿈의 선명도 파동 측정 중...", "📡 뇌파 데이터 동기화 시도 중..."], // 0~1초
+                    ["📚 1,450만 건 해몽 DB 대조 중...", "💎 재물운 황금 입자 추출 중...", "⚡ 당첨 에너지 300% 증폭 중..."], // 1~2초
+                    ["🎯 운명의 숫자 배열 완료!", "🧧 천기누설 리포트 작성 중...", "✨ 최종 분석 결과 생성 성공!"]  // 2~3초
+                ];
 
-    // ✅ [0초] 시작하자마자 1단계 랜덤 멘트로 덮어버리기!
-    if(loadingText) {
-        loadingText.innerText = steps[0][Math.floor(Math.random() * steps[0].length)];
-    }
+                // ✅ [0초] 시작하자마자 1단계 랜덤 멘트 출력
+                if(loadingText) {
+                    loadingText.innerText = steps[0][Math.floor(Math.random() * steps[0].length)];
+                }
 
-    // [1초 뒤] 2단계 랜덤 멘트
-    setTimeout(() => {
-        if(loadingText) loadingText.innerText = steps[1][Math.floor(Math.random() * steps[1].length)];
-    }, 1000);
+                // [1초 뒤] 2단계 랜덤 멘트
+                setTimeout(() => {
+                    if(loadingText) loadingText.innerText = steps[1][Math.floor(Math.random() * steps[1].length)];
+                }, 1000);
 
-    // [2초 뒤] 3단계 랜덤 멘트
-    setTimeout(() => {
-        if(loadingText) loadingText.innerText = steps[2][Math.floor(Math.random() * steps[2].length)];
-    }, 2000);
+                // [2초 뒤] 3단계 랜덤 멘트
+                setTimeout(() => {
+                    if(loadingText) loadingText.innerText = steps[2][Math.floor(Math.random() * steps[2].length)];
+                }, 2000);
 
-    // [3초 뒤] 결과창 이동
-    setTimeout(async () => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        document.getElementById('analyzeBtn').style.display = 'block';
-        document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 분석하기";
-        await showResult(input); 
-    }, 3000);
-}
+                // [3초 뒤] 결과창 이동
+                setTimeout(async () => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    document.getElementById('analyzeBtn').style.display = 'block';
+                    document.getElementById('analyzeBtn').innerText = "다른 꿈으로 다시 분석하기";
+                    await showResult(input); 
+                }, 3000);
 
-    } catch (e) {
-        console.error("에러 발생:", e);
-        // 혹시나 에러 나면 로딩창이라도 끄기
-        document.getElementById('loadingOverlay').style.display = 'none';
-        document.getElementById('analyzeBtn').style.display = 'block';
-        alert("⚠️ 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
-    }
-}
-
+            } catch (e) {
+                console.error("에러 발생:", e);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('analyzeBtn').style.display = 'block';
+                alert("⚠️ 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            }
+        } // 👈 함수 끝! 깔끔하게 닫았습니다.
 async function showResult(input) {
     document.getElementById('analysisBox').style.display = 'block';
     
@@ -581,6 +579,7 @@ async function showResult(input) {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
