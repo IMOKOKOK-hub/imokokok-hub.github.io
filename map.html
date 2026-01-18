@@ -3,102 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전설의 로또 명당 지도 - 호들갑 LAB</title>
+    <title>전설의 명당 지도 - 호들갑 LAB</title>
     
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" href="favicon.png">
 
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cf95e23dab0df4c6d229a734e0180def&libraries=services"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cf95e23dab0df4c6d229a734e0180def&libraries=services,clusterer"></script>
     
     <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; }
+        /* 1. 호들갑 다크 테마 기본 설정 */
+        body { margin: 0; background: #0f172a; color: #fff; font-family: 'Pretendard', sans-serif; overflow: hidden; }
         
-        /* 헤더 스타일 */
-        .map-header {
-            position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-            background: rgba(15, 23, 42, 0.9); padding: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .home-btn { 
-            text-decoration: none; color: #fff; background: rgba(255,255,255,0.1); 
-            padding: 8px 12px; border-radius: 8px; font-size: 13px; 
+        /* 2. UI 패널 공통 스타일 (유리창 효과) */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            color: #fff;
         }
 
+        /* 3. 상단 헤더 & 검색창 */
+        .map-header {
+            position: absolute; top: 15px; left: 15px; right: 15px; z-index: 100;
+            display: flex; gap: 10px;
+        }
+        .home-btn {
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; text-decoration: none;
+        }
+        .search-box {
+            flex: 1; display: flex; align-items: center; padding: 0 15px;
+        }
+        .search-input {
+            width: 100%; background: transparent; border: none; color: #fff; font-size: 14px; outline: none; height: 44px;
+        }
+        .region-select {
+            background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 8px; padding: 5px; font-size: 12px; margin-right: 5px;
+        }
+
+        /* 4. 좌측 상단 랭킹 박스 (PC에서는 보이고 모바일은 접기 가능) */
+        .ranking-box {
+            position: absolute; top: 70px; left: 15px; width: 220px; z-index: 90;
+            max-height: 40vh; overflow-y: auto; padding: 15px;
+            transition: transform 0.3s;
+        }
+        .rank-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;
+        }
+        .rank-item:hover { background: rgba(255,255,255,0.05); }
+        .rank-badge {
+            background: #fcd34d; color: #000; font-weight: bold; font-size: 10px; 
+            padding: 2px 6px; border-radius: 4px; margin-right: 8px;
+        }
+        .rank-score { color: #fcd34d; font-size: 12px; font-weight: bold; }
+
+        /* 5. 우측 하단 기능 버튼들 */
+        .control-btn {
+            position: absolute; right: 15px; width: 44px; height: 44px; z-index: 90;
+            display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .control-btn:active { transform: scale(0.9); }
+        #my-loc-btn { bottom: 80px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; }
+        
+        /* 6. 지도 스타일 */
         #map { width: 100%; height: 100vh; }
         
-        /* 말풍선 스타일 */
-        .info-window { 
-            padding: 12px; background: #1e293b; color: #fff; border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-size: 13px; text-align: center;
-            border: 1px solid rgba(255,255,255,0.1); min-width: 150px;
+        /* 7. 커스텀 오버레이 (말풍선) 스타일 */
+        .info-window {
+            position: relative; bottom: 45px;
+            background: #1e293b; color: #fff; padding: 15px; border-radius: 12px;
+            width: 200px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            border: 1px solid #fcd34d;
         }
-        .score { color: #fcd34d; font-weight: bold; font-size: 16px; margin: 5px 0; }
-        .badge { background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight:bold; }
+        .info-window::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: #fcd34d transparent transparent transparent;
+        }
+        .info-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #fcd34d; }
+        .info-stats { font-size: 11px; color: #cbd5e1; margin-bottom: 10px; }
+        .copy-btn {
+            background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px;
+            font-size: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .copy-btn:hover { background: #475569; }
+
+        /* 토스트 메시지 */
+        #toast {
+            visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 8px; padding: 12px; position: fixed; z-index: 200; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 14px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
 
     <div class="map-header">
-        <div style="font-weight:bold; font-size:16px;">🗺️ 명당 지도</div>
-        <a href="index.html" class="home-btn">🏠 홈으로</a>
+        <a href="index.html" class="glass-panel home-btn">🏠</a>
+        <div class="glass-panel search-box">
+            <select class="region-select" onchange="moveRegion(this.value)">
+                <option value="">지역이동</option>
+                <option value="seoul">서울</option>
+                <option value="busan">부산</option>
+                <option value="daegu">대구</option>
+                <option value="incheon">인천</option>
+                <option value="jeju">제주</option>
+            </select>
+            <input type="text" class="search-input" id="keyword" placeholder="동네 or 가게명 검색 (엔터)" onkeyup="if(window.event.keyCode==13){searchStore()}">
+            <span style="cursor:pointer" onclick="searchStore()">🔍</span>
+        </div>
+    </div>
+
+    <div class="glass-panel ranking-box">
+        <div style="font-size:12px; color:#94a3b8; margin-bottom:10px;">👑 실시간 명당 파워 TOP 5</div>
+        <div id="ranking-list">
+            </div>
+    </div>
+
+    <div class="glass-panel control-btn" id="my-loc-btn" onclick="moveToCurrentLocation()">
+        📍
     </div>
 
     <div id="map"></div>
 
-    <script>
-        var container = document.getElementById('map');
-        var options = {
-            center: new kakao.maps.LatLng(37.6565, 127.0620), // 초기 중심 (스파 편의점)
-            level: 8
-        };
-        var map = new kakao.maps.Map(container, options);
+    <div id="toast">주소가 복사되었습니다! 🎉</div>
 
-        // ✅ 명당 데이터 (일단 샘플 2개, 나중에 파이썬으로 뽑은거 덮어쓰기)
+    <script>
+        // ============================================
+        // 🛠️ 1. 데이터 베이스 (일단 샘플 5개, 나중에 100개로 늘리세요)
+        // ============================================
+        // 점수 공식: (1등x100) + (2등x10)
         var stores = [
-            { name: "스파 편의점 (전국 1위)", lat: 37.6565, lng: 127.0620, win1: 50, rating: 4.9 },
-            { name: "부일 카서비스 (부산 1위)", lat: 35.1245, lng: 129.0965, win1: 45, rating: 4.8 },
-            { name: "일산 잭팟", lat: 37.6534, lng: 126.7750, win1: 20, rating: 4.5 }
+            { name: "스파 편의점", addr: "서울 노원구 동일로 1493", lat: 37.6565, lng: 127.0620, win1: 52, win2: 120 },
+            { name: "부일 카서비스", addr: "부산 동구 자성로133번길 35", lat: 35.1245, lng: 129.0965, win1: 48, win2: 95 },
+            { name: "일산 잭팟", addr: "경기 고양시 일산서구", lat: 37.6765, lng: 126.7470, win1: 22, win2: 50 },
+            { name: "잠실 매점", addr: "서울 송파구 올림픽로 269", lat: 37.5148, lng: 127.1009, win1: 18, win2: 60 },
+            { name: "대구 로또명당", addr: "대구 달서구 월배로", lat: 35.8275, lng: 128.5320, win1: 15, win2: 40 }
         ];
 
-        // 마커 찍기
-        stores.forEach(store => {
-            // 명당 점수 (1등 횟수 x 100)
-            let score = store.win1 * 100;
+        // 점수 계산 및 정렬
+        stores.forEach(s => s.score = (s.win1 * 100) + (s.win2 * 10));
+        stores.sort((a, b) => b.score - a.score); // 점수 높은 순 정렬
 
-            var markerPosition  = new kakao.maps.LatLng(store.lat, store.lng); 
-            
-            // 마커 이미지 (황금색 느낌)
-            var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
-            var imageSize = new kakao.maps.Size(24, 35); 
-            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
+        // ============================================
+        // 🗺️ 2. 지도 초기화
+        // ============================================
+        var mapContainer = document.getElementById('map');
+        var mapOption = { 
+            center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울 시청
+            level: 9 // 전국구 보기 좋게 약간 축소
+        };
+        var map = new kakao.maps.Map(mapContainer, mapOption);
 
-            var marker = new kakao.maps.Marker({
-                position: markerPosition,
-                image: markerImage,
-                map: map
-            });
+        // 클러스터러 (어지러움 방지: 마커 묶어주기 기능)
+        var clusterer = new kakao.maps.MarkerClusterer({
+            map: map, 
+            averageCenter: true, 
+            minLevel: 6, // 이 레벨보다 지도를 확대해야 마커가 풀림
+            calculator: [10, 30, 50], // 10개, 30개, 50개 단위로 색깔 다르게
+            styles: [{ // 클러스터 스타일 (호들갑 테마)
+                width : '40px', height : '40px',
+                background: 'rgba(99, 102, 241, 0.9)',
+                borderRadius: '50%',
+                color: '#fff',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                lineHeight: '40px'
+            }]
+        });
 
-            // 말풍선 내용
-            var content = `
-                <div class="info-window">
-                    <div style="font-size:14px; font-weight:bold; margin-bottom:4px;">${store.name}</div>
-                    <span class="badge">1등 ${store.win1}회 배출</span>
-                    <div class="score">⚡ 기운: ${score}점</div>
+        // ============================================
+        // 📍 3. 마커 생성 및 랭킹 표시
+        // ============================================
+        var markers = [];
+        var activeOverlay = null; // 현재 열린 말풍선
+
+        // 랭킹 리스트 그리기
+        var rankHTML = "";
+        stores.slice(0, 5).forEach((s, index) => {
+            rankHTML += `
+                <div class="rank-item" onclick="panTo(${s.lat}, ${s.lng})">
+                    <div style="display:flex; align-items:center;">
+                        <span class="rank-badge">${index+1}위</span>
+                        <span style="font-size:13px;">${s.name}</span>
+                    </div>
+                    <span class="rank-score">⚡${s.score}</span>
                 </div>
             `;
-
-            // 마커 클릭 시 말풍선 열기/닫기
-            var overlay = new kakao.maps.CustomOverlay({
-                content: content,
-                map: map,
-                position: marker.getPosition(),
-                yAnchor: 2.2
-            });
-            
-            // 기본적으로 띄워둠 (클릭 이벤트로 바꿔도 됨)
-            overlay.setMap(map);
         });
+        document.getElementById('ranking-list').innerHTML = rankHTML;
+
+        // 마커 찍기 루프
+        stores.forEach((store) => {
+            var position = new kakao.maps.LatLng(store.lat, store.lng);
+            
+            // 마커 이미지 (1위는 특별하게, 나머지는 기본)
+            var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
+            var imageSize = new kakao.maps.Size(24, 35); 
+            var marker = new kakao.maps.Marker({ position: position, image: new kakao.maps.MarkerImage(imageSrc, imageSize) });
+
+            // 마커 클릭 이벤트
+            kakao.maps.event.addListener(marker, 'click', function() {
+                if (activeOverlay) activeOverlay.setMap(null); // 기존꺼 닫기
+
+                var content = `
+                    <div class="info-window">
+                        <div class="info-title">${store.name}</div>
+                        <div class="info-stats">
+                            🥇 1등: ${store.win1}회 | 🥈 2등: ${store.win2}회<br>
+                            ⚡ 명당 파워: ${store.score}점
+                        </div>
+                        <div style="font-size:12px; margin-bottom:8px; color:#94a3b8;">${store.addr}</div>
+                        <button class="copy-btn" onclick="copyAddress('${store.addr}')">
+                            📋 주소 복사하기
+                        </button>
+                    </div>
+                `;
+
+                var overlay = new kakao.maps.CustomOverlay({
+                    content: content,
+                    map: map,
+                    position: marker.getPosition(),
+                    yAnchor: 1.4,
+                    zIndex: 3
+                });
+                
+                activeOverlay = overlay;
+                map.panTo(position); // 클릭하면 지도가 거기로 이동
+            });
+
+            markers.push(marker);
+        });
+
+        // 클러스터러에 마커들 담기 (화면에 한 번에 그림)
+        clusterer.addMarkers(markers);
+
+        // 지도 빈 곳 클릭하면 말풍선 닫기
+        kakao.maps.event.addListener(map, 'click', function() {
+            if (activeOverlay) activeOverlay.setMap(null);
+        });
+
+        // ============================================
+        // 🚀 4. 편의 기능 함수들
+        // ============================================
+        
+        // 위치 이동
+        function panTo(lat, lng) {
+            map.setLevel(3); // 확대
+            map.panTo(new kakao.maps.LatLng(lat, lng));
+        }
+
+        // 주소 복사
+        function copyAddress(addr) {
+            navigator.clipboard.writeText(addr).then(() => {
+                var x = document.getElementById("toast");
+                x.className = "show";
+                setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+            });
+        }
+
+        // 지역 필터
+        function moveRegion(region) {
+            var locs = {
+                'seoul': [37.5665, 126.9780],
+                'busan': [35.1795, 129.0749],
+                'daegu': [35.8714, 128.6014],
+                'incheon': [37.4562, 126.7052],
+                'jeju': [33.4996, 126.5311]
+            };
+            if(locs[region]) {
+                map.setLevel(7);
+                map.panTo(new kakao.maps.LatLng(locs[region][0], locs[region][1]));
+            }
+        }
+
+        // 검색 기능
+        function searchStore() {
+            var keyword = document.getElementById('keyword').value;
+            if (!keyword) return;
+
+            var found = stores.find(s => s.name.includes(keyword) || s.addr.includes(keyword));
+            if (found) {
+                panTo(found.lat, found.lng);
+            } else {
+                alert('목록에 없는 명당입니다. (주요 명당 100곳만 등록되어 있습니다)');
+            }
+        }
+
+        // 내 위치 찾기
+        function moveToCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude; 
+                    var lon = position.coords.longitude; 
+                    var locPosition = new kakao.maps.LatLng(lat, lon); 
+                    map.setLevel(4);
+                    map.panTo(locPosition);
+                    
+                    // 내 위치 마커 표시
+                    new kakao.maps.Marker({ position: locPosition, map: map, title: '내 위치' });
+                });
+            } else {
+                alert('GPS를 사용할 수 없습니다.');
+            }
+        }
     </script>
 </body>
 </html>
