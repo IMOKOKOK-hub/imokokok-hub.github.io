@@ -11,108 +11,95 @@
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cf95e23dab0df4c6d229a734e0180def&libraries=services,clusterer"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* [1. 전체 테마] 호들갑 다크 & 글래스 */
-        :root { --main-bg: #0f172a; --glass: rgba(30, 41, 59, 0.85); --accent: #fcd34d; --text: #fff; }
-        body { margin: 0; background: var(--main-bg); color: var(--text); font-family: 'Pretendard', sans-serif; overflow: hidden; }
-        
+        /* [1. 공통 스타일] */
+        :root { --bg: #0f172a; --glass: rgba(30, 41, 59, 0.95); --accent: #fcd34d; --text: #fff; --gray: #94a3b8; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; overflow: hidden; }
         #map { width: 100%; height: 100vh; }
 
-        /* [2. 헤더] 검색창 & 메뉴버튼 */
+        /* [2. 헤더] 검색창 & 메뉴 */
         .header-bar {
             position: absolute; top: 15px; left: 15px; right: 15px; z-index: 50;
-            display: flex; gap: 10px; height: 50px;
+            display: flex; gap: 10px; height: 45px; pointer-events: none;
         }
         .glass-box {
-            background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto;
             display: flex; align-items: center; justify-content: center;
         }
-        .home-btn { width: 50px; font-size: 20px; color: #fff; text-decoration: none; }
-        .search-container { flex: 1; padding: 0 15px; justify-content: flex-start; }
-        .search-input { 
-            width: 100%; background: transparent; border: none; color: #fff; font-size: 15px; outline: none; 
-            font-weight: 500;
-        }
-        .menu-btn { width: 50px; color: var(--accent); font-size: 20px; cursor: pointer; }
+        .home-btn { width: 45px; color: #fff; font-size: 18px; text-decoration: none; }
+        .search-container { flex: 1; padding: 0 10px; justify-content: flex-start; }
+        .search-input { width: 100%; background: transparent; border: none; color: #fff; font-size: 14px; outline: none; }
+        .menu-btn { width: 45px; color: var(--accent); font-size: 18px; cursor: pointer; }
 
-        /* [3. 내 위치 버튼 (우측 하단)] */
+        /* [3. 내 위치 버튼] */
         .my-loc-btn {
             position: absolute; bottom: 30px; right: 20px; z-index: 50;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: #6366f1; color: white; border: none; font-size: 22px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.6); cursor: pointer;
+            width: 45px; height: 45px; border-radius: 50%; background: #6366f1; border: none; 
+            color: white; font-size: 20px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.6); cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
-        }
-        .my-loc-btn:active { transform: scale(0.9); }
-
-        /* [4. 바텀 시트 (가게 상세 정보)] - 핵심 UI */
-        .bottom-sheet {
-            position: absolute; bottom: -100%; left: 0; width: 100%; height: 60vh;
-            background: #1e293b; border-radius: 25px 25px 0 0; z-index: 100;
-            box-shadow: 0 -5px 30px rgba(0,0,0,0.6);
-            transition: bottom 0.3s ease-out; display: flex; flex-direction: column;
-        }
-        .bottom-sheet.show { bottom: 0; }
-        
-        .sheet-handle {
-            width: 40px; height: 5px; background: rgba(255,255,255,0.2);
-            border-radius: 5px; margin: 15px auto 10px; cursor: pointer;
-        }
-        .sheet-content { padding: 0 25px 25px; overflow-y: auto; flex: 1; }
-        
-        /* 상세 정보 스타일 */
-        .store-title { font-size: 22px; font-weight: bold; color: var(--accent); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .store-addr { font-size: 13px; color: #94a3b8; margin-bottom: 15px; }
-        .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-badge { 
-            flex: 1; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; 
-            text-align: center; border: 1px solid rgba(255,255,255,0.05);
-        }
-        .stat-val { font-size: 18px; font-weight: bold; display: block; margin-bottom: 4px; }
-        .stat-label { font-size: 11px; color: #cbd5e1; }
-
-        /* 별점 & 리뷰 섹션 */
-        .review-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-        .star-rating { font-size: 24px; color: #475569; cursor: pointer; display: flex; gap: 5px; margin-bottom: 15px; justify-content: center;}
-        .star-rating .fa-star.active { color: #fcd34d; }
-        
-        .review-input-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .review-input { 
-            flex: 1; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); 
-            color: white; padding: 12px; border-radius: 8px; outline: none;
-        }
-        .review-btn {
-            background: var(--accent); color: black; border: none; padding: 0 20px; 
-            font-weight: bold; border-radius: 8px; cursor: pointer;
         }
 
-        .review-list { display: flex; flex-direction: column; gap: 10px; }
-        .review-item { 
-            background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; font-size: 13px; 
-            border-left: 3px solid #6366f1;
+        /* [4. 말풍선 (Info Window) 스타일] - 군더더기 제거 버전 */
+        .info-window {
+            position: relative; bottom: 50px;
+            background: var(--glass); color: #fff; padding: 15px; border-radius: 15px;
+            width: 200px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        .review-header { display: flex; justify-content: space-between; margin-bottom: 5px; color: #94a3b8; font-size: 11px; }
+        .info-window::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: var(--glass) transparent transparent transparent;
+        }
+        
+        /* 가게 이름 */
+        .iw-title { font-size: 17px; font-weight: 900; color: #fff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        
+        /* 명당 파워 점수 */
+        .iw-power-box {
+            background: rgba(252, 211, 77, 0.1); border: 1px solid var(--accent);
+            padding: 8px 0; border-radius: 8px; margin-bottom: 12px;
+        }
+        .iw-power-label { font-size: 10px; color: var(--accent); font-weight: bold; display: block; margin-bottom: 2px;}
+        .iw-power-score { font-size: 20px; font-weight: 900; color: #fff; }
+
+        /* 통계 그리드 (1등/2등) */
+        .iw-stats-grid { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; color: #cbd5e1; padding: 0 5px; }
+        .iw-stats-grid b { color: #fff; font-size: 13px; }
+
+        /* 별점 표시 */
+        .iw-rating { margin-bottom: 12px; font-size: 13px; color: #fcd34d; font-weight: bold; }
+        .iw-rating i { margin-right: 3px; }
+
+        /* 주소 복사 버튼 */
+        .iw-copy-btn {
+            width: 100%; background: #334155; color: #fff; border: none; padding: 10px 0;
+            border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .iw-copy-btn:hover { background: #475569; }
+        .iw-copy-btn:active { transform: scale(0.98); }
 
         /* [5. 사이드 메뉴] */
         .side-menu {
             position: absolute; top: 0; right: -300px; width: 280px; height: 100%;
-            background: rgba(15, 23, 42, 0.98); z-index: 200;
-            transition: right 0.3s; padding: 20px; border-left: 1px solid rgba(255,255,255,0.1);
+            background: var(--glass); z-index: 300; transition: right 0.3s; padding: 20px; 
+            border-left: 1px solid rgba(255,255,255,0.1);
         }
         .side-menu.open { right: 0; }
-        .menu-title { font-size: 18px; font-weight: bold; margin-bottom: 30px; display: flex; justify-content: space-between; }
-        .menu-list a { 
-            display: block; padding: 15px 0; color: #cbd5e1; text-decoration: none; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 15px; 
-        }
-        .menu-list a i { width: 30px; color: var(--accent); }
+        .menu-list a { display: block; padding: 15px 0; color: #cbd5e1; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* 닫기 버튼들 */
-        .close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        /* 토스트 */
+        #toast {
+            visibility: hidden; min-width: 200px; background: rgba(0,0,0,0.9); color: #fff; text-align: center;
+            border-radius: 8px; padding: 12px; position: fixed; z-index: 400; left: 50%; bottom: 90px;
+            transform: translateX(-50%); font-size: 14px; border: 1px solid #334155;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.5s 2.0s; }
+        @keyframes fadein { from {bottom: 50px; opacity: 0;} to {bottom: 90px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 90px; opacity: 1;} to {bottom: 50px; opacity: 0;} }
     </style>
 </head>
 <body>
@@ -122,230 +109,150 @@
     <div class="header-bar">
         <a href="index.html" class="glass-box home-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="glass-box search-container">
-            <i class="fas fa-search" style="color:#94a3b8; margin-right:10px;"></i>
-            <input type="text" id="keyword" class="search-input" placeholder="명당 이름 검색..." onkeyup="if(window.event.keyCode==13){searchStore()}">
+            <i class="fas fa-search" style="color:#94a3b8; margin-right:8px;"></i>
+            <input type="text" id="keyword" class="search-input" placeholder="명당 검색..." onkeyup="if(window.event.keyCode==13){searchStore()}">
         </div>
         <div class="glass-box menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
     </div>
 
     <button class="my-loc-btn" onclick="moveToCurrentLocation()"><i class="fas fa-crosshairs"></i></button>
 
-    <div id="bottom-sheet" class="bottom-sheet">
-        <div class="sheet-handle" onclick="closeSheet()"></div>
-        <div class="sheet-content">
-            <div id="store-info"></div>
-
-            <div class="review-section">
-                <div style="text-align:center; margin-bottom:10px; font-size:14px;">이 명당의 기운을 평가해주세요!</div>
-                <div class="star-rating" id="star-box">
-                    <i class="fas fa-star" onclick="rate(1)"></i>
-                    <i class="fas fa-star" onclick="rate(2)"></i>
-                    <i class="fas fa-star" onclick="rate(3)"></i>
-                    <i class="fas fa-star" onclick="rate(4)"></i>
-                    <i class="fas fa-star" onclick="rate(5)"></i>
-                </div>
-                
-                <div class="review-input-box">
-                    <input type="text" id="review-text" class="review-input" placeholder="익명 리뷰 남기기 (예: 여기 기운 좋네요!)">
-                    <button class="review-btn" onclick="submitReview()">등록</button>
-                </div>
-
-                <div style="font-weight:bold; margin-bottom:10px;">💬 실시간 리뷰</div>
-                <div id="review-list" class="review-list">
-                    <div class="review-item">
-                        <div class="review-header"><span>익명1283</span> <span>⭐⭐⭐⭐⭐</span></div>
-                        여기서 3등 당첨됐습니다! 기운 받아가세요~
-                    </div>
-                    <div class="review-item">
-                        <div class="review-header"><span>익명992</span> <span>⭐⭐⭐⭐</span></div>
-                        줄 진짜 기네요.. 그래도 기대됩니다.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="side-menu" class="side-menu">
-        <div class="menu-title">
-            <span>호들갑 메뉴</span>
-            <button class="close-btn" onclick="toggleMenu()">&times;</button>
+        <div style="font-size:18px; font-weight:bold; color:var(--accent); margin-bottom:20px; display:flex; justify-content:space-between;">
+            <span>⚡ 메뉴</span>
+            <span onclick="toggleMenu()" style="cursor:pointer; color:#fff;">&times;</span>
         </div>
         <div class="menu-list">
-            <a href="#" onclick="alert('데이터 수집 중입니다!')"><i class="fas fa-trophy"></i> 실시간 파워 랭킹</a>
-            <a href="#" onclick="alert('준비 중!')"><i class="fas fa-comments"></i> 전체 리뷰 모아보기</a>
-            <a href="#" onclick="alert('사장님만 아는 곳!')"><i class="fas fa-user-secret"></i> 숨은 명당 추천 게시판</a>
+            <a href="#" onclick="alert('준비중')"><i class="fas fa-trophy"></i> 명당 파워 랭킹</a>
+            <a href="#" onclick="alert('준비중')"><i class="fas fa-comments"></i> 전체 리뷰 보기</a>
+            <a href="#" onclick="alert('준비중')"><i class="fas fa-bullhorn"></i> 숨은 명당 제보</a>
             <a href="guide.html"><i class="fas fa-book"></i> 사용 가이드</a>
-            <a href="#" onclick="copyAddress('https://imokokok-hub.github.io')"><i class="fas fa-share-alt"></i> 친구에게 공유하기</a>
-        </div>
-        <div style="margin-top: 50px; font-size: 12px; color: #64748b; text-align: center;">
-            Version 3.0.1<br>Hodle-Gap Lab.
         </div>
     </div>
+
+    <div id="toast"></div>
 
     <script>
         // ===================================
         // 💾 데이터: 전설의 명당 TOP 10
         // ===================================
         const stores = [
-            { id: 1, name: "스파 편의점", addr: "서울 노원구 동일로 1493", lat: 37.6565, lng: 127.0620, win1: 52, win2: 210, stars: 4.8 },
-            { id: 2, name: "부일 카서비스", addr: "부산 동구 자성로133번길 35", lat: 35.1245, lng: 129.0965, win1: 49, win2: 180, stars: 4.9 },
-            { id: 3, name: "일산 잭팟", addr: "경기 고양시 일산서구 중앙로 1493", lat: 37.6765, lng: 126.7470, win1: 22, win2: 85, stars: 4.5 },
-            { id: 4, name: "잠실 매점", addr: "서울 송파구 올림픽로 269", lat: 37.5148, lng: 127.1009, win1: 19, win2: 70, stars: 4.7 },
-            { id: 5, name: "로또명당 인주점", addr: "충남 아산시 인주면 서해로 519-1", lat: 36.8879, lng: 126.9080, win1: 28, win2: 105, stars: 4.6 },
-            { id: 6, name: "목동 식품", addr: "서울 중랑구 동일로 919", lat: 37.6087, lng: 127.0762, win1: 18, win2: 60, stars: 4.3 },
-            { id: 7, name: "제이 복권방", addr: "서울 종로구 종로 225-1", lat: 37.5707, lng: 127.0039, win1: 16, win2: 55, stars: 4.2 },
-            { id: 8, name: "세진전자통신", addr: "대구 서구 서대구로 156", lat: 35.8732, lng: 128.5583, win1: 18, win2: 68, stars: 4.4 },
-            { id: 9, name: "상남 슈퍼", addr: "경남 창원시 성산구 마디미로 37", lat: 35.2215, lng: 128.6830, win1: 16, win2: 50, stars: 4.1 },
-            { id: 10, name: "복권 나라", addr: "서울 관악구 남부순환로 1739-9", lat: 37.4821, lng: 126.9388, win1: 15, win2: 45, stars: 4.0 }
+            { id: 1, name: "스파 편의점", addr: "서울 노원구 동일로 1493", lat: 37.6565, lng: 127.0620, win1: 52, win2: 210, rating: 4.8 },
+            { id: 2, name: "부일 카서비스", addr: "부산 동구 자성로133번길 35", lat: 35.1245, lng: 129.0965, win1: 49, win2: 180, rating: 4.9 },
+            { id: 3, name: "일산 잭팟", addr: "경기 고양시 일산서구 중앙로 1493", lat: 37.6765, lng: 126.7470, win1: 22, win2: 85, rating: 4.5 },
+            { id: 4, name: "잠실 매점", addr: "서울 송파구 올림픽로 269", lat: 37.5148, lng: 127.1009, win1: 19, win2: 70, rating: 4.7 },
+            { id: 5, name: "로또명당 인주점", addr: "충남 아산시 인주면 서해로 519-1", lat: 36.8879, lng: 126.9080, win1: 28, win2: 105, rating: 4.6 },
+            { id: 6, name: "목동 식품", addr: "서울 중랑구 동일로 919", lat: 37.6087, lng: 127.0762, win1: 18, win2: 60, rating: 4.3 },
+            { id: 7, name: "제이 복권방", addr: "서울 종로구 종로 225-1", lat: 37.5707, lng: 127.0039, win1: 16, win2: 55, rating: 4.2 },
+            { id: 8, name: "세진전자통신", addr: "대구 서구 서대구로 156", lat: 35.8732, lng: 128.5583, win1: 18, win2: 68, rating: 4.4 },
+            { id: 9, name: "상남 슈퍼", addr: "경남 창원시 성산구 마디미로 37", lat: 35.2215, lng: 128.6830, win1: 16, win2: 50, rating: 4.1 },
+            { id: 10, name: "복권 나라", addr: "서울 관악구 남부순환로 1739-9", lat: 37.4821, lng: 126.9388, win1: 15, win2: 45, rating: 4.0 }
         ];
 
-        let currentStore = null; // 현재 선택된 가게
-        let currentRating = 5;   // 현재 선택한 별점
+        // ⚡ 파워 점수 계산 (1등x100 + 2등x50 + 별점x200)
+        function getPower(s) {
+            return (s.win1 * 100 + s.win2 * 50 + s.rating * 200).toLocaleString();
+        }
 
         // 🗺️ 지도 생성
-        var container = document.getElementById('map');
-        var options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 9 };
-        var map = new kakao.maps.Map(container, options);
-
-        // 마커 생성
-        stores.forEach(store => {
-            var position = new kakao.maps.LatLng(store.lat, store.lng);
-            // 왕관 마커 이미지
-            var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
-            var imageSize = new kakao.maps.Size(24, 35); 
-            var marker = new kakao.maps.Marker({ 
-                position: position, 
-                image: new kakao.maps.MarkerImage(imageSrc, imageSize),
-                map: map 
-            });
-
-            // 클릭 시 바텀 시트 열기
-            kakao.maps.event.addListener(marker, 'click', function() {
-                openSheet(store);
-                map.panTo(position);
-            });
+        var map = new kakao.maps.Map(document.getElementById('map'), {
+            center: new kakao.maps.LatLng(37.5665, 126.9780), level: 9
         });
 
-        // 🟢 바텀 시트 관련 함수
-        function openSheet(store) {
-            currentStore = store;
-            const sheet = document.getElementById('bottom-sheet');
-            const infoDiv = document.getElementById('store-info');
+        // 클러스터러 (마커 뭉치기)
+        var clusterer = new kakao.maps.MarkerClusterer({
+            map: map, averageCenter: true, minLevel: 6, calculator: [5],
+            styles: [{ width:'40px', height:'40px', background:'rgba(252,211,77,0.9)', borderRadius:'50%', color:'#000', textAlign:'center', lineHeight:'40px', fontWeight:'bold' }]
+        });
 
-            // 가게 정보 렌더링
-            infoDiv.innerHTML = `
-                <div class="store-title">
-                    ${store.name} 
-                    <span style="font-size:14px; color:#fcd34d;">★ ${store.stars}</span>
-                </div>
-                <div class="store-addr">${store.addr}</div>
-                <div class="stats-row">
-                    <div class="stat-badge">
-                        <span class="stat-val" style="color:#fcd34d;">${store.win1}회</span>
-                        <span class="stat-label">1등 당첨</span>
-                    </div>
-                    <div class="stat-badge">
-                        <span class="stat-val">${store.win2}회</span>
-                        <span class="stat-label">2등 당첨</span>
-                    </div>
-                </div>
-            `;
-            
-            // 별점 초기화
-            resetStars();
-            
-            sheet.classList.add('show');
-        }
+        var activeOverlay = null; // 현재 열린 말풍선
 
-        function closeSheet() {
-            document.getElementById('bottom-sheet').classList.remove('show');
-        }
-
-        // ⭐ 별점 기능
-        function rate(score) {
-            currentRating = score;
-            const stars = document.querySelectorAll('.fa-star');
-            stars.forEach((star, index) => {
-                if(index < score) star.classList.add('active');
-                else star.classList.remove('active');
+        // 마커 생성 루프
+        var markers = stores.map(store => {
+            var marker = new kakao.maps.Marker({
+                position: new kakao.maps.LatLng(store.lat, store.lng),
+                image: new kakao.maps.MarkerImage("https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", new kakao.maps.Size(24, 35))
             });
+
+            // 마커 클릭 -> 깔끔한 말풍선 열기
+            kakao.maps.event.addListener(marker, 'click', function() {
+                closeOverlay(); // 기존 꺼 닫기
+                
+                var content = `
+                    <div class="info-window">
+                        <div class="iw-title">${store.name}</div>
+                        
+                        <div class="iw-power-box">
+                            <span class="iw-power-label">⚡ 명당 파워</span>
+                            <span class="iw-power-score">${getPower(store)}</span>
+                        </div>
+
+                        <div class="iw-stats-grid">
+                            <div>🥇 1등 <b>${store.win1}</b></div>
+                            <div>🥈 2등 <b>${store.win2}</b></div>
+                        </div>
+
+                        <div class="iw-rating">
+                            <i class="fas fa-star"></i> ${store.rating} / 5.0
+                        </div>
+
+                        <button class="iw-copy-btn" onclick="copyAddr('${store.addr}')">
+                            <i class="far fa-copy"></i> 주소 복사하기
+                        </button>
+                    </div>
+                `;
+
+                var overlay = new kakao.maps.CustomOverlay({
+                    content: content, map: map, position: marker.getPosition(), yAnchor: 1.4, zIndex: 10
+                });
+                
+                activeOverlay = overlay;
+                map.panTo(marker.getPosition());
+            });
+            return marker;
+        });
+        clusterer.addMarkers(markers);
+
+        // 지도 클릭 시 말풍선 닫기
+        kakao.maps.event.addListener(map, 'click', closeOverlay);
+
+        function closeOverlay() {
+            if(activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
         }
-        function resetStars() {
-            rate(5); // 기본 5점
-        }
 
-        // 📝 리뷰 등록 기능 (가짜 데이터로 UI만 보여줌 - DB연동은 나중에)
-        function submitReview() {
-            const text = document.getElementById('review-text').value;
-            if(!text) return alert("내용을 입력해주세요!");
-
-            const list = document.getElementById('review-list');
-            const newReview = document.createElement('div');
-            newReview.className = 'review-item';
-            
-            // 별 문자열 만들기
-            let starsStr = "";
-            for(let i=0; i<currentRating; i++) starsStr += "⭐";
-
-            newReview.innerHTML = `
-                <div class="review-header">
-                    <span>익명${Math.floor(Math.random()*9000)+1000}</span> 
-                    <span>${starsStr}</span>
-                </div>
-                ${text}
-            `;
-            
-            // 최신글을 맨 위로
-            list.insertBefore(newReview, list.firstChild);
-            
-            document.getElementById('review-text').value = ''; // 입력창 비우기
-            alert("리뷰가 등록되었습니다! (현재는 임시 저장)");
-        }
-
-        // 🍔 사이드 메뉴 토글
-        function toggleMenu() {
-            const menu = document.getElementById('side-menu');
-            if(menu.classList.contains('open')) menu.classList.remove('open');
-            else menu.classList.add('open');
-        }
-
-        // 🔍 검색 기능
+        // 기능들
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+        
         function searchStore() {
-            const keyword = document.getElementById('keyword').value;
-            if(!keyword) return;
-            const found = stores.find(s => s.name.includes(keyword) || s.addr.includes(keyword));
-            
+            const kw = document.getElementById('keyword').value;
+            if(!kw) return;
+            const found = stores.find(s => s.name.includes(kw) || s.addr.includes(kw));
             if(found) {
                 map.setLevel(4);
                 map.panTo(new kakao.maps.LatLng(found.lat, found.lng));
-                openSheet(found);
-            } else {
-                alert("목록에 없는 명당입니다. (TOP 10만 등록됨)");
-            }
+                showToast(`📍 ${found.name} 위치로 이동했습니다.`);
+            } else { showToast("목록에 없습니다."); }
         }
 
-        // 📍 내 위치
+        function copyAddr(txt) {
+            navigator.clipboard.writeText(txt);
+            showToast("주소가 복사되었습니다! 📋");
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById("toast"); t.innerText = msg; t.className = "show";
+            setTimeout(() => t.className = t.className.replace("show", ""), 2500);
+        }
+
         function moveToCurrentLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    var lat = position.coords.latitude; 
-                    var lon = position.coords.longitude; 
-                    var locPosition = new kakao.maps.LatLng(lat, lon); 
-                    map.setLevel(5);
-                    map.panTo(locPosition);
-                    
-                    // 내 위치 표시 (파란 점)
-                    var marker = new kakao.maps.Marker({ position: locPosition });
-                    marker.setMap(map);
+                navigator.geolocation.getCurrentPosition(pos => {
+                    var lat = pos.coords.latitude; var lon = pos.coords.longitude;
+                    var loc = new kakao.maps.LatLng(lat, lon);
+                    map.setLevel(5); map.panTo(loc);
+                    new kakao.maps.Marker({ position: loc, map: map });
                 });
-            } else {
-                alert("GPS 권한을 허용해주세요.");
-            }
-        }
-
-        function copyAddress(text) {
-            navigator.clipboard.writeText(text);
-            alert("주소가 복사되었습니다!");
+            } else { alert("GPS 권한을 켜주세요."); }
         }
     </script>
 </body>
