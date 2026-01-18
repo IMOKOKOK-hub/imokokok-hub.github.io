@@ -156,7 +156,7 @@
         // 클러스터러 (여기서 minLevel이 중요! 이 레벨보다 확대하면 클러스터 풀림)
         // 레벨이 낮을수록 확대된 상태임 (1:최대확대, 14:전국)
         var clusterer = new kakao.maps.MarkerClusterer({
-            map: map, averageCenter: true, minLevel: 7, // 7레벨부터 뭉침
+            map: map, averageCenter: true, minLevel: 9, // 9레벨부터 뭉침
             calculator: [5],
             styles: [{ width:'40px', height:'40px', background:'rgba(252,211,77,0.9)', borderRadius:'50%', color:'#000', textAlign:'center', lineHeight:'40px', fontWeight:'bold' }]
         });
@@ -216,7 +216,7 @@
             
             // 레벨 6 이하(확대됨)일 때만 오버레이 표시
             // 클러스터러 minLevel(7)과 맞춰야 자연스러움
-            if (level < 7) { 
+            if (level < 9) { 
                 overlays.forEach(item => item.overlay.setMap(map));
             } else {
                 overlays.forEach(item => item.overlay.setMap(null));
