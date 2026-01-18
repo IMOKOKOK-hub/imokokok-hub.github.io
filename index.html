@@ -262,13 +262,14 @@
 
             <div class="winning-box" style="padding:15px;">
                 <p style="font-size:12px; color:#94a3b8; margin:0 0 10px 0;">* 저장된 데이터와 실제 당첨 번호를 대조 중입니다.</p>
-                <table class="rank-table">
-                    <tr><th>등수</th><th>당첨 조건</th><th>당첨자 수</th></tr>
-                    <tr><td><span style="color:#fcd34d;">1등</span></td><td>6개 일치</td><td id="rank1">0명</td></tr>
-                    <tr><td>2등</td><td>5개+보너스</td><td id="rank2">0명</td></tr>
-                    <tr><td>3등</td><td>5개 일치</td><td id="rank3">0명</td></tr>
-                    <tr><td>4등</td><td>4개 일치</td><td id="rank4">0명</td></tr>
-                </table>
+              <table class="rank-table">
+            <tr><th>등수</th><th>당첨 조건</th><th>당첨자 수</th></tr>
+            <tr><td><span style="color:#fcd34d;">1등</span></td><td>6개 일치</td><td id="rank1">0명</td></tr>
+            <tr><td>2등</td><td>5개+보너스</td><td id="rank2">0명</td></tr>
+            <tr><td>3등</td><td>5개 일치</td><td id="rank3">0명</td></tr>
+            <tr><td>4등</td><td>4개 일치</td><td id="rank4">0명</td></tr>
+            <tr><td>5등</td><td>3개 일치</td><td id="rank5">0명</td></tr>
+</table>
             </div>
         </div>
     </div>
@@ -532,7 +533,7 @@ async function showResult(input) {
         }
 
                 // ✅ 이 함수가 이제 회차 계산 + 공 그리기 + 당첨자 계산까지 다 합니다!
-           async function checkWinningStatus() {
+    async function checkWinningStatus() {
     // 1. 회차 표시
     const currentRound = LOTTO_CONFIG.baseRound;
     if(document.getElementById('displayRound')) {
@@ -547,50 +548,46 @@ async function showResult(input) {
                             `<div class="ball ${getBallColor(LOTTO_CONFIG.bonusNum)}">${LOTTO_CONFIG.bonusNum}</div>`;
     }
 
-    // 3. [핵심] DB 대조 및 당첨자 수 계산 (디버깅 추가됨)
-    // 에러가 있는지 확인하기 위해 error 변수도 같이 받습니다.
+    // 3. DB 대조 및 당첨자 수 계산
     const { data, error } = await _supabase.from('lotto_logs').select('numbers');
     
     if (error) {
-        console.error("DB 불러오기 실패:", error);
+        console.error("DB 에러:", error);
         return;
     }
 
-    console.log(`📊 총 ${data.length}개의 데이터와 대조 시작...`); // F12 콘솔 확인용
-
-    let ranks = {1:0, 2:0, 3:0, 4:0};
+    // ✅ 5등(rank5) 카운트 추가!
+    let ranks = {1:0, 2:0, 3:0, 4:0, 5:0}; 
     
     if (data) {
         data.forEach(row => {
             if(!row.numbers) return;
             
-            // 저장된 번호 뭉치들을 하나씩 꺼내서 비교
             row.numbers.split(' | ').forEach(setStr => {
-                let myNums = setStr.split(', ').map(Number); // 문자를 숫자로 변환
+                let myNums = setStr.split(', ').map(Number);
                 
-                // 내 번호 중 당첨 번호가 몇 개 있는지 계산
+                // 몇 개 맞았나 계산
                 let matchCnt = myNums.filter(n => LOTTO_CONFIG.winNums.includes(n)).length;
                 let isBonus = myNums.includes(LOTTO_CONFIG.bonusNum);
 
-                // 콘솔에 4개 이상 맞은 대박 건수만 출력 (확인용)
-                if(matchCnt >= 4) console.log(`🎉 대박 발견! ${matchCnt}개 일치:`, myNums);
-
-                // 등수 카운팅
+                // 등수 카운팅 (✅ 3개 일치 로직 추가됨)
                 if(matchCnt === 6) ranks[1]++;
                 else if(matchCnt === 5 && isBonus) ranks[2]++;
                 else if(matchCnt === 5) ranks[3]++;
                 else if(matchCnt === 4) ranks[4]++;
+                else if(matchCnt === 3) ranks[5]++; // 👈 여기가 5등 로직입니다!
             });
         });
     }
 
-    console.log("🏆 최종 집계 결과:", ranks); // F12 콘솔에서 최종 결과 확인
+    console.log("최종 집계:", ranks);
 
-    // 4. 화면 업데이트
+    // 4. 화면 업데이트 (✅ 5등 표시 추가)
     document.getElementById('rank1').innerText = ranks[1] + "명";
     document.getElementById('rank2').innerText = ranks[2] + "명";
     document.getElementById('rank3').innerText = ranks[3] + "명";
     document.getElementById('rank4').innerText = ranks[4] + "명";
+    document.getElementById('rank5').innerText = ranks[5] + "명"; // 👈 화면에 5등 표시!
 }
 
         function shareKakao() { try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또', description: '내 꿈이 1등 당첨 꿈일까?', imageUrl: '', link: { mobileWebUrl: location.href, webUrl: location.href } } }); } catch(e) {} }
@@ -604,6 +601,7 @@ async function showResult(input) {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
