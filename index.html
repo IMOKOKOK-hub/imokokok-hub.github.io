@@ -483,6 +483,7 @@ async function showResult(input) {
     const randomNick = "익명" + Math.floor(Math.random() * 9999);
     await _supabase.from('lotto_logs').insert([{ nickname: randomNick, numbers: saveNums.join(' | ') }]);
     fetchRecentLogs(); 
+    await checkWinningStatus();
 }
 
         // ✅ [핵심 기능] 5개면 접고, 1개면 그냥 보여주기
@@ -531,46 +532,66 @@ async function showResult(input) {
         }
 
                 // ✅ 이 함수가 이제 회차 계산 + 공 그리기 + 당첨자 계산까지 다 합니다!
-            async function checkWinningStatus() {
-            // ✅ [수정됨] 날짜 계산 없이 설정된 회차를 그대로 사용합니다.
-            const currentRound = LOTTO_CONFIG.baseRound;
+           async function checkWinningStatus() {
+    // 1. 회차 표시
+    const currentRound = LOTTO_CONFIG.baseRound;
+    if(document.getElementById('displayRound')) {
+        document.getElementById('displayRound').innerText = currentRound;
+    }
 
-            // 2. 화면에 회차(1206회 등) 표시
-            if(document.getElementById('displayRound')) {
-                document.getElementById('displayRound').innerText = currentRound;
-            }
+    // 2. 당첨공 그리기
+    const winArea = document.getElementById('winBallArea');
+    if(winArea) {
+        winArea.innerHTML = LOTTO_CONFIG.winNums.map(n => `<div class="ball ${getBallColor(n)}">${n}</div>`).join('') +
+                            `<div style="color:#94a3b8; margin:0 5px; font-weight:bold;">+</div>` +
+                            `<div class="ball ${getBallColor(LOTTO_CONFIG.bonusNum)}">${LOTTO_CONFIG.bonusNum}</div>`;
+    }
+
+    // 3. [핵심] DB 대조 및 당첨자 수 계산 (디버깅 추가됨)
+    // 에러가 있는지 확인하기 위해 error 변수도 같이 받습니다.
+    const { data, error } = await _supabase.from('lotto_logs').select('numbers');
     
-    // ... (아래는 건드리지 마세요)
+    if (error) {
+        console.error("DB 불러오기 실패:", error);
+        return;
+    }
 
-            // 3. 화면에 당첨공 7개(보너스 포함) 자동으로 그리기
-            const winArea = document.getElementById('winBallArea');
-            if(winArea) {
-                winArea.innerHTML = LOTTO_CONFIG.winNums.map(n => `<div class="ball ${getBallColor(n)}">${n}</div>`).join('') +
-                                    `<div style="color:#94a3b8; margin:0 5px; font-weight:bold;">+</div>` +
-                                    `<div class="ball ${getBallColor(LOTTO_CONFIG.bonusNum)}">${LOTTO_CONFIG.bonusNum}</div>`;
-            }
+    console.log(`📊 총 ${data.length}개의 데이터와 대조 시작...`); // F12 콘솔 확인용
 
-            // 4. DB 대조해서 당첨자 수 계산
-            const { data } = await _supabase.from('lotto_logs').select('numbers');
-            let ranks = {1:0, 2:0, 3:0, 4:0};
-            if (data) {
-                data.forEach(row => {
-                    if(!row.numbers) return;
-                    row.numbers.split(' | ').forEach(setStr => {
-                        let myNums = setStr.split(', ').map(Number);
-                        let matchCnt = myNums.filter(n => LOTTO_CONFIG.winNums.includes(n)).length;
-                        if(matchCnt === 6) ranks[1]++;
-                        else if(matchCnt === 5 && myNums.includes(LOTTO_CONFIG.bonusNum)) ranks[2]++;
-                        else if(matchCnt === 5) ranks[3]++;
-                        else if(matchCnt === 4) ranks[4]++;
-                    });
-                });
-            }
-            document.getElementById('rank1').innerText = ranks[1] + "명";
-            document.getElementById('rank2').innerText = ranks[2] + "명";
-            document.getElementById('rank3').innerText = ranks[3] + "명";
-            document.getElementById('rank4').innerText = ranks[4] + "명";
-        }
+    let ranks = {1:0, 2:0, 3:0, 4:0};
+    
+    if (data) {
+        data.forEach(row => {
+            if(!row.numbers) return;
+            
+            // 저장된 번호 뭉치들을 하나씩 꺼내서 비교
+            row.numbers.split(' | ').forEach(setStr => {
+                let myNums = setStr.split(', ').map(Number); // 문자를 숫자로 변환
+                
+                // 내 번호 중 당첨 번호가 몇 개 있는지 계산
+                let matchCnt = myNums.filter(n => LOTTO_CONFIG.winNums.includes(n)).length;
+                let isBonus = myNums.includes(LOTTO_CONFIG.bonusNum);
+
+                // 콘솔에 4개 이상 맞은 대박 건수만 출력 (확인용)
+                if(matchCnt >= 4) console.log(`🎉 대박 발견! ${matchCnt}개 일치:`, myNums);
+
+                // 등수 카운팅
+                if(matchCnt === 6) ranks[1]++;
+                else if(matchCnt === 5 && isBonus) ranks[2]++;
+                else if(matchCnt === 5) ranks[3]++;
+                else if(matchCnt === 4) ranks[4]++;
+            });
+        });
+    }
+
+    console.log("🏆 최종 집계 결과:", ranks); // F12 콘솔에서 최종 결과 확인
+
+    // 4. 화면 업데이트
+    document.getElementById('rank1').innerText = ranks[1] + "명";
+    document.getElementById('rank2').innerText = ranks[2] + "명";
+    document.getElementById('rank3').innerText = ranks[3] + "명";
+    document.getElementById('rank4').innerText = ranks[4] + "명";
+}
 
         function shareKakao() { try { Kakao.Share.sendDefault({ objectType: 'feed', content: { title: '호들갑 로또', description: '내 꿈이 1등 당첨 꿈일까?', imageUrl: '', link: { mobileWebUrl: location.href, webUrl: location.href } } }); } catch(e) {} }
         function copyLink() { navigator.clipboard.writeText(location.href).then(()=>alert("주소 복사 완료!")).catch(()=>alert("실패")); }
@@ -583,6 +604,7 @@ async function showResult(input) {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
