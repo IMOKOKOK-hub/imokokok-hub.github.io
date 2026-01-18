@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전설의 명당 지도 - 호들갑 LAB</title>
+    
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=발급받은_Javascript_키&libraries=services"></script>
+    
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; }
+        #map { width: 100%; height: 100vh; }
+        .info-window { 
+            padding: 10px; background: #1e293b; color: #fff; border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 13px; text-align: center;
+        }
+        .score { color: #fcd34d; font-weight: bold; font-size: 16px; margin-top: 5px; }
+        .badge { background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        // 1. 지도 생성
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울 시청 중심
+            level: 7 // 확대 레벨
+        };
+        var map = new kakao.maps.Map(container, options);
+
+        // 2. 명당 데이터 (나중에는 Supabase나 JSON 파일에서 불러오게 변경)
+        var stores = [
+            { 
+                name: "스파 편의점", 
+                lat: 37.6565, lng: 127.0620, 
+                win1: 45, win2: 120, rating: 4.8 
+            },
+            { 
+                name: "부일 카서비스", 
+                lat: 35.1245, lng: 129.0965, 
+                win1: 38, win2: 95, rating: 4.5 
+            }
+        ];
+
+        // 3. 마커 찍기
+        stores.forEach(store => {
+            // 명당 점수 계산 로직
+            let score = (store.win1 * 100) + (store.win2 * 10) + (store.rating * 20);
+
+            var markerPosition  = new kakao.maps.LatLng(store.lat, store.lng); 
+            var marker = new kakao.maps.Marker({ position: markerPosition });
+            marker.setMap(map);
+
+            // 커스텀 오버레이 (말풍선)
+            var content = `
+                <div class="info-window">
+                    <strong>${store.name}</strong> <span class="badge">1등 ${store.win1}회</span><br>
+                    <div class="score">⚡ 명당 점수: ${score}점</div>
+                    <div style="font-size:11px; color:#94a3b8;">★ ${store.rating} / 5.0</div>
+                </div>
+            `;
+
+            var overlay = new kakao.maps.CustomOverlay({
+                content: content,
+                map: map,
+                position: marker.getPosition(),
+                yAnchor: 2.2 // 마커 위로 띄우기
+            });
+        });
+    </script>
+</body>
+</html>
