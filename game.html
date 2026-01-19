@@ -2,524 +2,547 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Color Conquest: Evolution</title>
+    <title>Prism Lord: Spectrum Defense</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #111; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Verdana', sans-serif; user-select: none; }
         canvas { display: block; }
 
-        /* HUD */
-        #hud {
-            position: absolute; top: 0; left: 0; width: 100%; pointer-events: none;
-            display: flex; flex-direction: column; align-items: center; padding-top: 20px;
-        }
-        
-        #xp-bar-container {
-            width: 400px; height: 20px; background: #333; border: 2px solid #555;
-            border-radius: 10px; overflow: hidden; position: relative;
-        }
-        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #fff, #ddd); transition: width 0.2s; }
-        #level-text {
-            color: white; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px black; margin-bottom: 5px;
-        }
+        /* UI Overlay */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .pointer-auto { pointer-events: auto; }
 
-        /* Level Up Modal (Upgrade Cards) */
-        #upgrade-modal {
+        #top-hud {
+            position: absolute; top: 20px; width: 100%; text-align: center;
+        }
+        #wave-info { color: #888; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+        #xp-container {
+            width: 300px; height: 6px; background: #222; margin: 10px auto; border-radius: 3px; position: relative;
+        }
+        #xp-bar { width: 0%; height: 100%; background: white; box-shadow: 0 0 10px white; transition: width 0.3s; }
+
+        /* Card Drafting UI */
+        #draft-screen {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 100;
-            justify-content: center; align-items: center; flex-direction: column;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            flex-direction: column; justify-content: center; align-items: center; z-index: 100;
         }
-        #upgrade-title { color: #fff; font-size: 32px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 3px; }
+        #draft-title { font-size: 30px; color: white; margin-bottom: 40px; text-shadow: 0 0 10px #fff; }
+        .card-container { display: flex; gap: 30px; }
         
-        .card-container { display: flex; gap: 20px; }
         .card {
-            width: 200px; height: 280px; background: #222; border: 2px solid #444; border-radius: 15px;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 20px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            width: 220px; height: 320px; background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; padding: 20px;
+            cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; overflow: hidden;
         }
-        .card:hover { transform: translateY(-10px); border-color: white; background: #2a2a2a; }
-        .card-icon { font-size: 50px; margin-top: 20px; }
-        .card-name { color: #fff; font-weight: bold; font-size: 18px; text-align: center; }
-        .card-desc { color: #aaa; font-size: 13px; text-align: center; line-height: 1.4; }
-        .card-type { font-size: 10px; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; color:black; font-weight:bold;}
+        .card:hover { transform: translateY(-15px); border-color: white; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+        
+        .chroma-preview { width: 60px; height: 60px; border-radius: 50%; margin: 20px 0; box-shadow: 0 0 20px currentColor; }
+        .card-name { font-size: 18px; color: white; font-weight: bold; margin-bottom: 10px; }
+        .card-desc { font-size: 12px; color: #aaa; text-align: center; line-height: 1.5; }
+        .card-stats { margin-top: auto; width: 100%; font-size: 11px; color: #666; border-top: 1px solid #333; padding-top: 10px; display: flex; justify-content: space-between; }
 
-        /* Type Colors */
-        .type-atk { background: #ff5252; }
-        .type-spd { background: #ffeb3b; }
-        .type-def { background: #448aff; }
-        .type-util { background: #e040fb; }
+        /* Placement Guide */
+        #placement-msg {
+            display: none; position: absolute; bottom: 100px; width: 100%; text-align: center;
+            color: white; font-size: 20px; text-shadow: 0 0 5px black; animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
+        /* Start Screen */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200;
+        }
+        button.start-btn {
+            padding: 15px 40px; font-size: 20px; background: white; border: none; cursor: pointer; font-weight: bold; margin-top: 20px; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        button.start-btn:hover { background: #ccc; letter-spacing: 5px; }
+
+        /* Tooltip logic for mouseover tile info */
+        #tile-info {
+            position: absolute; pointer-events: none; background: rgba(0,0,0,0.8); border: 1px solid #555;
+            padding: 5px; color: #fff; font-size: 10px; display: none; z-index: 50;
+        }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="hud">
-        <div id="level-text">Lv.1 투명한 세포</div>
-        <div id="xp-bar-container"><div id="xp-bar"></div></div>
-        <div style="color:#666; font-size:12px; margin-top:5px;">회색 타일을 클릭/드래그하여 점령하세요.</div>
-    </div>
+    <div id="ui-layer">
+        <div id="top-hud">
+            <div id="wave-info">WAVE <span id="wave-num">1</span></div>
+            <div id="xp-container"><div id="xp-bar"></div></div>
+        </div>
 
-    <div id="upgrade-modal">
-        <div id="upgrade-title">진화 선택 (Mutation)</div>
-        <div class="card-container" id="cards">
-            </div>
+        <div id="placement-msg">원하는 위치에 '크로마'를 배치하세요</div>
+        <div id="tile-info"></div>
+
+        <div id="start-screen" class="pointer-auto">
+            <h1 style="color:white; font-size:50px; margin-bottom:0;">PRISM LORD</h1>
+            <p style="color:#888; margin-bottom:40px;">Spectrum Defense</p>
+            <button class="start-btn" onclick="startGame()">START</button>
+        </div>
+
+        <div id="draft-screen" class="pointer-auto">
+            <div id="draft-title">SELECT CHROMA</div>
+            <div class="card-container" id="card-list"></div>
+        </div>
     </div>
 
 <script>
 /**
- * Color Conquest: Evolution
- * Core Idea: Active Conquest + Roguelike Upgrades
+ * Prism Lord: Spectrum Defense
+ * Core Logic: Inverse Square Law for Color Intensity + RGB Mixing Effects
  */
 
 const CONFIG = {
-    HEX_SIZE: 25,
-    MAP_RADIUS: 12,
-    ENEMY_SPAWN_INTERVAL: 400, // Frames
+    TILE_SIZE: 30, // Grid size
+    MAP_W: 25,     // Grid Width
+    MAP_H: 20,     // Grid Height
+    MAX_XP: 100
 };
 
-// --- Game State ---
-const player = {
-    level: 1,
+// RGB Effects Dictionary
+// Red: Damage, Green: Slow, Blue: Freeze/Stun
+const COLORS = {
+    R: { color: [255, 0, 0], name: 'Ruby', desc: '초당 화염 데미지를 입힙니다.' },
+    G: { color: [0, 255, 0], name: 'Emerald', desc: '적의 이동속도를 늦춥니다.' },
+    B: { color: [0, 80, 255], name: 'Sapphire', desc: '일정 확률로 적을 얼립니다.' },
+    // Mixes handled in logic
+};
+
+let state = {
+    grid: [], // 2D array of {x, y, r, g, b, totalIntensity}
+    chromas: [], // Placed units {x, y, r, g, b, power, range}
+    enemies: [],
+    particles: [],
+    wave: 1,
     xp: 0,
     maxXp: 10,
-    color: { r: 200, g: 200, b: 200, a: 0.2 }, // Start transparent/white
-    stats: {
-        captureSpeed: 1.0, // 점령 속도
-        spreadChance: 0,   // 자동 전파 확률
-        defense: 0,        // 방어력 (적 점령 저항)
-        thorns: 0          // 가시 (적 공격 시 반사)
-    },
-    ownedTiles: []
+    isDrafting: false,
+    isPlacing: null, // Holds the card data when placing
+    lastTime: 0,
+    spawnTimer: 0
 };
-
-let map = {}; // q,r -> Tile
-let enemies = []; // Enemy AI controllers
-let particles = [];
-let isPaused = false;
-let camera = { x: 0, y: 0, zoom: 1 };
-let mouse = { x: 0, y: 0, isDown: false };
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+let mouse = { x: -100, y: -100, tileX: -1, tileY: -1 };
 
-// --- Upgrades Database ---
-const UPGRADES = [
-    { id: 'rush', name: '아드레날린', desc: '점령 속도가 50% 빨라집니다.', type: 'spd', color: [255, 235, 59], apply: (p) => p.stats.captureSpeed += 0.5 },
-    { id: 'virus', name: '바이러스', desc: '인접한 타일을 5% 확률로 자동 감염시킵니다.', type: 'util', color: [224, 64, 251], apply: (p) => p.stats.spreadChance += 0.05 },
-    { id: 'wall', name: '강철 껍질', desc: '적이 내 땅을 뺏는 속도가 2배 느려집니다.', type: 'def', color: [68, 138, 255], apply: (p) => p.stats.defense += 1.0 },
-    { id: 'spike', name: '가시 돌기', desc: '내 땅을 밟는 적을 제거할 확률이 생깁니다.', type: 'atk', color: [255, 82, 82], apply: (p) => p.stats.thorns += 0.1 },
-    { id: 'range', name: '긴 촉수', desc: '클릭하지 않아도 마우스 주변 타일을 서서히 점령합니다.', type: 'util', color: [100, 255, 218], apply: (p) => p.stats.aura = true },
-    { id: 'bomb', name: '색소 폭발', desc: '레벨업 할 때마다 주변 타일을 즉시 점령합니다.', type: 'atk', color: [255, 152, 0], apply: (p) => explode() }
-];
-
-// --- Hex Math ---
-const Hex = {
-    toPixel: (q, r) => ({ x: CONFIG.HEX_SIZE * 1.5 * q, y: CONFIG.HEX_SIZE * Math.sqrt(3) * (r + q/2) }),
-    fromPixel: (x, y) => {
-        const q = (2/3 * x) / CONFIG.HEX_SIZE;
-        const r = (-1/3 * x + Math.sqrt(3)/3 * y) / CONFIG.HEX_SIZE;
-        return Hex.round(q, r);
-    },
-    round: (q, r) => {
-        let s = -q-r, rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
-        if (Math.abs(rq-q) > Math.abs(rr-r) && Math.abs(rq-q) > Math.abs(rs-s)) rq = -rr-rs;
-        else if (Math.abs(rr-r) > Math.abs(rs-s)) rr = -rq-rs;
-        return {q:rq, r:rr};
-    },
-    key: (q, r) => `${q},${r}`,
-    neighbors: (q, r) => [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]].map(d => ({q:q+d[0], r:r+d[1]}))
-};
-
-// --- Core Functions ---
-function init() {
-    resize();
-    window.addEventListener('resize', resize);
-    generateMap();
-    setupInput();
-    
-    // Start Enemy Spawner
-    setInterval(() => { if(!isPaused) spawnEnemy(); }, 5000); // 5초마다 적 생성
-
-    loop();
-}
-
+// --- Initialization ---
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    camera.x = canvas.width / 2;
-    camera.y = canvas.height / 2;
 }
+window.addEventListener('resize', resize);
 
-function generateMap() {
-    for (let q = -CONFIG.MAP_RADIUS; q <= CONFIG.MAP_RADIUS; q++) {
-        let r1 = Math.max(-CONFIG.MAP_RADIUS, -q - CONFIG.MAP_RADIUS);
-        let r2 = Math.min(CONFIG.MAP_RADIUS, -q + CONFIG.MAP_RADIUS);
-        for (let r = r1; r <= r2; r++) {
-            map[Hex.key(q, r)] = {
-                q, r,
-                owner: 'neutral', // neutral, player, enemy
-                captureProgress: 0, // 0 to 100
-                color: '#222'
-            };
-        }
-    }
-    // Player Start
-    const start = map["0,0"];
-    start.owner = 'player';
-    start.captureProgress = 100;
-    player.ownedTiles.push("0,0");
-}
-
-function spawnEnemy() {
-    // 맵 가장자리 랜덤 위치에서 적(Eraser) 생성
-    let angle = Math.random() * Math.PI * 2;
-    let dist = CONFIG.MAP_RADIUS; // -1 to be safe
-    let q = Math.round(dist * Math.cos(angle));
-    let r = Math.round(dist * Math.sin(angle));
-    let startHex = Hex.round(q, r); // Ensure valid hex coords
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    resize();
+    initGrid();
     
-    // Find valid tile closest to calculated coords
-    let key = Hex.key(startHex.q, startHex.r);
-    if (!map[key]) return; // retry later
-
-    enemies.push({
-        q: startHex.q, r: startHex.r,
-        target: {q:0, r:0}, // Move towards center
-        color: '#ff3333', // Red enemy
-        speed: 0.05 + (player.level * 0.01) // Gets faster as player levels up
-    });
+    // Give first chroma
+    levelUp();
+    
+    requestAnimationFrame(loop);
 }
 
-// --- Logic Loop ---
-function update() {
-    if (isPaused) return;
+function initGrid() {
+    // Center the map
+    const offsetX = (canvas.width - CONFIG.MAP_W * CONFIG.TILE_SIZE) / 2;
+    const offsetY = (canvas.height - CONFIG.MAP_H * CONFIG.TILE_SIZE) / 2;
 
-    // 1. Mouse Interaction (Conquest)
-    if (mouse.isDown) {
-        const h = Hex.fromPixel((mouse.x - camera.x), (mouse.y - camera.y));
-        const key = Hex.key(h.q, h.r);
-        const tile = map[key];
-
-        if (tile) {
-            // Can capture if adjacent to owned
-            const neighbors = Hex.neighbors(h.q, h.r);
-            const isAdjacent = neighbors.some(n => {
-                const nk = Hex.key(n.q, n.r);
-                return map[nk] && map[nk].owner === 'player' && map[nk].captureProgress >= 100;
+    for (let y = 0; y < CONFIG.MAP_H; y++) {
+        for (let x = 0; x < CONFIG.MAP_W; x++) {
+            state.grid.push({
+                gx: x, gy: y,
+                px: offsetX + x * CONFIG.TILE_SIZE,
+                py: offsetY + y * CONFIG.TILE_SIZE,
+                r: 0, g: 0, b: 0,
+                intensity: 0
             });
-
-            if (isAdjacent || (tile.owner === 'player' && tile.captureProgress < 100)) {
-                if (tile.owner !== 'player') {
-                    // Taking over
-                    if (tile.owner === 'enemy') tile.captureProgress -= player.stats.captureSpeed * 2; // Harder to take enemy
-                    else tile.captureProgress += player.stats.captureSpeed * 5; // Taking neutral is fast
-
-                    if (tile.owner === 'enemy' && tile.captureProgress <= 0) {
-                        tile.owner = 'neutral';
-                        tile.captureProgress = 0;
-                    }
-                    if (tile.owner === 'neutral' && tile.captureProgress >= 100) {
-                        tile.owner = 'player';
-                        gainXp(1);
-                        spawnParticle(h.q, h.r, 'white');
-                        player.ownedTiles.push(key);
-                    }
-                } else if (tile.owner === 'player' && tile.captureProgress < 100) {
-                    // Repairing
-                    tile.captureProgress += 5;
-                }
-            }
         }
     }
+}
 
-    // 2. Passive Effects (Virus)
-    if (player.stats.spreadChance > 0) {
-        player.ownedTiles.forEach(key => {
-            if (Math.random() < 0.01) { // Tick rate regulation
-                const t = map[key];
-                const ns = Hex.neighbors(t.q, t.r);
-                const target = ns[Math.floor(Math.random() * ns.length)];
-                const tk = Hex.key(target.q, target.r);
-                if (map[tk] && map[tk].owner !== 'player' && Math.random() < player.stats.spreadChance) {
-                    map[tk].owner = 'player';
-                    map[tk].captureProgress = 100;
-                    gainXp(1);
-                    spawnParticle(target.q, target.r, 'lime');
-                    player.ownedTiles.push(tk);
-                }
+// --- Color Physics (The Core Mechanic) ---
+function updateGridColors() {
+    // Reset all tiles
+    state.grid.forEach(t => { t.r = 0; t.g = 0; t.b = 0; t.intensity = 0; });
+
+    // Apply Inverse Square Law for each Chroma
+    state.chromas.forEach(c => {
+        // Optimization: Only check tiles within range * 1.5
+        // For simplicity in JS demo, iterate all (map is small enough)
+        state.grid.forEach(t => {
+            const dx = (t.gx - c.gx);
+            const dy = (t.gy - c.gy);
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist <= c.range) {
+                // Falloff formula: Intensity = Power / (Distance + 1)
+                // Linear falloff feels better for games than inverse square sometimes
+                const factor = Math.max(0, 1 - (dist / c.range)); // 0 to 1
+                
+                t.r += c.r * factor * c.power;
+                t.g += c.g * factor * c.power;
+                t.b += c.b * factor * c.power;
+                t.intensity += factor;
             }
         });
+    });
+
+    // Clamp values
+    state.grid.forEach(t => {
+        t.r = Math.min(255, t.r);
+        t.g = Math.min(255, t.g);
+        t.b = Math.min(255, t.b);
+    });
+}
+
+// --- Game Logic ---
+function loop(timestamp) {
+    const dt = timestamp - state.lastTime;
+    state.lastTime = timestamp;
+
+    if (!state.isDrafting && !state.isPlacing) {
+        updateGame(dt);
+    }
+    
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function updateGame(dt) {
+    // 1. Spawning
+    state.spawnTimer += dt;
+    if (state.spawnTimer > Math.max(500, 2000 - state.wave * 100)) {
+        spawnEnemy();
+        state.spawnTimer = 0;
     }
 
-    // 3. Enemies Logic
-    enemies.forEach((e, idx) => {
-        // Move towards 0,0
-        // Simple distinct movement logic roughly towards center
-        if (Math.random() < e.speed) {
-            const neighbors = Hex.neighbors(e.q, e.r);
-            // Sort by distance to center
-            neighbors.sort((a,b) => {
-                const d1 = Hex.fromPixel(Hex.toPixel(a.q, a.r).x, Hex.toPixel(a.q, a.r).y); // simplified
-                // Just use hex distance
-                return (Math.abs(a.q)+Math.abs(a.r)) - (Math.abs(b.q)+Math.abs(b.r));
-            });
+    // 2. Enemy Logic (Movement & Effect)
+    state.enemies.forEach((e, idx) => {
+        // Move towards center (Map Center)
+        const centerX = CONFIG.MAP_W / 2;
+        const centerY = CONFIG.MAP_H / 2;
+        const dx = centerX - e.gx;
+        const dy = centerY - e.gy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        // Base Speed
+        let speed = e.baseSpeed * (dt / 16);
+
+        // --- Get Current Tile Color Effects ---
+        // Find tile under enemy
+        const tx = Math.floor(e.x / CONFIG.TILE_SIZE);
+        const ty = Math.floor(e.y / CONFIG.TILE_SIZE);
+        // Find specific tile object
+        const tile = state.grid.find(t => t.gx === tx && t.gy === ty);
+
+        if (tile) {
+            // Apply Effects based on RGB
             
-            // Pick the one closer to center
-            const next = neighbors[0];
-            
-            // Interaction
-            const nk = Hex.key(next.q, next.r);
-            if (map[nk]) {
-                if (map[nk].owner === 'player') {
-                    // Attack Player Tile
-                    // Thorns check
-                    if (Math.random() < player.stats.thorns) {
-                        spawnParticle(e.q, e.r, 'red');
-                        enemies.splice(idx, 1); // Enemy dies
-                        return;
-                    }
-                    
-                    // Damage tile
-                    let dmg = 10 / (1 + player.stats.defense);
-                    map[nk].captureProgress -= dmg;
-                    spawnParticle(next.q, next.r, 'orange');
-                    
-                    if (map[nk].captureProgress <= 0) {
-                        map[nk].owner = 'enemy';
-                        map[nk].captureProgress = 100;
-                        player.ownedTiles = player.ownedTiles.filter(k => k !== nk);
-                        e.q = next.q; e.r = next.r; // Move in
-                    }
-                } else {
-                    // Move to neutral
-                    e.q = next.q; e.r = next.r;
+            // RED: Damage (Burn)
+            if (tile.r > 20) {
+                const dmg = (tile.r / 255) * 2; // Damage scales with redness
+                e.hp -= dmg;
+                if(Math.random()<0.1) spawnParticle(e.x, e.y, 'rgba(255,50,50,0.7)');
+            }
+
+            // GREEN: Slow (Sludge)
+            if (tile.g > 20) {
+                const slowFactor = Math.min(0.8, (tile.g / 255)); // Max 80% slow
+                speed *= (1 - slowFactor);
+                if(Math.random()<0.05) spawnParticle(e.x, e.y, 'rgba(50,255,50,0.5)');
+            }
+
+            // BLUE: Freeze (Stun chance)
+            if (tile.b > 20) {
+                const freezeChance = (tile.b / 255) * 0.05; // Up to 5% per frame
+                if (Math.random() < freezeChance) {
+                    speed = 0;
+                    e.frozen = 10; // Visual indicator
                 }
             }
+            
+            // Mixed Colors Special Effects? 
+            // Yellow (R+G): Lightning chain (Simulated by bonus damage if both high)
+            if (tile.r > 100 && tile.g > 100) {
+                 e.hp -= 1; // Bonus burn
+            }
+        }
+
+        // Apply movement
+        if (dist > 0.1) {
+            e.x += (dx / dist) * speed * CONFIG.TILE_SIZE * 0.005;
+            e.y += (dy / dist) * speed * CONFIG.TILE_SIZE * 0.005;
+            e.gx = e.x / CONFIG.TILE_SIZE; // Logical coords
+            e.gy = e.y / CONFIG.TILE_SIZE;
+        } else {
+            // Reached center (Game Over condition normally, here just kill)
+            e.hp = 0;
+            // penalty?
+        }
+
+        if (e.hp <= 0) {
+            state.enemies.splice(idx, 1);
+            gainXp(1);
+            spawnExplosion(e.x, e.y, 'white');
         }
     });
 
-    // 4. Particles
-    particles.forEach((p, i) => {
+    // 3. Particles
+    state.particles.forEach((p, i) => {
         p.life--;
         p.x += p.vx;
         p.y += p.vy;
-        if (p.life <= 0) particles.splice(i, 1);
+        if (p.life <= 0) state.particles.splice(i, 1);
     });
 }
 
-function gainXp(amount) {
-    player.xp += amount;
-    if (player.xp >= player.maxXp) {
+function spawnEnemy() {
+    // Spawn at random edge
+    const side = Math.floor(Math.random() * 4);
+    let gx, gy;
+    if (side === 0) { gx = Math.random() * CONFIG.MAP_W; gy = 0; } // Top
+    else if (side === 1) { gx = CONFIG.MAP_W - 1; gy = Math.random() * CONFIG.MAP_H; } // Right
+    else if (side === 2) { gx = Math.random() * CONFIG.MAP_W; gy = CONFIG.MAP_H - 1; } // Bottom
+    else { gx = 0; gy = Math.random() * CONFIG.MAP_H; } // Left
+
+    // Offset for rendering
+    const offsetX = (canvas.width - CONFIG.MAP_W * CONFIG.TILE_SIZE) / 2;
+    const offsetY = (canvas.height - CONFIG.MAP_H * CONFIG.TILE_SIZE) / 2;
+
+    state.enemies.push({
+        gx: gx, gy: gy,
+        x: gx * CONFIG.TILE_SIZE, y: gy * CONFIG.TILE_SIZE, // Local to grid
+        hp: 10 + state.wave * 5,
+        baseSpeed: 1.0 + (state.wave * 0.1),
+        frozen: 0
+    });
+}
+
+// --- Draft & Placement System ---
+function gainXp(amt) {
+    state.xp += amt;
+    if (state.xp >= state.maxXp) {
+        state.xp = 0;
+        state.maxXp = Math.floor(state.maxXp * 1.5);
+        state.wave++;
         levelUp();
     }
-    updateHud();
+    // UI Update
+    document.getElementById('xp-bar').style.width = (state.xp / state.maxXp * 100) + "%";
+    document.getElementById('wave-num').innerText = state.wave;
 }
 
-function updateHud() {
-    const pct = (player.xp / player.maxXp) * 100;
-    document.getElementById('xp-bar').style.width = pct + '%';
-    document.getElementById('level-text').innerText = `Lv.${player.level} ${getColorName()}`;
-    
-    // Update player color alpha based on level (becomes more solid)
-    player.color.a = Math.min(0.9, 0.2 + (player.level * 0.05));
-}
-
-function getColorName() {
-    if(player.level < 3) return "투명한 세포";
-    if(player.level < 6) return "진화하는 생명체";
-    if(player.level < 10) return "각성한 지배자";
-    return "행성 포식자";
-}
-
-// --- Roguelike Level Up ---
 function levelUp() {
-    isPaused = true;
-    player.level++;
-    player.xp = 0;
-    player.maxXp = Math.floor(player.maxXp * 1.3);
-    
-    // Show Modal
-    const modal = document.getElementById('upgrade-modal');
-    const container = document.getElementById('cards');
-    container.innerHTML = '';
-    
-    // Pick 3 random upgrades
-    const choices = [];
-    while(choices.length < 3) {
-        const u = UPGRADES[Math.floor(Math.random() * UPGRADES.length)];
-        if(!choices.includes(u)) choices.push(u);
-    }
+    state.isDrafting = true;
+    const screen = document.getElementById('draft-screen');
+    const list = document.getElementById('card-list');
+    list.innerHTML = '';
+    screen.style.display = 'flex';
 
-    choices.forEach(u => {
+    // Generate 3 Random Cards
+    for(let i=0; i<3; i++) {
+        const typeKey = Object.keys(COLORS)[Math.floor(Math.random() * 3)];
+        const base = COLORS[typeKey];
+        
+        // Random Stats
+        const range = Math.floor(Math.random() * 4) + 3; // 3 to 6
+        const power = (Math.random() * 0.5 + 0.5).toFixed(1); // 0.5 to 1.0
+
         const card = document.createElement('div');
         card.className = 'card';
+        card.style.borderColor = `rgb(${base.color.join(',')})`;
         card.innerHTML = `
-            <div class="card-type type-${u.type}">${u.type}</div>
-            <div class="card-icon">🧬</div>
-            <div class="card-name">${u.name}</div>
-            <div class="card-desc">${u.desc}</div>
+            <div class="card-name" style="color:rgb(${base.color.join(',')})">${base.name} Prism</div>
+            <div class="chroma-preview" style="background:rgb(${base.color.join(',')}); box-shadow: 0 0 30px rgb(${base.color.join(',')})"></div>
+            <div class="card-desc">${base.desc}</div>
+            <div class="card-stats">
+                <span>Range: ${range}</span>
+                <span>Power: ${power}x</span>
+            </div>
         `;
-        card.onclick = () => selectUpgrade(u);
-        container.appendChild(card);
-    });
-
-    modal.style.display = 'flex';
-}
-
-function selectUpgrade(upgrade) {
-    upgrade.apply(player);
-    
-    // Mix Color
-    const c = upgrade.color;
-    // Blend current color with upgrade color
-    player.color.r = Math.floor((player.color.r + c[0]) / 2);
-    player.color.g = Math.floor((player.color.g + c[1]) / 2);
-    player.color.b = Math.floor((player.color.b + c[2]) / 2);
-
-    document.getElementById('upgrade-modal').style.display = 'none';
-    isPaused = false;
-    updateHud();
-}
-
-function explode() {
-    // Bomb effect: Capture all neighbors of owned tiles
-    // To prevent lag, just capture radius 2 around 0,0 or random spots
-    const targets = [];
-    player.ownedTiles.forEach(k => {
-        const t = map[k];
-        Hex.neighbors(t.q, t.r).forEach(n => {
-            const nk = Hex.key(n.q, n.r);
-            if(map[nk] && map[nk].owner !== 'player') targets.push(nk);
+        card.onclick = () => selectCard({
+            ...base, range: range, power: parseFloat(power)
         });
-    });
-    
-    // Capture random 10 neighbors
-    for(let i=0; i<10; i++) {
-        if(targets.length === 0) break;
-        const idx = Math.floor(Math.random()*targets.length);
-        const k = targets[idx];
-        map[k].owner = 'player';
-        map[k].captureProgress = 100;
-        player.ownedTiles.push(k);
-        spawnParticle(map[k].q, map[k].r, 'gold');
-        targets.splice(idx, 1);
+        list.appendChild(card);
     }
 }
 
-// --- Draw ---
-function loop() {
-    requestAnimationFrame(loop);
-    draw();
-    update();
+function selectCard(chromaData) {
+    document.getElementById('draft-screen').style.display = 'none';
+    state.isDrafting = false;
+    state.isPlacing = chromaData;
+    document.getElementById('placement-msg').style.display = 'block';
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.translate(camera.x, camera.y);
-    // ctx.scale(camera.zoom, camera.zoom); // No zoom needed for simple io style
+// Mouse Handlers for Placement
+canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
 
-    // Draw Map
-    for (let key in map) {
-        const t = map[key];
-        const p = Hex.toPixel(t.q, t.r);
+    // Calculate grid pos
+    const offsetX = (canvas.width - CONFIG.MAP_W * CONFIG.TILE_SIZE) / 2;
+    const offsetY = (canvas.height - CONFIG.MAP_H * CONFIG.TILE_SIZE) / 2;
+    
+    mouse.tileX = Math.floor((mouse.x - offsetX) / CONFIG.TILE_SIZE);
+    mouse.tileY = Math.floor((mouse.y - offsetY) / CONFIG.TILE_SIZE);
+
+    // Update tooltip
+    const info = document.getElementById('tile-info');
+    if (mouse.tileX >= 0 && mouse.tileX < CONFIG.MAP_W && mouse.tileY >= 0 && mouse.tileY < CONFIG.MAP_H) {
+        const t = state.grid.find(g => g.gx === mouse.tileX && g.gy === mouse.tileY);
+        if (t) {
+            info.style.display = 'block';
+            info.style.left = (e.clientX + 15) + 'px';
+            info.style.top = (e.clientY + 15) + 'px';
+            info.innerHTML = `R:${Math.floor(t.r)} G:${Math.floor(t.g)} B:${Math.floor(t.b)}`;
+        }
+    } else {
+        info.style.display = 'none';
+    }
+});
+
+canvas.addEventListener('mousedown', () => {
+    if (state.isPlacing && mouse.tileX >= 0 && mouse.tileX < CONFIG.MAP_W && mouse.tileY >= 0 && mouse.tileY < CONFIG.MAP_H) {
+        // Place Chroma
+        state.chromas.push({
+            gx: mouse.tileX, gy: mouse.tileY,
+            r: state.isPlacing.color[0],
+            g: state.isPlacing.color[1],
+            b: state.isPlacing.color[2],
+            range: state.isPlacing.range,
+            power: state.isPlacing.power
+        });
+
+        // Recalculate World Colors
+        updateGridColors();
         
-        drawHex(p.x, p.y, CONFIG.HEX_SIZE - 1, t);
+        // Reset UI
+        state.isPlacing = null;
+        document.getElementById('placement-msg').style.display = 'none';
+        
+        // Effect
+        spawnExplosion(mouse.tileX * CONFIG.TILE_SIZE, mouse.tileY * CONFIG.TILE_SIZE, 'white');
     }
+});
 
-    // Draw Enemies
-    enemies.forEach(e => {
-        const p = Hex.toPixel(e.q, e.r);
-        ctx.fillStyle = e.color;
+
+// --- Drawing ---
+function draw() {
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Draw Grid (Tiles)
+    // We draw only the active grid area
+    const offsetX = (canvas.width - CONFIG.MAP_W * CONFIG.TILE_SIZE) / 2;
+    const offsetY = (canvas.height - CONFIG.MAP_H * CONFIG.TILE_SIZE) / 2;
+
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+
+    state.grid.forEach(t => {
+        // Optimization: Don't fill black tiles, just stroke lightly
+        if (t.intensity > 0.05) {
+            ctx.fillStyle = `rgb(${t.r}, ${t.g}, ${t.b})`;
+            // Add a glow effect based on intensity
+            ctx.shadowColor = `rgb(${t.r}, ${t.g}, ${t.b})`;
+            ctx.shadowBlur = t.intensity * 10;
+        } else {
+            ctx.fillStyle = '#111';
+            ctx.shadowBlur = 0;
+        }
+        
+        ctx.fillRect(t.gx * CONFIG.TILE_SIZE, t.gy * CONFIG.TILE_SIZE, CONFIG.TILE_SIZE - 1, CONFIG.TILE_SIZE - 1);
+    });
+    ctx.shadowBlur = 0; // reset
+
+    // 2. Draw Chromas (The Units)
+    state.chromas.forEach(c => {
+        const cx = c.gx * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE/2;
+        const cy = c.gy * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE/2;
+        
+        // Glowy circle
+        ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, CONFIG.HEX_SIZE * 0.4, 0, Math.PI*2);
+        ctx.arc(cx, cy, CONFIG.TILE_SIZE * 0.4, 0, Math.PI*2);
         ctx.fill();
-        ctx.strokeStyle = 'white';
+        
+        // Inner white core
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(cx, cy, CONFIG.TILE_SIZE * 0.15, 0, Math.PI*2);
+        ctx.fill();
+
+        // Range Ring (faint)
+        ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b}, 0.2)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, c.range * CONFIG.TILE_SIZE, 0, Math.PI*2);
         ctx.stroke();
     });
 
-    // Draw Particles
-    particles.forEach(p => {
+    // 3. Draw Enemies
+    state.enemies.forEach(e => {
+        ctx.fillStyle = e.frozen ? '#00ffff' : '#888'; // Grey void monsters or frozen
+        ctx.beginPath();
+        // Triangle shape pointing to center? Just circle for now
+        ctx.arc(e.x + CONFIG.TILE_SIZE/2, e.y + CONFIG.TILE_SIZE/2, CONFIG.TILE_SIZE * 0.3, 0, Math.PI*2);
+        ctx.fill();
+        
+        // HP Bar
+        ctx.fillStyle = 'red';
+        ctx.fillRect(e.x, e.y - 5, CONFIG.TILE_SIZE, 3);
+        ctx.fillStyle = 'lime';
+        ctx.fillRect(e.x, e.y - 5, CONFIG.TILE_SIZE * (e.hp / (10 + state.wave * 5)), 3);
+    });
+
+    // 4. Placement Ghost
+    if (state.isPlacing && mouse.tileX >= 0 && mouse.tileX < CONFIG.MAP_W) {
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(mouse.tileX * CONFIG.TILE_SIZE, mouse.tileY * CONFIG.TILE_SIZE, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+        
+        // Preview Range
+        ctx.beginPath();
+        ctx.arc(mouse.tileX * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE/2, mouse.tileY * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE/2, state.isPlacing.range * CONFIG.TILE_SIZE, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    ctx.restore();
+
+    // 5. Particles (Screen Space)
+    ctx.save();
+    ctx.translate(offsetX, offsetY); // Particles are in local coords in this simplified system
+    state.particles.forEach(p => {
         ctx.fillStyle = p.col;
-        ctx.globalAlpha = p.life / 20;
+        ctx.globalAlpha = p.life / 30;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
         ctx.fill();
     });
-    ctx.globalAlpha = 1;
-
     ctx.restore();
 }
 
-function drawHex(x, y, size, tile) {
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-        const angle = Math.PI / 3 * i;
-        ctx.lineTo(x + size * Math.cos(angle), y + size * Math.sin(angle));
-    }
-    ctx.closePath();
-
-    // Color Logic
-    if (tile.owner === 'player') {
-        // Player color with opacity based on capture progress
-        const alpha = player.color.a * (tile.captureProgress / 100);
-        ctx.fillStyle = `rgba(${player.color.r}, ${player.color.g}, ${player.color.b}, ${alpha})`;
-        // Inner core
-        if (tile.captureProgress >= 100) {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = `rgb(${player.color.r}, ${player.color.g}, ${player.color.b})`;
-        }
-    } else if (tile.owner === 'enemy') {
-        ctx.fillStyle = '#330000'; // Dark red territory
-    } else {
-        ctx.fillStyle = '#1a1a1a'; // Neutral
-    }
-    
-    // Fill
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Stroke
-    if (tile.owner === 'player') ctx.strokeStyle = `rgba(${player.color.r},${player.color.g},${player.color.b}, 0.5)`;
-    else ctx.strokeStyle = '#333';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Progress Indicator (Capture ring)
-    if (tile.captureProgress > 0 && tile.captureProgress < 100) {
-        ctx.beginPath();
-        ctx.arc(x, y, size/2, 0, Math.PI * 2 * (tile.captureProgress/100));
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }
-}
-
-function spawnParticle(q, r, col) {
-    const p = Hex.toPixel(q, r);
-    for(let i=0; i<5; i++) {
-        particles.push({
-            x: p.x, y: p.y,
-            vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-            life: 20, size: Math.random()*3, col: col
-        });
-    }
-}
-
-function setupInput() {
-    canvas.addEventListener('mousedown', e => {
-        mouse.x = e.clientX; mouse.y = e.clientY; mouse.isDown = true;
+function spawnParticle(x, y, col) {
+    state.particles.push({
+        x: x + CONFIG.TILE_SIZE/2, y: y + CONFIG.TILE_SIZE/2,
+        vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+        life: 30, size: Math.random()*3+1, col: col
     });
-    canvas.addEventListener('mousemove', e => {
-        mouse.x = e.clientX; mouse.y = e.clientY;
-    });
-    window.addEventListener('mouseup', () => mouse.isDown = false);
 }
-
-// Start
-init();
+function spawnExplosion(x, y, col) {
+    for(let i=0; i<10; i++) spawnParticle(x, y, col);
+}
 
 </script>
 </body>
