@@ -3,230 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Upbit Scalping Radar</title>
+    <title>Crypto Alpha Station</title>
     <style>
         :root {
-            --bg: #000000;
-            --panel: #111111;
-            --text: #e0e0e0;
-            --red: #ff3b30; /* 떡상 */
-            --blue: #007aff; /* 떡락 */
-            --gold: #ffcc00; /* 거래량 */
+            --bg: #0b0e11;
+            --card: #151a21;
+            --border: #2a2e39;
+            --accent: #f0b90b; /* 바이낸스 골드 */
+            --text-main: #eaecef;
+            --text-sub: #848e9c;
         }
         body {
+            margin: 0; padding: 0;
             background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Consolas', 'Monaco', monospace; /* 해커 감성 */
-            margin: 0;
-            padding: 10px;
-            font-size: 14px;
-            overflow: hidden; /* 스크롤바 숨김 */
+            color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            overflow-x: hidden;
         }
-        
-        /* 레이아웃: 좌(감시로그) / 우(순위표) */
+
+        /* 레이아웃: 상단(히트맵) + 하단(뉴스 & 툴) */
         .container {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
+            grid-template-columns: 1fr 350px; /* 왼쪽 크게, 오른쪽 뉴스 */
+            grid-template-rows: 60px 500px 1fr; /* 헤더 / 히트맵 / 툴박스 */
             gap: 10px;
-            height: 98vh;
+            height: 100vh;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
-        .panel {
-            background: var(--panel);
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 10px;
+        /* 1. 헤더 */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding: 0 10px;
+        }
+        .header h1 { font-size: 1.5rem; letter-spacing: 1px; }
+        .badge { background: #202630; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; color: var(--text-sub); margin-left: 15px; }
+
+        /* 2. 메인: 히트맵 (트레이딩뷰 위젯) */
+        .heatmap-area {
+            background: var(--card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        /* 3. 사이드: 뉴스 (크립토패닉) */
+        .news-area {
+            grid-row: 2 / 4; /* 세로로 길게 */
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        /* 4. 하단: 알파 툴 런처 (사용자님이 원한 사이트들) */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .tool-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
             overflow: hidden;
-        }
-
-        .header {
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: var(--gold);
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
         }
-
-        /* 로그 창 스타일 */
-        #log-area {
-            flex: 1;
-            overflow-y: auto; /* 내용 많으면 스크롤 */
-            font-size: 13px;
-            line-height: 1.6;
+        .tool-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(240, 185, 11, 0.1);
         }
-        .log-item {
-            border-bottom: 1px solid #222;
-            padding: 4px 0;
-            animation: flash 0.5s;
+        .tool-title { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin-bottom: 5px; }
+        .tool-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.4; }
+        .tool-link { 
+            margin-top: 15px; 
+            color: var(--accent); 
+            font-size: 0.9rem; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            display: flex; 
+            align-items: center; 
         }
-        @keyframes flash { from { background-color: #333; } to { background-color: transparent; } }
+        .tool-link::after { content: '↗'; margin-left: 5px; }
 
-        /* 강조 색상 */
-        .pump { color: var(--red); font-weight: bold; }
-        .dump { color: var(--blue); font-weight: bold; }
-        .vol { color: var(--gold); }
-        .time { color: #666; margin-right: 5px; font-size: 12px; }
-
-        /* 우측 순위표 */
-        .rank-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px dashed #333;
+        /* 아이콘 효과 */
+        .tool-icon {
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 1.5rem;
+            opacity: 0.2;
         }
-        .rank-row:hover { background-color: #222; }
 
-        /* 로딩바 */
-        #status-bar { font-size: 12px; color: #666; margin-top: 5px; text-align: right; }
+        @media (max-width: 1024px) {
+            .container { display: flex; flex-direction: column; height: auto; }
+            .heatmap-area { height: 400px; }
+            .news-area { height: 500px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="panel">
-            <div class="header">
-                <span>📡 REAL-TIME DETECTOR</span>
-                <span style="font-size:12px; color:#888;">Condition: 1min > 0.5% | Vol Spike</span>
-            </div>
-            <div id="log-area">
-                <div class="log-item" style="color:#666;">-- System Initializing... Connecting to Upbit --</div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="header">🏆 TOP MOMENTUM (거래대금)</div>
-            <div id="rank-area">
-                </div>
-        </div>
-    </div>
-    
-    <div id="status-bar">Monitoring 100+ KRW Markets... <span id="clock"></span></div>
-
-    <script>
-        // 전역 변수
-        let markets = []; // KRW-BTC 같은 코드들
-        let prevData = {}; // 직전 1초 전 데이터 저장용 (비교해서 급등 찾기 위함)
         
-        // 1. 초기 세팅: 마켓 코드 가져오기
-        async function init() {
-            try {
-                const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-                const data = await res.json();
-                // KRW 마켓만 필터링
-                markets = data.filter(coin => coin.market.startsWith('KRW-')).map(c => c.market);
-                addLog(`Target Locked: ${markets.length} Coins found.`);
-                
-                // 감시 시작 (1초마다 실행)
-                setInterval(scanMarket, 1000); 
-            } catch (e) {
-                addLog("API Error. Please Refresh.");
-            }
-        }
+        <div class="header">
+            <h1>💎 Crypto Alpha Station</h1>
+            <span class="badge">PRO DASHBOARD</span>
+            <span class="badge" style="color:var(--accent);">LIVE DATA</span>
+        </div>
 
-        // 2. 시장 전체 스캔 (핵심 로직)
-        async function scanMarket() {
-            if(markets.length === 0) return;
-            
-            // URL 길이 제한 때문에 나눠서 요청해야 할 수도 있지만, 100개 정도는 한방에 됨
-            const url = `https://api.upbit.com/v1/ticker?markets=${markets.join(',')}`;
-            
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                // 시간 업데이트
-                document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-
-                updateRank(data); // 우측 순위표 갱신
-                detectAnomalies(data); // 좌측 급등 감지
-                
-            } catch (e) {
-                console.error("Fetch Error", e);
-            }
-        }
-
-        // 3. 급등 감지 알고리즘
-        function detectAnomalies(currentData) {
-            currentData.forEach(coin => {
-                const code = coin.market.replace('KRW-', '');
-                const currPrice = coin.trade_price;
-                const currVol = coin.acc_trade_price_24h; // 24시간 거래대금
-
-                // 이전 데이터가 있을 때만 비교 가능
-                if (prevData[code]) {
-                    const prevPrice = prevData[code].price;
-                    
-                    // 변화율 계산
-                    const changeRate = ((currPrice - prevPrice) / prevPrice) * 100;
-                    
-                    // 조건 1: 1초 사이에 0.5% 이상 급등 (스캘핑 신호) -> 1분 아님, 1초임!
-                    // 조건 2: 1초 사이에 0.5% 이상 급락
-                    if (changeRate >= 0.3) { // 0.3%만 올라도 로그 찍음 (민감도 조절 가능)
-                        addLog(`<span class="pump">🚀 [${code}] 급등! +${changeRate.toFixed(2)}%</span> (Price: ${currPrice.toLocaleString()})`);
-                    } else if (changeRate <= -0.3) {
-                        addLog(`<span class="dump">💧 [${code}] 급락! ${changeRate.toFixed(2)}%</span> (Price: ${currPrice.toLocaleString()})`);
-                    }
-
-                    // 조건 3: 거래대금 폭발 (갑자기 돈이 확 들어옴)
-                    // (단순 구현: 이전보다 거래대금이 비정상적으로 튈 때...는 복잡하니 생략하고 가격 위주로)
+        <div class="heatmap-area">
+            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js" async>
+                {
+                "dataSource": "Crypto",
+                "blockSize": "market_cap_calc",
+                "blockColor": "change",
+                "locale": "kr",
+                "symbolUrl": "",
+                "colorTheme": "dark",
+                "hasTopBar": true,
+                "isDataSetEnabled": true,
+                "isWidget": true,
+                "autoSize": true,
+                "profitability": "change_percent_24h"
                 }
+                </script>
+            </div>
+        </div>
 
-                // 데이터 갱신
-                prevData[code] = { price: currPrice, vol: currVol };
-            });
-        }
+        <div class="news-area">
+            <div style="padding:15px; border-bottom:1px solid var(--border); font-weight:bold; background:#1b2028;">
+                📰 CryptoPanic News
+            </div>
+            <iframe width="100%" height="100%" src="https://rss.app/embed/v1/wall/t3v949rQ6g9t8h72" frameborder="0"></iframe>
+            </div>
 
-        // 4. 로그 출력 함수
-        function addLog(html) {
-            const logArea = document.getElementById('log-area');
-            const div = document.createElement('div');
-            div.className = 'log-item';
-            div.innerHTML = `<span class="time">[${new Date().toLocaleTimeString().split(' ')[0]}]</span> ${html}`;
+        <div class="tools-grid">
             
-            // 맨 위에 추가
-            logArea.insertBefore(div, logArea.firstChild);
-            
-            // 로그 너무 많이 쌓이면 삭제 (메모리 절약)
-            if (logArea.children.length > 50) {
-                logArea.removeChild(logArea.lastChild);
-            }
-        }
-
-        // 5. 우측 순위표 (거래대금 상위)
-        function updateRank(data) {
-            // 거래대금 순 정렬
-            const sorted = data.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h).slice(0, 15);
-            
-            const rankArea = document.getElementById('rank-area');
-            rankArea.innerHTML = ""; // 초기화
-
-            sorted.forEach((coin, index) => {
-                const code = coin.market.replace('KRW-', '');
-                const change = (coin.signed_change_rate * 100).toFixed(2);
-                const colorClass = change > 0 ? 'pump' : (change < 0 ? 'dump' : '');
-                const price = coin.trade_price.toLocaleString();
-                // 거래대금 (억 단위)
-                const volume = Math.floor(coin.acc_trade_price_24h / 100000000).toLocaleString();
-
-                const html = `
-                    <div class="rank-row">
-                        <span style="width:20px; color:#666;">${index+1}</span>
-                        <span style="width:60px; font-weight:bold;">${code}</span>
-                        <span class="${colorClass}" style="width:60px; text-align:right;">${change}%</span>
-                        <span style="width:80px; text-align:right;">${price}</span>
-                        <span style="width:60px; text-align:right; color:#888;">${volume}억</span>
+            <div class="tool-card" onclick="window.open('https://chainbroker.io/', '_blank')">
+                <div class="tool-icon">🔗</div>
+                <div>
+                    <div class="tool-title">ChainBroker</div>
+                    <div class="tool-desc">
+                        토큰 락업, 백커, ROI 분석.<br>
+                        <span style="color:#4caf50;">"5000억 미만 3배 이하 코인 발굴"</span>
                     </div>
-                `;
-                rankArea.innerHTML += html;
-            });
-        }
+                </div>
+                <div class="tool-link">Launch App</div>
+            </div>
 
-        // 시작
-        init();
-    </script>
+            <div class="tool-card" onclick="window.open('https://studio.glassnode.com/home', '_blank')">
+                <div class="tool-icon">🧊</div>
+                <div>
+                    <div class="tool-title">Glassnode Studio</div>
+                    <div class="tool-desc">
+                        온체인 데이터의 정석.<br>
+                        고래 지갑 이동, 거래소 유입량 분석.
+                    </div>
+                </div>
+                <div class="tool-link">Open Data</div>
+            </div>
+
+            <div class="tool-card" onclick="window.open('https://defillama.com/', '_blank')">
+                <div class="tool-icon">🦙</div>
+                <div>
+                    <div class="tool-title">DefiLlama</div>
+                    <div class="tool-desc">
+                        DeFi TVL(예치금) 1위 사이트.<br>
+                        메타가 어디로 도는지 확인용.
+                    </div>
+                </div>
+                <div class="tool-link">Check TVL</div>
+            </div>
+
+            <div class="tool-card" onclick="window.open('https://metrics.deribit.com/options/BTC', '_blank')">
+                <div class="tool-icon">📊</div>
+                <div>
+                    <div class="tool-title">Deribit Metrics</div>
+                    <div class="tool-desc">
+                        비트코인 옵션 만기 & MaxPain.<br>
+                        큰 변동성 예측 필수.
+                    </div>
+                </div>
+                <div class="tool-link">View Options</div>
+            </div>
+
+        </div>
+
+    </div>
 </body>
 </html>
