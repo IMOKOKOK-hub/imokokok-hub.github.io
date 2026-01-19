@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bug Survivor 🔫</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Courier New', monospace; touch-action: none; }
+        canvas { display: block; }
+        
+        /* UI 오버레이 */
+        #ui { position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; }
+        h1 { margin: 0; font-size: 1.5rem; text-shadow: 0 0 10px #8b5cf6; }
+        p { margin: 5px 0; color: #aaa; }
+        
+        /* 게임 오버 화면 */
+        #gameover { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            text-align: center; color: white; display: none; 
+        }
+        button { 
+            background: #8b5cf6; color: white; border: none; padding: 15px 30px; 
+            font-size: 1.2rem; cursor: pointer; border-radius: 8px; font-weight: bold;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1>BUG SURVIVOR</h1>
+        <p>SCORE: <span id="scoreVal">0</span> | LV: <span id="levelVal">1</span></p>
+    </div>
+
+    <div id="gameover">
+        <h1 style="color:#ef4444; font-size:3rem;">SYSTEM CRASHED</h1>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <br>
+        <button onclick="restartGame()">REBOOT SYSTEM</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 게임 상태
+        let width, height;
+        let player, bullets, enemies, particles;
+        let score = 0;
+        let level = 1;
+        let frame = 0;
+        let isGameOver = false;
+        let spawnRate = 60; // 적 생성 주기
+
+        // 마우스/터치 위치
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        // 초기화
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            player = { x: width/2, y: height/2, r: 10, color: '#8b5cf6', hp: 100 };
+            bullets = [];
+            enemies = [];
+            particles = [];
+            score = 0;
+            level = 1;
+            spawnRate = 60;
+            isGameOver = false;
+            
+            document.getElementById('ui').style.display = 'block';
+            document.getElementById('gameover').style.display = 'none';
+            updateUI();
+            
+            mouseX = width/2;
+            mouseY = height/2;
+        }
+
+        // 입력 처리
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        window.addEventListener('touchmove', e => { 
+            mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; 
+        }, {passive: false});
+
+        // 게임 루프
+        function loop() {
+            if (isGameOver) return;
+            requestAnimationFrame(loop);
+            frame++;
+
+            ctx.fillStyle = 'rgba(17, 17, 17, 0.2)'; // 잔상 효과
+            ctx.fillRect(0, 0, width, height);
+
+            // 1. 플레이어 이동 (마우스 따라가기, 부드럽게)
+            player.x += (mouseX - player.x) * 0.1;
+            player.y += (mouseY - player.y) * 0.1;
+            
+            // 플레이어 그리기
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+            ctx.fillStyle = player.color;
+            ctx.shadowBlur = 20; ctx.shadowColor = player.color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 2. 총알 발사 (자동) -> 레벨업하면 발사 속도 빨라짐
+            const fireRate = Math.max(5, 30 - level * 2); 
+            if (frame % fireRate === 0) {
+                // 가장 가까운 적 찾기
+                let nearest = null;
+                let minDist = Infinity;
+                enemies.forEach(e => {
+                    const d = Math.hypot(e.x - player.x, e.y - player.y);
+                    if(d < minDist) { minDist = d; nearest = e; }
+                });
+
+                if(nearest) {
+                    const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
+                    // 레벨업하면 멀티샷 (부채꼴)
+                    let shots = 1 + Math.floor(level / 3);
+                    for(let i=0; i<shots; i++) {
+                        const spread = (i - (shots-1)/2) * 0.2;
+                        bullets.push({
+                            x: player.x, y: player.y,
+                            vx: Math.cos(angle + spread) * 10,
+                            vy: Math.sin(angle + spread) * 10,
+                            life: 100
+                        });
+                    }
+                }
+            }
+
+            // 3. 총알 업데이트
+            bullets.forEach((b, i) => {
+                b.x += b.vx; b.y += b.vy;
+                b.life--;
+                
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 3, 0, Math.PI*2);
+                ctx.fillStyle = '#4ade80'; // 녹색 총알 (코드)
+                ctx.fill();
+
+                if(b.life <= 0) bullets.splice(i, 1);
+            });
+
+            // 4. 적 생성
+            if (frame % spawnRate === 0) {
+                const angle = Math.random() * Math.PI * 2;
+                const r = Math.max(width, height) / 1.5; // 화면 밖에서 생성
+                enemies.push({
+                    x: width/2 + Math.cos(angle) * r,
+                    y: height/2 + Math.sin(angle) * r,
+                    speed: 1 + Math.random() * (1 + level * 0.1), // 점점 빨라짐
+                    hp: 1 + Math.floor(level / 2),
+                    color: '#ef4444' // 빨간색 (버그)
+                });
+                
+                // 난이도 상승
+                if(spawnRate > 10) spawnRate--;
+            }
+
+            // 5. 적 업데이트 & 충돌 처리
+            enemies.forEach((e, i) => {
+                // 플레이어 향해 이동
+                const angle = Math.atan2(player.y - e.y, player.x - e.x);
+                e.x += Math.cos(angle) * e.speed;
+                e.y += Math.sin(angle) * e.speed;
+
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 8, 0, Math.PI*2);
+                ctx.fillStyle = e.color;
+                ctx.fill();
+
+                // 플레이어와 충돌 (게임 오버)
+                const distPlayer = Math.hypot(player.x - e.x, player.y - e.y);
+                if(distPlayer < player.r + 8) {
+                    gameOver();
+                }
+
+                // 총알과 충돌
+                bullets.forEach((b, j) => {
+                    const distBullet = Math.hypot(b.x - e.x, b.y - e.y);
+                    if(distBullet < 8 + 3) {
+                        e.hp--;
+                        bullets.splice(j, 1);
+                        createParticles(e.x, e.y, '#ef4444');
+                        
+                        if(e.hp <= 0) {
+                            enemies.splice(i, 1);
+                            score += 10;
+                            // 레벨업 체크
+                            if(score % 100 === 0) {
+                                level++;
+                                createParticles(player.x, player.y, '#fff', 20); // 레벨업 이펙트
+                            }
+                            updateUI();
+                        }
+                    }
+                });
+            });
+
+            // 6. 파티클(피) 효과
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.05;
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.globalAlpha = 1;
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+        }
+
+        function createParticles(x, y, color, count=5) {
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1, size: Math.random() * 3 + 1,
+                    color: color
+                });
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('scoreVal').innerText = score;
+            document.getElementById('levelVal').innerText = level;
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            document.getElementById('gameover').style.display = 'block';
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('ui').style.display = 'none';
+        }
+
+        function restartGame() {
+            init();
+            loop();
+        }
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        // 시작
+        init();
+        loop();
+    </script>
+</body>
+</html>
