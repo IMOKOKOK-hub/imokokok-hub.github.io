@@ -230,8 +230,8 @@
         </div>
     </div>
 
-    <script>
-        // ✅ DB 설정 (사장님 키값 유지)
+   <script>
+        // ✅ DB 설정
         const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
 
@@ -257,55 +257,55 @@
                 allPrompts = data;
                 renderCards(allPrompts);
             } catch (err) {
+                console.error(err);
                 grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">데이터 로딩 실패</p>';
             } finally {
                 loader.style.display = 'none';
             }
         }
 
-       // 2. 카드 렌더링 (하트 & 날짜 추가됨!)
+        // 2. 카드 렌더링 (번호표 방식 적용 -> 버그 해결!)
         function renderCards(data) {
             const grid = document.getElementById('promptGrid');
             grid.innerHTML = '';
 
-            if(data.length === 0) {
+            if(!data || data.length === 0) {
                 grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">등록된 프롬프트가 없습니다.</p>';
                 return;
             }
 
-            data.forEach(item => {
-                // 태그 클래스 매핑
+            data.forEach((item, index) => {
                 let tagClass = 'tag-coding';
                 if (item.tag === 'WRITING') tagClass = 'tag-writing';
                 if (item.tag === 'LOGIC') tagClass = 'tag-logic';
                 if (item.tag === 'IMAGE') tagClass = 'tag-image';
 
-                // 날짜 예쁘게 변환 (2024. 05. 20)
                 const date = new Date(item.created_at).toLocaleDateString();
 
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // 👇 여기가 핵심! (하단 정보 추가)
+                // 👇 [핵심] 복사 버튼에도 'index'만 넘겨줍니다. (내용을 직접 안 넣음)
                 card.innerHTML = `
                     <button class="btn-delete" onclick="deletePrompt(${item.id}, event)" title="관리자 삭제">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <div onclick='openViewModal(${JSON.stringify(item)})'>
+                    
+                    <div onclick="openViewModal(${index})">
                         <span class="tag ${tagClass}">${item.tag}</span>
                         <h3>${item.title}</h3>
                         <p>${item.description}</p>
                         <div class="prompt-box">${item.content}</div>
                         
-                        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid #333; padding-top:15px; color:#888; font-size:0.85rem;">
+                        <div class="card-footer">
                             <span><i class="far fa-clock"></i> ${date}</span>
-                            <span style="font-weight:bold; color:#e4e4e7;">
+                            <span class="likes-count">
                                 <i class="fas fa-heart" style="color:#ef4444;"></i> ${item.likes}
                             </span>
                         </div>
                     </div>
 
-                    <button class="copy-btn" style="margin-top:15px;" onclick="copyText(this, \`${item.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)">
+                    <button class="copy-btn" onclick="copyPromptByIndex(${index}, this)">
                         <i class="fas fa-copy"></i> Copy Prompt
                     </button>
                 `;
@@ -313,72 +313,11 @@
             });
         }
 
-        // 🔥 [NEW] 삭제 기능 (비밀번호 확인)
-        async function deletePrompt(id, event) {
-            event.stopPropagation(); // 카드 클릭 이벤트 막기 (상세보기 안 열리게)
+        // 🔥 [NEW] 번호표로 안전하게 복사하는 함수
+        function copyPromptByIndex(index, btn) {
+            const data = allPrompts[index]; // 메모리에서 원본을 가져옴 (깨짐 방지)
             
-            // 관리자 비밀번호 물어보기
-            const password = prompt("관리자 비밀번호를 입력하세요 (삭제하려면):");
-            
-            // 비밀번호 : 1234 (원하는 걸로 바꾸세요)
-            if (password !== "1234") {
-                return alert("비밀번호가 틀렸습니다! 관리자만 삭제할 수 있습니다.");
-            }
-
-            if (!confirm("정말 이 프롬프트를 삭제하시겠습니까?")) return;
-
-            try {
-                const { error } = await _supabase
-                    .from('prompts')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                alert("삭제되었습니다! 🗑️");
-                loadPrompts(); // 목록 새로고침
-            } catch (err) {
-                alert("삭제 실패: " + err.message);
-            }
-        }
-
-        // 3. 업로드 기능
-        async function uploadPrompt() {
-            const title = document.getElementById('in-title').value;
-            const desc = document.getElementById('in-desc').value;
-            const tag = document.getElementById('in-tag').value;
-            const content = document.getElementById('in-content').value;
-
-            if (!title || !content) return alert('제목과 내용은 필수입니다!');
-            
-            const btn = document.querySelector('.btn-submit');
-            btn.innerText = "저장 중...";
-
-            try {
-                const { error } = await _supabase
-                    .from('prompts')
-                    .insert([{ title, description: desc, tag, content }]);
-
-                if (error) throw error;
-
-                alert('업로드 성공! 🎉');
-                document.getElementById('uploadModal').style.display = 'none';
-                
-                document.getElementById('in-title').value = '';
-                document.getElementById('in-desc').value = '';
-                document.getElementById('in-content').value = '';
-                
-                loadPrompts();
-            } catch (err) {
-                alert('업로드 실패: ' + err.message);
-            } finally {
-                btn.innerText = "업로드 (Upload)";
-            }
-        }
-
-        // 4. 기타 함수들
-        function copyText(btn, text) {
-            navigator.clipboard.writeText(text).then(() => {
+            navigator.clipboard.writeText(data.content).then(() => {
                 const originalHtml = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 btn.style.background = '#8b5cf6';
@@ -391,10 +330,57 @@
             });
         }
 
+        // 3. 삭제 기능
+        async function deletePrompt(id, event) {
+            event.stopPropagation();
+            const password = prompt("관리자 비밀번호를 입력하세요:");
+            if (password !== "1234") return alert("비밀번호 오류!"); // 비번 1234
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+
+            try {
+                const { error } = await _supabase.from('prompts').delete().eq('id', id);
+                if (error) throw error;
+                alert("삭제되었습니다.");
+                loadPrompts();
+            } catch (err) {
+                alert("삭제 실패: " + err.message);
+            }
+        }
+
+        // 4. 업로드 기능
+        async function uploadPrompt() {
+            const title = document.getElementById('in-title').value;
+            const desc = document.getElementById('in-desc').value;
+            const tag = document.getElementById('in-tag').value;
+            const content = document.getElementById('in-content').value;
+
+            if (!title || !content) return alert('내용을 입력하세요!');
+            
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "저장 중...";
+
+            try {
+                const { error } = await _supabase
+                    .from('prompts')
+                    .insert([{ title, description: desc, tag, content }]);
+                if (error) throw error;
+                alert('업로드 성공!');
+                document.getElementById('uploadModal').style.display = 'none';
+                document.getElementById('in-title').value = '';
+                document.getElementById('in-desc').value = '';
+                document.getElementById('in-content').value = '';
+                loadPrompts();
+            } catch (err) {
+                alert('에러: ' + err.message);
+            } finally {
+                btn.innerText = "업로드 (Upload)";
+            }
+        }
+
+        // 5. 기타 UI 함수들
         function filterData(category) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
             if (category === 'ALL') renderCards(allPrompts);
             else renderCards(allPrompts.filter(p => p.tag === category));
         }
@@ -409,20 +395,32 @@
             renderCards(filtered);
         });
 
-        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
-        function closeModal(e) { if(e.target.id === 'uploadModal' || e.target.id === 'viewModal') e.target.style.display = 'none'; }
-        
-        // 상세보기 모달 열기
-        function openViewModal(data) {
+        // 상세보기 모달 (번호표 방식)
+        function openViewModal(index) {
+            const data = allPrompts[index];
             const modal = document.getElementById('viewModal');
             document.getElementById('v-title').innerText = data.title;
             document.getElementById('v-tag').innerText = data.tag;
-            document.getElementById('v-tag').className = `tag tag-${data.tag.toLowerCase()}`;
+            
+            let tagClass = 'tag-coding';
+            if (data.tag === 'WRITING') tagClass = 'tag-writing';
+            if (data.tag === 'LOGIC') tagClass = 'tag-logic';
+            if (data.tag === 'IMAGE') tagClass = 'tag-image';
+            document.getElementById('v-tag').className = `tag ${tagClass}`;
+            
             document.getElementById('v-desc').innerText = data.description;
             document.getElementById('v-content').innerText = data.content;
+            
+            // 모달 안의 복사 버튼도 번호표 방식으로 연결
+            const modalCopyBtn = modal.querySelector('.copy-btn');
+            modalCopyBtn.onclick = function() { copyPromptByIndex(index, this); };
+
             modal.style.display = 'flex';
         }
 
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeModal(e) { if(e.target.id === 'uploadModal' || e.target.id === 'viewModal') e.target.style.display = 'none'; }
+        
         // 실행
         loadPrompts();
     </script>
