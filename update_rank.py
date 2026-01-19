@@ -18,7 +18,7 @@ def save_full_report():
         with open('full_report.json', 'w', encoding='utf-8') as f:
             json.dump(full_data['lighthouseResult']['audits'], f, ensure_ascii=False, indent=2)
         
-        print(f"✅ 리포트 저장 완료! 'full_report.json' 파일을 열어보세요.")
+        print(f"✅ 리포트 저장 완료! 'data.json' 파일을 열어보세요.")
         print(f"분석 항목 개수: {len(full_data['lighthouseResult']['audits'])}개")
     else:
         print(f"❌ 에러: {res.status_code}")
