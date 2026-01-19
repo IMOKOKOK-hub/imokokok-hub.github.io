@@ -2,767 +2,482 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>CivHex: Planetary Defense</title>
+    <title>Chroma-Evo: Genetic Simulator</title>
     <style>
-        :root { --bg-color: #1a1a1a; --ui-bg: rgba(0, 0, 0, 0.8); --accent: #ffd700; }
-        body { margin: 0; overflow: hidden; background: var(--bg-color); font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Consolas', monospace; }
         canvas { display: block; }
-        
-        /* UI Layout */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .pointer-events-auto { pointer-events: auto; }
-        
-        /* Top Bar: Resources */
-        #top-bar { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px; background: var(--ui-bg); backdrop-filter: blur(5px); border-bottom: 1px solid #444; justify-content: center; font-size: 14px; }
-        .res-item { display: flex; align-items: center; gap: 5px; }
-        .res-val { font-weight: bold; color: var(--accent); }
 
-        /* Bottom Bar: Build Menu */
-        #bottom-bar { position: absolute; bottom: 0; width: 100%; background: var(--ui-bg); padding: 10px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #444; transition: transform 0.3s; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
-        .tab-btn { padding: 5px 15px; background: #333; border: 1px solid #555; color: #ccc; cursor: pointer; }
-        .tab-btn.active { background: #555; color: white; border-color: var(--accent); }
-        .build-grid { display: flex; gap: 10px; overflow-x: auto; max-width: 90%; padding-bottom: 5px; }
-        .build-btn { min-width: 100px; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; cursor: pointer; text-align: center; font-size: 12px; position: relative; }
-        .build-btn:hover { background: #3a3a3a; border-color: white; }
-        .build-btn.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        /* UI Overlay */
+        #hud {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; padding: 15px 30px;
+            background: rgba(20, 20, 20, 0.8); border-radius: 50px;
+            border: 1px solid #444; backdrop-filter: blur(5px);
+        }
+
+        .dna-btn {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.1); cursor: pointer;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .dna-btn:active { transform: scale(0.9); }
+        .dna-btn.active { transform: scale(1.15); border-color: white; box-shadow: 0 0 20px currentColor; }
+
+        .icon { font-size: 24px; margin-bottom: 2px; }
+        .label { font-size: 10px; font-weight: bold; color: rgba(255,255,255,0.7); text-transform: uppercase; }
+
+        /* Specific Colors */
+        #btn-atk { color: #ff0055; background: radial-gradient(circle, #330011, #110005); box-shadow: 0 0 10px #ff0055; }
+        #btn-exp { color: #00ffaa; background: radial-gradient(circle, #003322, #001105); box-shadow: 0 0 10px #00ffaa; }
+        #btn-def { color: #00aaff; background: radial-gradient(circle, #002233, #000511); box-shadow: 0 0 10px #00aaff; }
+
+        #stats {
+            position: absolute; top: 20px; left: 20px;
+            color: #888; font-size: 12px; line-height: 1.6;
+            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; pointer-events: none;
+        }
+        b { color: white; }
         
-        /* Right Bar: Tech Tree */
-        #tech-panel { position: absolute; right: 10px; top: 80px; width: 220px; background: var(--ui-bg); padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        #tech-panel h3 { margin: 0 0 10px 0; font-size: 16px; color: var(--accent); text-align: center; }
-        .tech-step { margin-bottom: 10px; padding: 8px; background: #333; border-radius: 4px; font-size: 12px; }
-        .tech-step.completed { border-left: 3px solid #4caf50; }
-        .tech-step.current { border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
-        .tech-step.locked { opacity: 0.5; }
-
-        /* Notifications & Overlay */
-        #invasion-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, rgba(255, 0, 0, 0.5)); opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 99; }
-        #modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 40px; text-align: center; border: 2px solid var(--accent); border-radius: 10px; z-index: 100; max-width: 500px; }
-        #modal h1 { color: var(--accent); margin-top: 0; }
-        button.action-btn { padding: 10px 20px; font-size: 16px; background: var(--accent); color: black; border: none; cursor: pointer; font-weight: bold; margin-top: 20px; }
-
-        /* Tooltip */
-        #tooltip { position: absolute; background: rgba(0,0,0,0.9); padding: 8px; border: 1px solid #666; font-size: 12px; pointer-events: none; display: none; z-index: 50; white-space: pre-line; }
+        #message {
+            position: absolute; top: 20%; width: 100%; text-align: center;
+            font-size: 14px; color: #666; pointer-events: none; opacity: 0.8;
+        }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
-    <div id="invasion-flash"></div>
 
-    <div id="ui-layer">
-        <div id="top-bar" class="pointer-events-auto">
-            <div class="res-item">🪵 <span id="res-wood" class="res-val">0</span></div>
-            <div class="res-item">🪨 <span id="res-stone" class="res-val">0</span></div>
-            <div class="res-item">🌾 <span id="res-food" class="res-val">0</span></div>
-            <div class="res-item">⛏️ <span id="res-iron" class="res-val">0</span></div>
-            <div class="res-item">🪙 <span id="res-gold" class="res-val">0</span></div>
-            <div class="res-item">⚡ <span id="res-energy" class="res-val">0</span></div>
-            <div class="res-item">🧪 <span id="res-science" class="res-val">0</span></div>
-            <div class="res-item" style="border:1px solid #f44336; padding:0 5px; background:#300;">⚔️ <span id="res-military" class="res-val">0</span></div>
-        </div>
-
-        <div id="tech-panel" class="pointer-events-auto">
-            <h3>🔬 연구 (Era: <span id="era-name">고대</span>)</h3>
-            <div id="tech-list"></div>
-            <button id="research-btn" class="action-btn" style="width:100%; margin-top:10px; font-size:12px;">연구하기</button>
-        </div>
-
-        <div id="bottom-bar" class="pointer-events-auto">
-            <div class="tabs">
-                <div class="tab-btn active" onclick="switchTab('eco')">경제 건물</div>
-                <div class="tab-btn" onclick="switchTab('mil')">군사/방어</div>
-            </div>
-            <div id="build-eco" class="build-grid"></div>
-            <div id="build-mil" class="build-grid" style="display:none;"></div>
-            <div style="font-size: 11px; color: #888; margin-top:5px;">클릭하여 선택 후 맵의 내 영토에 건설 (파괴된 건물 위엔 재건설)</div>
+    <div id="stats">
+        <div>GEN: <b id="gen-count">0</b> 세대</div>
+        <div>CELLS: <b id="cell-count">0</b></div>
+        <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px;">
+            <span style="color:#ff0055">● 공격성</span> : 적에게 입히는 피해<br>
+            <span style="color:#00ffaa">● 번식력</span> : 빈 땅으로 퍼지는 속도<br>
+            <span style="color:#00aaff">● 생존력</span> : 적의 공격을 버티는 힘
         </div>
     </div>
 
-    <div id="tooltip"></div>
+    <div id="message">▼ DNA를 주입하여 검은 역병에 대항하는 생명체를 만드세요 ▼</div>
 
-    <div id="modal" class="pointer-events-auto">
-        <h1 id="modal-title">승리!</h1>
-        <p id="modal-desc">행성 방어 시스템이 가동되었습니다.</p>
-        <button class="action-btn" onclick="location.reload()">다시 하기</button>
+    <div id="hud">
+        <div id="btn-atk" class="dna-btn" onclick="setMode('r')">
+            <span class="icon">⚔️</span>
+            <span class="label">Attack</span>
+        </div>
+        <div id="btn-exp" class="dna-btn active" onclick="setMode('g')">
+            <span class="icon">🌱</span>
+            <span class="label">Growth</span>
+        </div>
+        <div id="btn-def" class="dna-btn" onclick="setMode('b')">
+            <span class="icon">🛡️</span>
+            <span class="label">Defense</span>
+        </div>
     </div>
 
 <script>
 /**
- * 4X Hex Strategy Game Engine
- * Written for Vanilla JS + HTML5 Canvas
+ * Chroma-Evo: Genetic Simulator
+ * Logic: RGB blending dictates cell behavior.
  */
 
-// --- Constants & Config ---
 const CONFIG = {
-    HEX_SIZE: 30,
-    MAP_RADIUS: 12,
-    TICK_RATE: 1000, // Resource tick every 1s
-    ENEMY_SPAWN_RATE: 15000, // Enemies spawn every 15s
-    ZOOM_SENSITIVITY: 0.001
+    HEX_SIZE: 16,     // 셀 크기
+    MAP_RADIUS: 20,   // 맵 크기
+    TICK_RATE: 50,    // 시뮬레이션 속도 (빠름)
+    PLAGUE_RATE: 0.03, // 적 생성 확률
+    MUTATION_RATE: 0.05 // 돌연변이 확률
 };
 
-const RESOURCES = ['wood', 'stone', 'food', 'iron', 'gold', 'energy', 'science', 'military'];
-const COLORS = {
-    bg: '#1a1a1a', grid: '#333', fog: '#111',
-    grass: '#2e7d32', water: '#1565c0', mountain: '#5d4037', desert: '#e65100', snow: '#eceff1',
-    player: '#42a5f5', enemy: '#d32f2f', neutral: '#757575'
+// RGB Helper
+const Color = {
+    toStr: (r, g, b) => `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`,
+    mix: (c1, c2) => ({
+        r: Math.min(255, (c1.r + c2.r)/2 + (Math.random()*20-10)), // 약간의 돌연변이 추가
+        g: Math.min(255, (c1.g + c2.g)/2 + (Math.random()*20-10)),
+        b: Math.min(255, (c1.b + c2.b)/2 + (Math.random()*20-10))
+    }),
+    brightness: (c) => (c.r + c.g + c.b) / 3
 };
 
-const ERAS = [
-    { name: '고대', techCost: 0, unlock: [] },
-    { name: '중세', techCost: 300, unlock: ['wall', 'knight'], desc: '기사/성벽 해금' },
-    { name: '산업', techCost: 1500, unlock: ['bunker', 'tank'], desc: '탱크/벙커 해금' },
-    { name: '정보화', techCost: 5000, unlock: ['laser', 'missile'], desc: '미사일/레이저 해금' },
-    { name: '우주', techCost: 15000, unlock: ['wonder'], desc: '우주 승리 가능' }
-];
-
-const BUILDINGS = {
-    // Economy
-    'farm': { name: '농장', cost: { wood: 10 }, prod: { food: 5 }, icon: '🌾', type: 'eco' },
-    'lumber': { name: '제재소', cost: { gold: 10 }, prod: { wood: 5 }, icon: '🪵', type: 'eco' },
-    'quarry': { name: '채석장', cost: { wood: 20 }, prod: { stone: 3 }, icon: '🪨', type: 'eco' },
-    'mine': { name: '광산', cost: { wood: 50, stone: 20 }, prod: { iron: 2, gold: 2 }, icon: '⛏️', type: 'eco' },
-    'lab': { name: '연구소', cost: { stone: 50, iron: 10 }, prod: { science: 3 }, icon: '🧪', type: 'eco' },
-    'plant': { name: '발전소', cost: { iron: 100, gold: 100 }, prod: { energy: 5 }, icon: '⚡', type: 'eco' },
-    
-    // Military & Defense
-    'barracks': { name: '병영', cost: { wood: 50, food: 50 }, prod: { military: 5 }, icon: '⛺', type: 'mil' },
-    'wall': { name: '성벽', cost: { stone: 100 }, defense: 50, icon: '🧱', type: 'mil', era: 1 },
-    'bunker': { name: '벙커', cost: { iron: 200, stone: 200 }, defense: 150, icon: '🛡️', type: 'mil', era: 2 },
-    'tower': { name: '포탑', cost: { wood: 100, stone: 50 }, damage: 10, range: 2, icon: '🏹', type: 'mil' },
-    'laser': { name: '레이저', cost: { energy: 200, iron: 200 }, damage: 50, range: 4, icon: '🔦', type: 'mil', era: 3 },
-    'wonder': { name: '행성방어', cost: { science: 10000, energy: 5000, iron: 5000 }, win: true, icon: '🚀', type: 'mil', era: 4 }
-};
-
-// --- Game State ---
-const state = {
-    resources: { wood: 50, stone: 0, food: 50, iron: 0, gold: 0, energy: 0, science: 0, military: 10 },
-    eraIndex: 0,
-    map: {}, // key: "q,r", value: Tile
-    enemies: [], // Array of enemy unit objects
+let state = {
+    map: {}, 
+    selectedDNA: 'g', // r, g, b
     particles: [],
-    selectedBuilding: null,
+    gen: 0,
     camera: { x: 0, y: 0, zoom: 1 },
-    isGameOver: false,
-    lastTick: 0,
-    lastEnemySpawn: 0
+    isDrag: false
 };
 
-// --- Hex Math (Axial Coordinates) ---
-const Hex = {
-    toPixel: (q, r) => {
-        const x = CONFIG.HEX_SIZE * (3/2 * q);
-        const y = CONFIG.HEX_SIZE * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
-        return { x, y };
-    },
-    fromPixel: (x, y) => {
-        const q = (2/3 * x) / CONFIG.HEX_SIZE;
-        const r = (-1/3 * x + Math.sqrt(3)/3 * y) / CONFIG.HEX_SIZE;
-        return Hex.round(q, r);
-    },
-    round: (q, r) => {
-        let s = -q - r;
-        let rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
-        const q_diff = Math.abs(rq - q), r_diff = Math.abs(rr - r), s_diff = Math.abs(rs - s);
-        if (q_diff > r_diff && q_diff > s_diff) rq = -rr - rs;
-        else if (r_diff > s_diff) rr = -rq - rs;
-        return { q: rq, r: rr };
-    },
-    dist: (h1, h2) => (Math.abs(h1.q - h2.q) + Math.abs(h1.q + h1.r - h2.q - h2.r) + Math.abs(h1.r - h2.r)) / 2,
-    neighbors: (q, r) => [
-        {q:q+1, r:r}, {q:q+1, r:r-1}, {q:q, r:r-1},
-        {q:q-1, r:r}, {q:q-1, r:r+1}, {q:q, r:r+1}
-    ],
-    key: (q, r) => `${q},${r}`
-};
-
-// --- Initialization ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- Hex System ---
+const Hex = {
+    key: (q, r) => `${q},${r}`,
+    neighbors: (q, r) => [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]].map(d => ({q:q+d[0], r:r+d[1]})),
+    toPixel: (q, r) => ({ x: 26 * q, y: 26 * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r) }), // Adjusted specific layout math
+    dist: (q1, r1, q2, r2) => (Math.abs(q1-q2) + Math.abs(q1+r1-q2-r2) + Math.abs(r1-r2)) / 2
+};
+// Override pixel math for perfect hex grid
+Hex.toPixel = (q, r) => {
+    const size = CONFIG.HEX_SIZE;
+    const x = size * (3/2 * q);
+    const y = size * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+    return { x, y };
+};
+Hex.fromPixel = (x, y) => {
+    const size = CONFIG.HEX_SIZE;
+    const q = (2/3 * x) / size;
+    const r = (-1/3 * x + Math.sqrt(3)/3 * y) / size;
+    return Hex.round(q, r);
+};
+Hex.round = (q, r) => {
+    let s = -q-r;
+    let rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
+    if (Math.abs(rq-q) > Math.abs(rr-r) && Math.abs(rq-q) > Math.abs(rs-s)) rq = -rr-rs;
+    else if (Math.abs(rr-r) > Math.abs(rs-s)) rr = -rq-rs;
+    return {q:rq, r:rr};
+};
+
+// --- Core Engine ---
 function init() {
     resize();
     window.addEventListener('resize', resize);
-    generateMap();
-    setupUI();
+    createMap();
     setupInput();
-    requestAnimationFrame(loop);
+    setInterval(tick, CONFIG.TICK_RATE);
+    requestAnimationFrame(render);
 }
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    state.camera.x = canvas.width / 2;
-    state.camera.y = canvas.height / 2;
+    state.camera.x = canvas.width/2;
+    state.camera.y = canvas.height/2;
 }
 
-function generateMap() {
-    // Generate Hex Grid
+function createMap() {
     for (let q = -CONFIG.MAP_RADIUS; q <= CONFIG.MAP_RADIUS; q++) {
         let r1 = Math.max(-CONFIG.MAP_RADIUS, -q - CONFIG.MAP_RADIUS);
         let r2 = Math.min(CONFIG.MAP_RADIUS, -q + CONFIG.MAP_RADIUS);
         for (let r = r1; r <= r2; r++) {
-            let type = 'grass';
-            // Simple noise for terrain
-            const noise = Math.sin(q*0.5) * Math.cos(r*0.5);
-            if (noise > 0.6) type = 'mountain';
-            else if (noise < -0.6) type = 'water';
-            
             state.map[Hex.key(q, r)] = {
-                q, r, type,
-                owner: 'neutral', // neutral, player, enemy
-                building: null,
-                hp: 100,
-                explored: false,
-                visible: false
+                q, r,
+                type: 'empty', // empty, cell, plague
+                color: { r:0, g:0, b:0 }, // DNA
+                hp: 0,
+                maxHp: 0,
+                age: 0
             };
         }
     }
+    // Plague Seed in center
+    // spawnPlague(0, 0);
+}
 
-    // Player Start
-    const startTile = state.map["0,0"];
-    startTile.type = 'grass';
-    startTile.owner = 'player';
-    startTile.building = { type: 'barracks', hp: 100 };
-    updateVisibility();
-
-    // Enemy Bases
-    let bases = 0;
-    while(bases < 6) {
-        let q = Math.floor(Math.random() * CONFIG.MAP_RADIUS * 1.5) - CONFIG.MAP_RADIUS * 0.75;
-        let r = Math.floor(Math.random() * CONFIG.MAP_RADIUS * 1.5) - CONFIG.MAP_RADIUS * 0.75;
-        const key = Hex.key(q, r);
-        if (state.map[key] && Hex.dist({q:0,r:0}, {q,r}) > 6 && state.map[key].type !== 'water') {
-            state.map[key].owner = 'enemy';
-            state.map[key].type = 'mountain'; // Harder to take
-            state.map[key].hp = 500; // Strong base
-            bases++;
-        }
+function spawnPlague(q, r) {
+    const key = Hex.key(q, r);
+    if(state.map[key]) {
+        const cell = state.map[key];
+        cell.type = 'plague';
+        cell.hp = 500;
+        cell.color = {r:30, g:30, b:30};
     }
 }
 
-// --- Game Logic ---
-function update(dt) {
-    if (state.isGameOver) return;
+function spawnCell(q, r, dnaType) {
+    const key = Hex.key(q, r);
+    if (!state.map[key]) return;
+    const cell = state.map[key];
 
-    const now = Date.now();
+    // Base DNA Injection
+    let rVal=0, gVal=0, bVal=0;
+    if (dnaType === 'r') rVal = 255;
+    if (dnaType === 'g') gVal = 255;
+    if (dnaType === 'b') bVal = 255;
 
-    // 1. Resources Tick
-    if (now - state.lastTick > CONFIG.TICK_RATE) {
-        processEconomy();
-        processTowers();
-        state.lastTick = now;
-        updateUI();
+    // 만약 이미 세포가 있다면? DNA 혼합 (Evolution)
+    if (cell.type === 'cell') {
+        cell.color.r = Math.min(255, cell.color.r + rVal * 0.5);
+        cell.color.g = Math.min(255, cell.color.g + gVal * 0.5);
+        cell.color.b = Math.min(255, cell.color.b + bVal * 0.5);
+        spawnParticles(q, r, `rgb(${rVal},${gVal},${bVal})`);
+    } else if (cell.type === 'empty') {
+        cell.type = 'cell';
+        cell.color = { r: rVal, g: gVal, b: bVal };
+        cell.hp = 100;
+        spawnParticles(q, r, `rgb(${rVal},${gVal},${bVal})`);
     }
-
-    // 2. Enemy Spawning & Logic
-    if (now - state.lastEnemySpawn > CONFIG.ENEMY_SPAWN_RATE) {
-        spawnEnemy();
-        state.lastEnemySpawn = now;
-    }
-    
-    // Enemy Movement (smooth interpolation for visual, logic discrete)
-    moveEnemies(dt);
-    
-    // Particles
-    state.particles.forEach(p => { p.life -= dt; p.x += p.vx; p.y += p.vy; });
-    state.particles = state.particles.filter(p => p.life > 0);
 }
 
-function processEconomy() {
+// --- Simulation Logic (The Soul of the Game) ---
+function tick() {
+    state.gen++;
+    const nextState = {}; // Delta changes
+    let activeCells = 0;
+
+    // Plague Spawner Logic (Dynamic Enemy)
+    if (Math.random() < CONFIG.PLAGUE_RATE) {
+        // Spawn plague at random edge
+        const angle = Math.random() * Math.PI * 2;
+        const dist = CONFIG.MAP_RADIUS;
+        const q = Math.round(Math.cos(angle) * dist);
+        const r = Math.round(Math.sin(angle) * dist);
+        spawnPlague(q, r);
+    }
+
     for (let key in state.map) {
-        const tile = state.map[key];
-        if (tile.owner === 'player' && tile.building) {
-            const bStats = BUILDINGS[tile.building.type];
-            if (bStats.prod) {
-                for (let res in bStats.prod) state.resources[res] += bStats.prod[res];
-            }
-        }
-    }
-}
+        const cell = state.map[key];
+        if (cell.type === 'empty') continue;
+        
+        activeCells++;
+        
+        // 1. Stats based on DNA (Color)
+        // Red = Attack Dmg, Green = Reproduction Chance, Blue = MaxHP/Defense
+        const dna = cell.color;
+        const stats = {
+            atk: 5 + (dna.r / 255) * 45,       // 5 ~ 50 damage
+            repro: 0.01 + (dna.g / 255) * 0.2, // 1% ~ 21% chance
+            maxHp: 50 + (dna.b / 255) * 450    // 50 ~ 500 HP
+        };
 
-function processTowers() {
-    // Towers shoot at enemies
-    for (let key in state.map) {
-        const tile = state.map[key];
-        if (tile.owner === 'player' && tile.building) {
-            const stats = BUILDINGS[tile.building.type];
-            if (stats.damage) {
-                // Find target
-                const target = state.enemies.find(e => Hex.dist(e.hex, tile) <= stats.range);
-                if (target) {
-                    target.hp -= stats.damage;
-                    spawnProjectile(tile, target.hex, 'yellow');
-                    if (target.hp <= 0) {
-                        spawnExplosion(target.x, target.y, 'red');
+        // Regulate HP cap
+        if (cell.hp > stats.maxHp) cell.hp = stats.maxHp;
+
+        const neighbors = Hex.neighbors(cell.q, cell.r);
+
+        // --- PLAGUE LOGIC ---
+        if (cell.type === 'plague') {
+            // Plague just eats and spreads slowly
+            neighbors.forEach(n => {
+                const nKey = Hex.key(n.q, n.r);
+                const target = state.map[nKey];
+                if (!target) return;
+
+                if (target.type === 'cell') {
+                    // Battle: Plague attacks Cell
+                    target.hp -= 10; // Base plague damage
+                    // Cell strikes back (Thorns damage based on Red DNA)
+                    // If cell has high Red, it hurts plague to touch it
+                    const thorns = (target.color.r / 255) * 20;
+                    if (thorns > 0) {
+                        cell.hp -= thorns;
+                        if(Math.random()<0.1) spawnParticles(n.q, n.r, '#ff0055'); // Blood effect
                     }
+                    if (target.hp <= 0) nextState[nKey] = { type: 'plague', hp: 200, color: {r:30,g:30,b:30} };
+                } else if (target.type === 'empty' && Math.random() < 0.05) {
+                    nextState[nKey] = { type: 'plague', hp: 200, color: {r:30,g:30,b:30} };
                 }
-            }
-        }
-    }
-    // Clean dead enemies
-    state.enemies = state.enemies.filter(e => e.hp > 0);
-}
-
-function spawnEnemy() {
-    const enemyBases = Object.values(state.map).filter(t => t.owner === 'enemy');
-    if (enemyBases.length === 0) return;
-
-    const base = enemyBases[Math.floor(Math.random() * enemyBases.length)];
-    const pixel = Hex.toPixel(base.q, base.r);
-    
-    state.enemies.push({
-        hex: {q: base.q, r: base.r},
-        x: pixel.x, y: pixel.y,
-        hp: 50 + (state.eraIndex * 50),
-        maxHp: 50 + (state.eraIndex * 50),
-        speed: 0.5 // pixels per frame approx
-    });
-
-    // Alert UI
-    const flash = document.getElementById('invasion-flash');
-    flash.style.opacity = 1;
-    setTimeout(() => flash.style.opacity = 0, 1000);
-}
-
-function moveEnemies(dt) {
-    state.enemies.forEach(e => {
-        // Simple AI: Move towards 0,0 (Player Base)
-        const currentHex = Hex.round(Hex.fromPixel(e.x, e.y).q, Hex.fromPixel(e.x, e.y).r);
-        e.hex = currentHex; // Update logical hex position
-
-        // Target: 0,0
-        const targetPixel = Hex.toPixel(0, 0);
-        const dx = targetPixel.x - e.x;
-        const dy = targetPixel.y - e.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        
-        if (dist > 5) {
-            e.x += (dx / dist) * e.speed;
-            e.y += (dy / dist) * e.speed;
-        }
-
-        // Interaction with player tiles
-        const tileKey = Hex.key(currentHex.q, currentHex.r);
-        const tile = state.map[tileKey];
-        
-        if (tile && tile.owner === 'player') {
-            // Attack building/tile
-            if (tile.building) {
-                 // Damage building (simplified: building takes 1 hit to destroy unless fortified)
-                 const def = BUILDINGS[tile.building.type].defense || 10;
-                 if (Math.random() * 100 > def) {
-                     tile.building = null;
-                     spawnExplosion(e.x, e.y, 'orange');
-                     // Enemy dies after suicide attack
-                     e.hp = 0; 
-                 } else {
-                     e.hp -= 10; // Building fights back slightly
-                 }
-            } else {
-                // Steal empty territory
-                tile.owner = 'neutral'; 
-                e.hp = 0; // Enemy used up
-            }
-            updateVisibility();
-        }
-    });
-}
-
-function updateVisibility() {
-    // Reset visible
-    for (let k in state.map) state.map[k].visible = false;
-
-    // Reveal around owned tiles
-    for (let k in state.map) {
-        const t = state.map[k];
-        if (t.owner === 'player') {
-            t.explored = true;
-            t.visible = true;
-            // Reveal neighbors range 2
-            const range = 2;
-            for (let dx = -range; dx <= range; dx++) {
-                for (let dy = Math.max(-range, -dx-range); dy <= Math.min(range, -dx+range); dy++) {
-                    const nk = Hex.key(t.q + dx, t.r + dy);
-                    if (state.map[nk]) {
-                        state.map[nk].explored = true;
-                        state.map[nk].visible = true;
-                    }
-                }
-            }
-        }
-    }
-}
-
-// --- Interaction ---
-function setupInput() {
-    let isDragging = false, lastX, lastY;
-
-    canvas.addEventListener('mousedown', e => {
-        if (e.button === 0) { // Left Click
-            isDragging = true;
-            lastX = e.clientX;
-            lastY = e.clientY;
-        }
-    });
-
-    canvas.addEventListener('mousemove', e => {
-        // Camera Pan
-        if (isDragging) {
-            state.camera.x += (e.clientX - lastX);
-            state.camera.y += (e.clientY - lastY);
-            lastX = e.clientX;
-            lastY = e.clientY;
-        }
-        
-        // Tooltip logic
-        const hex = getHexFromMouse(e);
-        const tile = state.map[Hex.key(hex.q, hex.r)];
-        const tooltip = document.getElementById('tooltip');
-        
-        if (tile && tile.explored) {
-            tooltip.style.display = 'block';
-            tooltip.style.left = (e.clientX + 15) + 'px';
-            tooltip.style.top = (e.clientY + 15) + 'px';
+            });
             
-            let txt = `좌표: ${tile.q},${tile.r}\n지형: ${tile.type}`;
-            if (tile.owner === 'player') txt += `\n소유: 플레이어`;
-            else if (tile.owner === 'enemy') txt += `\n소유: 야만인 (HP:${tile.hp})`;
-            else txt += `\n소유: 중립`;
+            // Plague death
+            if (cell.hp <= 0) nextState[key] = { type: 'empty' };
+            continue;
+        }
 
-            if (tile.building) txt += `\n건물: ${BUILDINGS[tile.building.type].name}`;
-            tooltip.innerText = txt;
+        // --- CELL LOGIC ---
+        if (cell.type === 'cell') {
+            cell.age++;
+            // Natural Death (if too old and overcrowded, preventing stagnation)
+            // But let's keep it simple: mainly die by Plague or Starvation logic if we added it.
+            
+            neighbors.forEach(n => {
+                const nKey = Hex.key(n.q, n.r);
+                const target = state.map[nKey];
+                if (!target) return;
+
+                // 1. Attack Plague (Red DNA)
+                if (target.type === 'plague') {
+                    target.hp -= stats.atk;
+                    spawnParticles(n.q, n.r, '#fff', 1); // Spark
+                    if (target.hp <= 0) {
+                         nextState[nKey] = { type: 'empty' }; // Kill plague
+                    }
+                }
+
+                // 2. Reproduction (Green DNA)
+                if (target.type === 'empty') {
+                    if (Math.random() < stats.repro) {
+                        // Mutate color slightly
+                        const childColor = Color.mix(cell.color, cell.color); 
+                        nextState[nKey] = { 
+                            type: 'cell', 
+                            color: childColor, 
+                            hp: 50 + (childColor.b/255)*450,
+                            age: 0
+                        };
+                    }
+                }
+                
+                // 3. Horizontal Gene Transfer (Sharing DNA with neighbors)
+                // If neighbor is also cell, they average out colors slowly (Community Adaptation)
+                if (target.type === 'cell' && Math.random() < 0.05) {
+                    // Very subtle blending
+                    const blended = Color.mix(cell.color, target.color);
+                    nextState[key] = { ...cell, color: blended }; // Update self
+                }
+            });
+
+            // Heal over time (Blue DNA helps regen)
+            if (cell.hp < stats.maxHp) {
+                cell.hp += (dna.b / 255) * 2;
+            }
+        }
+    }
+
+    // Apply Updates
+    for (let key in nextState) {
+        Object.assign(state.map[key], nextState[key]);
+    }
+    
+    document.getElementById('cell-count').innerText = activeCells;
+    document.getElementById('gen-count').innerText = state.gen;
+}
+
+
+// --- Rendering ---
+function render() {
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(state.camera.x, state.camera.y);
+    ctx.scale(state.camera.zoom, state.camera.zoom);
+
+    for (let key in state.map) {
+        const cell = state.map[key];
+        // Optimization: Don't draw empty cells
+        if (cell.type === 'empty') {
+            // Draw faint grid
+            /*
+            const p = Hex.toPixel(cell.q, cell.r);
+            ctx.strokeStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+            ctx.stroke();
+            */
+            continue;
+        }
+
+        const pos = Hex.toPixel(cell.q, cell.r);
+        const size = CONFIG.HEX_SIZE - 0.5;
+
+        // Draw Hex
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = Math.PI / 3 * i;
+            ctx.lineTo(pos.x + size * Math.cos(angle), pos.y + size * Math.sin(angle));
+        }
+        ctx.closePath();
+
+        if (cell.type === 'plague') {
+            ctx.fillStyle = '#222';
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.fill();
+            ctx.stroke();
+            // Spiky inner
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, size*0.4, 0, Math.PI*2);
+            ctx.fill();
         } else {
-            tooltip.style.display = 'none';
+            // Cell Color
+            const col = Color.toStr(cell.color.r, cell.color.g, cell.color.b);
+            ctx.fillStyle = col;
+            
+            // Glow based on intensity
+            const intensity = Color.brightness(cell.color);
+            if (intensity > 150) {
+                ctx.shadowColor = col;
+                ctx.shadowBlur = 10;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // HP Indicator (Inner Circle Size)
+            /*
+            const hpPct = cell.hp / (50 + (cell.color.b/255)*450);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, size * (1-hpPct), 0, Math.PI*2);
+            ctx.fill();
+            */
+        }
+    }
+
+    // Particles
+    state.particles.forEach((p, i) => {
+        p.life--;
+        p.x += p.vx;
+        p.y += p.vy;
+        ctx.fillStyle = p.col;
+        ctx.globalAlpha = p.life / 20;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+        if(p.life <= 0) state.particles.splice(i, 1);
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+    requestAnimationFrame(render);
+}
+
+function spawnParticles(q, r, col, count=3) {
+    const pos = Hex.toPixel(q, r);
+    for(let i=0; i<count; i++) {
+        state.particles.push({
+            x: pos.x, y: pos.y,
+            vx: (Math.random()-0.5)*3,
+            vy: (Math.random()-0.5)*3,
+            life: 20 + Math.random()*10,
+            col: col,
+            size: Math.random()*2 + 1
+        });
+    }
+}
+
+// --- Inputs ---
+function setupInput() {
+    canvas.addEventListener('mousedown', e => {
+        state.isDrag = true;
+        const h = getHex(e);
+        spawnCell(h.q, h.r, state.selectedDNA);
+    });
+    canvas.addEventListener('mousemove', e => {
+        if(state.isDrag) {
+            const h = getHex(e);
+            spawnCell(h.q, h.r, state.selectedDNA);
         }
     });
-
-    canvas.addEventListener('mouseup', e => {
-        isDragging = false;
-        if (Math.abs(e.clientX - lastX) < 5 && Math.abs(e.clientY - lastY) < 5) {
-            handleCklick(e);
-        }
-    });
-
+    window.addEventListener('mouseup', () => state.isDrag = false);
+    
     canvas.addEventListener('wheel', e => {
-        const zoomSpeed = 0.001;
-        state.camera.zoom += e.deltaY * -zoomSpeed;
-        state.camera.zoom = Math.min(Math.max(0.5, state.camera.zoom), 3);
+        state.camera.zoom += e.deltaY * -0.001;
+        state.camera.zoom = Math.min(Math.max(0.3, state.camera.zoom), 3);
     });
 }
 
-function getHexFromMouse(e) {
+function getHex(e) {
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left - state.camera.x) / state.camera.zoom;
     const my = (e.clientY - rect.top - state.camera.y) / state.camera.zoom;
     return Hex.fromPixel(mx, my);
 }
 
-function handleCklick(e) {
-    const hex = getHexFromMouse(e);
-    const key = Hex.key(hex.q, hex.r);
-    const tile = state.map[key];
-
-    if (!tile || !tile.visible) return;
-
-    // 1. Build Logic
-    if (state.selectedBuilding && tile.owner === 'player') {
-        const bType = state.selectedBuilding;
-        const bInfo = BUILDINGS[bType];
-        
-        // Check cost
-        let canAfford = true;
-        for (let res in bInfo.cost) {
-            if (state.resources[res] < bInfo.cost[res]) canAfford = false;
-        }
-
-        if (canAfford) {
-            // Deduct cost
-            for (let res in bInfo.cost) state.resources[res] -= bInfo.cost[res];
-            
-            // Build
-            tile.building = { type: bType, hp: 100 };
-            
-            // Check Win
-            if (bType === 'wonder') victory();
-            
-            state.selectedBuilding = null;
-            document.querySelectorAll('.build-btn').forEach(b => b.style.border = '1px solid #444');
-            updateUI();
-            spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'cyan');
-        } else {
-            alert("자원이 부족합니다!");
-        }
-        return;
-    }
-
-    // 2. Expansion / Attack Logic
-    if (tile.owner !== 'player') {
-        const neighbors = Hex.neighbors(hex.q, hex.r);
-        const isAdjacent = neighbors.some(n => {
-            const t = state.map[Hex.key(n.q, n.r)];
-            return t && t.owner === 'player';
-        });
-
-        if (isAdjacent) {
-            const conquestCost = tile.owner === 'enemy' ? 150 : 30; // Cost MP
-            if (state.resources.military >= conquestCost) {
-                // Battle Calculation
-                if (tile.owner === 'enemy') {
-                    // Reduce Base HP
-                    tile.hp -= 50;
-                    state.resources.military -= 20; // Attack cost
-                    spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'red');
-                    
-                    if (tile.hp <= 0) {
-                        tile.owner = 'player';
-                        tile.type = 'grass'; // Raze base
-                        tile.hp = 100;
-                        state.resources.military -= conquestCost;
-                    }
-                } else {
-                    // Neutral - instant take
-                    state.resources.military -= conquestCost;
-                    tile.owner = 'player';
-                    spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'green');
-                }
-                updateVisibility();
-                updateUI();
-            } else {
-                alert(`군사력이 부족합니다! (필요: ${conquestCost})`);
-            }
-        }
-    }
-}
-
-// --- Rendering ---
-function loop() {
-    const dt = 16;
-    update(dt);
-    draw();
-    requestAnimationFrame(loop);
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.translate(state.camera.x, state.camera.y);
-    ctx.scale(state.camera.zoom, state.camera.zoom);
-
-    // Draw Map
-    for (let key in state.map) {
-        const tile = state.map[key];
-        const pos = Hex.toPixel(tile.q, tile.r);
-        
-        // Fog of War
-        if (!tile.explored) continue;
-
-        drawHex(pos.x, pos.y, CONFIG.HEX_SIZE, tile);
-    }
-
-    // Draw Enemies
-    state.enemies.forEach(e => {
-        // Draw only if visible
-        const tileKey = Hex.key(e.hex.q, e.hex.r);
-        if (state.map[tileKey] && state.map[tileKey].visible) {
-            ctx.fillStyle = COLORS.enemy;
-            ctx.beginPath();
-            ctx.arc(e.x, e.y, CONFIG.HEX_SIZE * 0.4, 0, Math.PI * 2);
-            ctx.fill();
-            // Health Bar
-            ctx.fillStyle = 'red';
-            ctx.fillRect(e.x - 10, e.y - 15, 20, 4);
-            ctx.fillStyle = 'lime';
-            ctx.fillRect(e.x - 10, e.y - 15, 20 * (e.hp / e.maxHp), 4);
-        }
-    });
-
-    // Draw Particles
-    state.particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.life / 500;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        ctx.fill();
-    });
-    ctx.globalAlpha = 1;
-
-    ctx.restore();
-}
-
-function drawHex(x, y, size, tile) {
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-        const angle_deg = 60 * i;
-        const angle_rad = Math.PI / 180 * angle_deg;
-        ctx.lineTo(x + size * Math.cos(angle_rad), y + size * Math.sin(angle_rad));
-    }
-    ctx.closePath();
-    
-    // Fill Terrain
-    if (tile.visible) {
-        ctx.fillStyle = COLORS[tile.type] || '#ccc';
-    } else {
-        ctx.fillStyle = '#222'; // Explored but not visible
-    }
-    ctx.fill();
-
-    // Stroke Owner Border
-    if (tile.visible) {
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = COLORS[tile.owner] || '#333';
-        ctx.stroke();
-    } else {
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#444';
-        ctx.stroke();
-    }
-
-    // Draw Building / Base Info
-    if (tile.visible) {
-        if (tile.building) {
-            ctx.font = `${size}px Arial`;
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(BUILDINGS[tile.building.type].icon, x, y);
-        } else if (tile.owner === 'enemy') {
-            ctx.font = `${size}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('👹', x, y);
-        }
-    }
-}
-
-// --- Effects ---
-function spawnExplosion(x, y, color) {
-    for (let i = 0; i < 10; i++) {
-        state.particles.push({
-            x: x, y: y,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 4,
-            life: 500,
-            size: Math.random() * 3 + 1,
-            color: color
-        });
-    }
-}
-
-function spawnProjectile(fromTile, toHex, color) {
-    const from = Hex.toPixel(fromTile.q, fromTile.r);
-    const to = Hex.toPixel(toHex.q, toHex.r);
-    
-    // Simple line particle for laser/arrow
-    state.particles.push({
-        x: from.x, y: from.y,
-        vx: (to.x - from.x) / 10,
-        vy: (to.y - from.y) / 10,
-        life: 200,
-        size: 2,
-        color: color
-    });
-}
-
-// --- UI System ---
-function setupUI() {
-    renderBuildMenu();
-    updateTechUI();
-    updateUI(); // Initial update
-
-    // Tech Button Logic
-    document.getElementById('research-btn').onclick = () => {
-        const nextEra = ERAS[state.eraIndex + 1];
-        if (nextEra && state.resources.science >= nextEra.techCost) {
-            state.resources.science -= nextEra.techCost;
-            state.eraIndex++;
-            updateTechUI();
-            renderBuildMenu(); // New buildings unlocked
-            updateUI();
-            alert(`${nextEra.name} 시대로 발전했습니다!`);
-        } else if (nextEra) {
-            alert(`과학력이 부족합니다. (필요: ${nextEra.techCost})`);
-        }
-    };
-}
-
-function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById('build-eco').style.display = tab === 'eco' ? 'flex' : 'none';
-    document.getElementById('build-mil').style.display = tab === 'mil' ? 'flex' : 'none';
-}
-
-function renderBuildMenu() {
-    const containerEco = document.getElementById('build-eco');
-    const containerMil = document.getElementById('build-mil');
-    containerEco.innerHTML = '';
-    containerMil.innerHTML = '';
-
-    for (let key in BUILDINGS) {
-        const b = BUILDINGS[key];
-        
-        // Check Era Lock
-        if (b.era && b.era > state.eraIndex) continue;
-
-        const btn = document.createElement('div');
-        btn.className = 'build-btn';
-        
-        // Tooltip Text inside button
-        let costTxt = Object.entries(b.cost).map(([k, v]) => `${k.charAt(0).toUpperCase()}:${v}`).join(' ');
-        btn.innerHTML = `<div>${b.icon} ${b.name}</div><div style='font-size:10px; color:#aaa'>${costTxt}</div>`;
-        
-        btn.onclick = () => {
-            state.selectedBuilding = key;
-            document.querySelectorAll('.build-btn').forEach(bb => bb.style.border = '1px solid #444');
-            btn.style.border = '1px solid gold';
-        };
-
-        if (b.type === 'eco') containerEco.appendChild(btn);
-        else containerMil.appendChild(btn);
-    }
-}
-
-function updateTechUI() {
-    const panel = document.getElementById('tech-list');
-    const eraName = document.getElementById('era-name');
-    panel.innerHTML = '';
-    eraName.innerText = ERAS[state.eraIndex].name;
-
-    ERAS.forEach((era, idx) => {
-        if (idx === 0) return;
-        const div = document.createElement('div');
-        div.className = 'tech-step';
-        if (idx <= state.eraIndex) div.classList.add('completed');
-        else if (idx === state.eraIndex + 1) div.classList.add('current');
-        else div.classList.add('locked');
-
-        div.innerHTML = `<b>${era.name}</b> (🔬 ${era.techCost})<br>${era.desc || ''}`;
-        panel.appendChild(div);
-    });
-    
-    const nextEra = ERAS[state.eraIndex + 1];
-    const rBtn = document.getElementById('research-btn');
-    if (!nextEra) {
-        rBtn.innerText = "연구 완료";
-        rBtn.disabled = true;
-    } else {
-        rBtn.innerText = `연구하기 (비용: ${nextEra.techCost})`;
-    }
-}
-
-function updateUI() {
-    // Resources
-    RESOURCES.forEach(res => {
-        document.getElementById(`res-${res}`).innerText = Math.floor(state.resources[res]);
-    });
-}
-
-function victory() {
-    state.isGameOver = true;
-    document.getElementById('modal').style.display = 'block';
+function setMode(mode) {
+    state.selectedDNA = mode;
+    document.querySelectorAll('.dna-btn').forEach(b => b.classList.remove('active'));
+    let id = mode === 'r' ? 'btn-atk' : (mode === 'g' ? 'btn-exp' : 'btn-def');
+    document.getElementById(id).classList.add('active');
 }
 
 // Start
