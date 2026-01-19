@@ -263,7 +263,7 @@
             }
         }
 
-       // 2. 카드 렌더링 (하트 & 날짜 추가됨!)
+        // 2. 카드 렌더링 (삭제 버튼 추가됨!)
         function renderCards(data) {
             const grid = document.getElementById('promptGrid');
             grid.innerHTML = '';
@@ -274,38 +274,25 @@
             }
 
             data.forEach(item => {
-                // 태그 클래스 매핑
                 let tagClass = 'tag-coding';
                 if (item.tag === 'WRITING') tagClass = 'tag-writing';
                 if (item.tag === 'LOGIC') tagClass = 'tag-logic';
                 if (item.tag === 'IMAGE') tagClass = 'tag-image';
 
-                // 날짜 예쁘게 변환 (2024. 05. 20)
-                const date = new Date(item.created_at).toLocaleDateString();
-
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // 👇 여기가 핵심! (하단 정보 추가)
+                // 카드 HTML 조립
                 card.innerHTML = `
                     <button class="btn-delete" onclick="deletePrompt(${item.id}, event)" title="관리자 삭제">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <div onclick='openViewModal(${JSON.stringify(item)})'>
-                        <span class="tag ${tagClass}">${item.tag}</span>
+                    <div onclick='openViewModal(${JSON.stringify(item)})'> <span class="tag ${tagClass}">${item.tag}</span>
                         <h3>${item.title}</h3>
                         <p>${item.description}</p>
                         <div class="prompt-box">${item.content}</div>
-                        
-                        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid #333; padding-top:15px; color:#888; font-size:0.85rem;">
-                            <span><i class="far fa-clock"></i> ${date}</span>
-                            <span style="font-weight:bold; color:#e4e4e7;">
-                                <i class="fas fa-heart" style="color:#ef4444;"></i> ${item.likes}
-                            </span>
-                        </div>
                     </div>
-
-                    <button class="copy-btn" style="margin-top:15px;" onclick="copyText(this, \`${item.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)">
+                    <button class="copy-btn" onclick="copyText(this, \`${item.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)">
                         <i class="fas fa-copy"></i> Copy Prompt
                     </button>
                 `;
