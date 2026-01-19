@@ -3,210 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLOG INSIGHT PRO V5</title>
+    <title>BLOG ANALYTICS ULTIMATE</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #111318; --card: #1e2129; --text-main: #ffffff; --text-sub: #9ca3af;
-            --accent: #6366f1; --success: #10b981; --warn: #f59e0b; --danger: #ef4444; --border: #2d313a;
+            --bg: #0f172a; /* Deep Slate */
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #38bdf8; /* Sky Blue */
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --border: #334155;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text-main); font-family: 'Pretendard', sans-serif; padding: 20px; min-height: 100vh; }
+        body { 
+            background-color: var(--bg); color: var(--text-main); 
+            font-family: 'Inter', 'Noto Sans KR', sans-serif; 
+            padding: 20px; overflow-x: hidden;
+        }
+
+        .container { max-width: 1800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* 1. 헤더 & 검색 */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); padding: 20px 30px; border-radius: 16px; border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
+        .logo i { color: var(--accent); font-size: 28px; }
         
-        .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .search-area { display: flex; gap: 10px; width: 600px; }
+        input { 
+            flex: 1; background: #0f172a; border: 2px solid var(--border); color: white; padding: 14px 20px; 
+            border-radius: 10px; font-size: 16px; outline: none; transition: 0.2s;
+        }
+        input:focus { border-color: var(--accent); }
+        button { 
+            background: var(--accent); color: #0f172a; border: none; padding: 0 30px; 
+            border-radius: 10px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        /* 2. 핵심 지표 (KPI Cards) */
+        .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; }
+        .kpi-card { 
+            background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); 
+            display: flex; flex-direction: column; justify-content: center; position: relative;
+        }
+        /* 첫 번째 카드는 종합 등급 */
+        .grade-card { background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); border: none; color: white; }
+        .grade-card .kpi-label { color: rgba(255,255,255,0.8); }
         
-        /* 헤더 */
-        .header { display: flex; gap: 10px; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
-        .logo { font-size: 20px; font-weight: 900; margin-right: auto; }
-        .logo span { color: var(--accent); }
-        .search-box { display: flex; gap: 10px; flex: 1; max-width: 600px; }
-        input { flex: 1; background: #000; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; outline: none; }
-        button { background: var(--accent); color: white; border: none; padding: 0 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        button:hover { filter: brightness(1.1); }
+        .kpi-label { font-size: 14px; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+        .kpi-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .kpi-desc { font-size: 13px; margin-top: 5px; opacity: 0.7; }
 
-        /* 메인 그리드 */
-        .main-grid { display: grid; grid-template-columns: 300px 1fr 350px; gap: 15px; }
-        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+        /* 3. 차트 영역 (8개) */
+        .charts-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .chart-box { 
+            background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border); 
+            height: 320px; display: flex; flex-direction: column;
+        }
+        .chart-title { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; border-left: 4px solid var(--accent); padding-left: 10px; }
+        .chart-wrapper { flex: 1; position: relative; width: 100%; height: 100%; }
 
-        /* 카드 공통 */
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow: hidden; display: flex; flex-direction: column; }
-        .card-title { font-size: 14px; color: var(--text-sub); margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        /* 4. 하단 상세 정보 */
+        .bottom-section { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        
+        /* 테이블 스타일 */
+        .table-box { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; height: 400px; display: flex; flex-direction: column; }
+        .table-header { padding: 20px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; }
+        .table-scroll { overflow-y: auto; flex: 1; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1e293b; position: sticky; top: 0; text-align: left; padding: 15px; font-size: 14px; color: var(--text-sub); border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        .url-cell { font-family: monospace; color: var(--accent); max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+        .badge-save { background: rgba(248, 113, 113, 0.2); color: var(--danger); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
 
-        /* 1. 등급 패널 */
-        .grade-box { text-align: center; padding: 20px 0; }
-        .grade-val { font-size: 80px; font-weight: 900; line-height: 1; text-shadow: 0 0 30px rgba(99, 102, 241, 0.3); }
-        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .m-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center; }
-        .m-lbl { font-size: 12px; color: var(--text-sub); display: block; margin-bottom: 4px; }
-        .m-val { font-size: 16px; font-weight: bold; }
-
-        /* 2. 차트 패널 */
-        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 300px; }
-        .chart-con { flex: 1; position: relative; }
-
-        /* 3. 로그 패널 (디버깅 핵심) */
-        .log-panel { background: #000; font-family: 'Consolas', monospace; font-size: 12px; max-height: 500px; }
-        .logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
-        .log-line { line-height: 1.4; border-bottom: 1px dashed #222; padding-bottom: 2px; }
-        .tm { color: #555; margin-right: 5px; }
-        .inf { color: #ddd; }
-        .wrn { color: var(--warn); }
-        .err { color: var(--danger); font-weight: bold; }
-        .suc { color: var(--success); }
-
-        /* 하단 테이블 */
-        .table-wrap { grid-column: 1 / -1; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; padding: 12px; background: #252a33; color: var(--text-sub); }
-        td { padding: 12px; border-bottom: 1px solid var(--border); }
-        .bad-tag { color: var(--danger); background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
-
+        /* 로그 */
+        .log-box { background: #020617; border-radius: 16px; border: 1px solid var(--border); padding: 20px; height: 400px; display: flex; flex-direction: column; font-family: monospace; }
+        .log-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .log-item { font-size: 13px; line-height: 1.5; border-bottom: 1px dashed #334155; padding-bottom: 4px; }
+        .log-time { color: #64748b; margin-right: 8px; }
+        
         /* 로딩 */
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .spinner { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
+        #loading { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px); }
+        .loader { width: 60px; height: 60px; border: 5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 반응형 */
+        @media (max-width: 1400px) { .charts-container { grid-template-columns: repeat(2, 1fr); } .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 800px) { .charts-container { grid-template-columns: 1fr; } .bottom-section { grid-template-columns: 1fr; } .search-area { width: 100%; } }
     </style>
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><p style="margin-top:15px; font-weight:bold;">SYSTEM ANALYZING...</p></div>
+<div id="loading">
+    <div class="loader"></div>
+    <h2 style="margin-top:20px; color:white;">정밀 데이터 수집 중...</h2>
+    <p style="color:var(--text-sub);">Google 서버와 통신하고 있습니다.</p>
+</div>
 
 <div class="container">
     <div class="header">
-        <div class="logo"><i class="fa-solid fa-chart-simple" style="color:var(--accent)"></i> BLOG<span>INSIGHT</span> V5</div>
-        <div class="search-box">
-            <input type="text" id="targetUrl" value="https://mkkrw.tistory.com" placeholder="URL 입력">
-            <button onclick="startAnalysis()">진단 시작</button>
+        <div class="logo"><i class="fa-solid fa-layer-group"></i> BLOG ANALYTICS</div>
+        <div class="search-area">
+            <input type="text" id="targetUrl" value="https://mkkrw.tistory.com" placeholder="분석할 블로그 URL을 입력하세요">
+            <button onclick="startAnalysis()">진단 실행</button>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="card">
-            <div class="card-title">TOTAL SCORE</div>
-            <div class="grade-box">
-                <div class="grade-val" id="totalGrade">-</div>
-                <div style="color:var(--text-sub); margin-top:5px;" id="totalScore">READY</div>
-            </div>
-            <div class="metrics">
-                <div class="m-item"><span class="m-lbl">로딩(LCP)</span><span class="m-val" id="v-lcp">-</span></div>
-                <div class="m-item"><span class="m-lbl">반응(TBT)</span><span class="m-val" id="v-tbt">-</span></div>
-                <div class="m-item"><span class="m-lbl">안정(CLS)</span><span class="m-val" id="v-cls">-</span></div>
-                <div class="m-item"><span class="m-lbl">용량(WGT)</span><span class="m-val" id="v-wgt">-</span></div>
-            </div>
+    <div class="kpi-grid">
+        <div class="kpi-card grade-card">
+            <div class="kpi-label">종합 성능 등급</div>
+            <div class="kpi-value" id="k-grade">-</div>
+            <div class="kpi-desc" id="k-score">점수 산출 대기</div>
         </div>
-
-        <div class="card">
-            <div class="card-title">BALANCE & RESOURCES</div>
-            <div class="charts">
-                <div class="chart-con"><canvas id="radarChart"></canvas></div>
-                <div class="chart-con"><canvas id="doughnutChart"></canvas></div>
-            </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:var(--accent)">로딩 속도 (LCP)</div>
+            <div class="kpi-value" id="k-lcp">-</div>
+            <div class="kpi-desc">가장 큰 콘텐츠 렌더링</div>
         </div>
-
-        <div class="card log-panel">
-            <div class="card-title" style="color:var(--accent)">> SYSTEM LOG</div>
-            <div class="logs" id="logBox">
-                <div class="log-line"><span class="tm">INIT</span><span class="inf">System Ready.</span></div>
-            </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:var(--warning)">반응 지연 (TBT)</div>
+            <div class="kpi-value" id="k-tbt">-</div>
+            <div class="kpi-desc">입력 차단 시간</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:var(--success)">검색 최적화 (SEO)</div>
+            <div class="kpi-value" id="k-seo">-</div>
+            <div class="kpi-desc">구글 검색 점수</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:var(--danger)">데이터 무게</div>
+            <div class="kpi-value" id="k-byte">-</div>
+            <div class="kpi-desc">총 전송 용량</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">서버 요청 수</div>
+            <div class="kpi-value" id="k-req">-</div>
+            <div class="kpi-desc">Request Count</div>
         </div>
     </div>
 
-    <div class="card table-wrap">
-        <div class="card-title">🚀 개선 기회 (TOP OPPORTUNITIES)</div>
-        <table>
-            <thead><tr><th>진단 항목</th><th>절약 가능</th><th>상태</th></tr></thead>
-            <tbody id="oppTable"><tr><td colspan="3" style="text-align:center; padding:30px; color:#555;">분석 대기 중...</td></tr></tbody>
-        </table>
+    <div class="charts-container">
+        <div class="chart-box">
+            <div class="chart-title">1. 종합 밸런스 (Radar)</div>
+            <div class="chart-wrapper"><canvas id="c1"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">2. 리소스 타입별 용량</div>
+            <div class="chart-wrapper"><canvas id="c2"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">3. 브라우저 작업 부하</div>
+            <div class="chart-wrapper"><canvas id="c3"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">4. 로딩 지연 Top 5</div>
+            <div class="chart-wrapper"><canvas id="c4"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">5. Core Web Vitals</div>
+            <div class="chart-wrapper"><canvas id="c5"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">6. 네트워크 요청 수</div>
+            <div class="chart-wrapper"><canvas id="c6"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">7. 자바스크립트 효율</div>
+            <div class="chart-wrapper"><canvas id="c7"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">8. 화면 표시 속도</div>
+            <div class="chart-wrapper"><canvas id="c8"></canvas></div>
+        </div>
+    </div>
+
+    <div class="bottom-section">
+        <div class="table-box">
+            <div class="table-header">
+                <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> 최적화 기회 (개선 시 빨라짐)</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>진단 내용</th><th>상세 URL / 정보</th><th>절약 가능</th></tr></thead>
+                    <tbody id="oppTable"><tr><td colspan="3" style="text-align:center; padding:50px; color:#666;">데이터 없음</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="log-box">
+            <div style="margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:10px; font-weight:bold; color:var(--accent);">SYSTEM LOG</div>
+            <div class="log-list" id="logList">
+                <div class="log-item"><span class="log-time">READY</span> 시스템 대기 중...</div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // ★ 성준님의 구글 API 키 (여기 입력)
+    // ★ 성준님의 구글 API 키
     const API_KEY = "AIzaSyD8yjouvSUcS0MNPwhos9B3JRDn2hnrRgA";
 
-    // 로거 함수
-    function log(msg, type='inf') {
-        const box = document.getElementById('logBox');
+    function log(msg, color='#94a3b8') {
+        const box = document.getElementById('logList');
         const time = new Date().toLocaleTimeString('en-US', {hour12:false});
-        box.innerHTML += `<div class="log-line"><span class="tm">[${time}]</span><span class="${type}">${msg}</span></div>`;
+        box.innerHTML += `<div class="log-item" style="color:${color}"><span class="log-time">[${time}]</span> ${msg}</div>`;
         box.scrollTop = box.scrollHeight;
     }
 
     async function startAnalysis() {
         const url = document.getElementById('targetUrl').value;
-        if(!url) return alert("URL을 입력하세요");
+        if(!url) return alert("URL 입력 필요");
 
         document.getElementById('loading').style.display = 'flex';
-        document.getElementById('logBox').innerHTML = ''; // 로그 초기화
+        document.getElementById('logList').innerHTML = '';
         
-        log(`Target: ${url}`, 'inf');
-        log('Connecting to Google PageSpeed API...', 'warn');
+        log(`Target: ${url}`, '#fff');
+        log('API 요청 전송 중...', '#38bdf8');
 
         try {
-            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&category=seo&category=performance&category=accessibility&key=${API_KEY}`;
+            // ★ 수정됨: &category=best-practices 추가 및 모든 카테고리 요청
+            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&category=seo&category=performance&category=accessibility&category=best-practices&category=pwa&key=${API_KEY}`;
             const res = await fetch(api);
             const data = await res.json();
 
-            // ★ 에러 처리 (여기가 핵심!)
-            if(data.error) {
-                log(`API Error Code: ${data.error.code}`, 'err');
-                log(`Message: ${data.error.message}`, 'err');
-                
-                if(data.error.code === 403) {
-                    log("👉 [해결법] 구글 클라우드 콘솔에서 API 키의 '웹사이트 제한' 설정을 확인하세요.", 'inf');
-                    log("👉 'https://imokokok-hub.github.io/*' 주소가 정확한지 체크하세요.", 'inf');
-                }
-                throw new Error("API 요청 거부됨");
-            }
+            if(data.error) throw new Error(data.error.message);
 
-            log('데이터 수신 성공! 분석 시작...', 'suc');
-            renderAll(data.lighthouseResult);
+            log('데이터 수신 완료. 렌더링 시작.', '#34d399');
+            renderDashboard(data.lighthouseResult);
 
         } catch(e) {
-            log(`System Halted: ${e.message}`, 'err');
+            log(`[Error] ${e.message}`, '#f87171');
+            alert("오류가 발생했습니다. 로그를 확인하세요.");
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
     }
 
-    function renderAll(res) {
+    function renderDashboard(res) {
         const audits = res.audits;
+        const cats = res.categories;
+
+        // --- 1. 안전한 데이터 추출 함수 (Null 방지) ---
+        const getVal = (key) => audits[key] ? audits[key].numericValue : 0;
+        const getScore = (cat) => cats[cat] ? cats[cat].score * 100 : 0;
+
+        // --- 2. KPI 업데이트 ---
+        const perfScore = getScore('performance');
+        const lcp = getVal('largest-contentful-paint');
+        const tbt = getVal('total-blocking-time');
+        const seo = getScore('seo');
+        const bytes = getVal('total-byte-weight');
+        const reqs = audits['network-requests'] ? audits['network-requests'].details.items.length : 0;
+
+        // 등급 산정
+        let grade = 'F';
+        if(perfScore >= 90) grade = 'S+';
+        else if(perfScore >= 80) grade = 'A';
+        else if(perfScore >= 60) grade = 'B';
         
-        // 1. 데이터 추출
-        const lcp = audits['largest-contentful-paint'].numericValue;
-        const tbt = audits['total-blocking-time'].numericValue;
-        const cls = audits['cumulative-layout-shift'].numericValue;
-        const bytes = audits['total-byte-weight'].numericValue;
-        
-        // 2. 점수 및 등급
-        const score = res.categories.performance.score * 100;
-        const grade = score >= 90 ? 'S' : score >= 80 ? 'A' : score >= 60 ? 'B' : 'F';
-        const color = score >= 90 ? '#a855f7' : score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
+        document.getElementById('k-grade').innerText = grade;
+        document.getElementById('k-score').innerText = `종합 점수: ${Math.round(perfScore)}점`;
+        document.getElementById('k-lcp').innerText = (lcp/1000).toFixed(2) + 's';
+        document.getElementById('k-tbt').innerText = Math.round(tbt) + 'ms';
+        document.getElementById('k-seo').innerText = Math.round(seo) + '점';
+        document.getElementById('k-byte').innerText = (bytes/1024/1024).toFixed(1) + 'MB';
+        document.getElementById('k-req').innerText = reqs + '회';
 
-        document.getElementById('totalGrade').innerText = grade;
-        document.getElementById('totalGrade').style.color = color;
-        document.getElementById('totalScore').innerText = `${Math.round(score)} / 100`;
+        // --- 3. 8개 차트 렌더링 ---
+        drawC1(cats); // Radar
+        drawC2(audits); // Doughnut (Resource)
+        drawC3(audits); // Bar (Main Thread)
+        drawC4(audits); // Horiz Bar (Delay)
+        drawC5(audits); // Polar (Vitals)
+        drawC6(audits); // Bar (Req Counts)
+        drawC7(audits); // Pie (JS Usage)
+        drawC8(audits); // Gauge (Speed Index)
 
-        // 3. 지표 업데이트
-        document.getElementById('v-lcp').innerText = (lcp/1000).toFixed(2) + 's';
-        document.getElementById('v-tbt').innerText = Math.round(tbt) + 'ms';
-        document.getElementById('v-cls').innerText = cls.toFixed(3);
-        document.getElementById('v-wgt').innerText = (bytes/1024/1024).toFixed(1) + 'MB';
-
-        // 4. 로그 코멘트
-        if(bytes > 3000000) log(`[데이터] 페이지 용량 과다 (${(bytes/1024/1024).toFixed(1)}MB).`, 'err');
-        else log(`[데이터] 페이지 용량 양호.`, 'suc');
-        
-        const heavyImg = audits['total-byte-weight'].details.items.filter(i => i.totalBytes > 500000).length;
-        if(heavyImg > 0) log(`[이미지] 500KB 이상 고용량 이미지 ${heavyImg}개 발견.`, 'warn');
-
-        // 5. 차트 및 테이블 렌더링
-        drawCharts(res);
+        // --- 4. 테이블 ---
         drawTable(audits);
         
-        log('분석 완료. 리포트 생성됨.', 'suc');
+        // --- 5. 로그 ---
+        if(lcp > 2500) log(`[성능] LCP 로딩 지연 감지 (${(lcp/1000).toFixed(2)}s)`, '#fbbf24');
+        if(bytes > 3000000) log(`[데이터] 페이지 용량 과다 (${(bytes/1024/1024).toFixed(1)}MB)`, '#f87171');
+        log('분석이 성공적으로 완료되었습니다.', '#34d399');
+    }
+
+    // --- 차트 그리기 함수들 ---
+    let charts = {};
+    const commonOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+
+    function destroyChart(id) { if(charts[id]) charts[id].destroy(); }
+
+    function drawC1(cats) { // Radar
+        destroyChart('c1');
+        charts['c1'] = new Chart(document.getElementById('c1'), {
+            type: 'radar',
+            data: {
+                labels: ['성능', '접근성', '모범사례', 'SEO', 'PWA'],
+                datasets: [{
+                    data: [cats.performance?.score*100, cats.accessibility?.score*100, cats['best-practices']?.score*100, cats.seo?.score*100, cats.pwa?.score*100],
+                    backgroundColor: 'rgba(56, 189, 248, 0.2)', borderColor: '#38bdf8', borderWidth: 2, pointBackgroundColor: '#fff'
+                }]
+            },
+            options: { ...commonOpt, scales: { r: { min: 0, max: 100, grid: {color:'#334155'}, pointLabels:{color:'#cbd5e1', font:{size:11}} } } }
+        });
+    }
+
+    function drawC2(audits) { // Resource Doughnut
+        destroyChart('c2');
+        const items = audits['resource-summary']?.details?.items || [];
+        const labels = [], data = [];
+        items.forEach(i => { if(i.resourceType !== 'total' && i.transferSize > 0) { labels.push(i.label); data.push(i.transferSize); }});
+        
+        charts['c2'] = new Chart(document.getElementById('c2'), {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'], borderWidth: 0 }] },
+            options: { ...commonOpt, plugins: { legend: { display: true, position: 'right', labels: {color:'#94a3b8', boxWidth:10} } }, cutout: '65%' }
+        });
+    }
+
+    function drawC3(audits) { // Main Thread Bar
+        destroyChart('c3');
+        const items = audits['mainthread-work-breakdown']?.details?.items || [];
+        charts['c3'] = new Chart(document.getElementById('c3'), {
+            type: 'bar',
+            data: {
+                labels: items.slice(0, 5).map(i => i.groupLabel),
+                datasets: [{ data: items.slice(0, 5).map(i => i.duration), backgroundColor: '#6366f1', borderRadius: 4 }]
+            },
+            options: { ...commonOpt, scales: { x: {ticks:{color:'#94a3b8', font:{size:10}}}, y: {grid:{color:'#334155'}, ticks:{color:'#94a3b8'}} } }
+        });
+    }
+
+    function drawC4(audits) { // Render Blocking (Top 5)
+        destroyChart('c4');
+        const items = audits['render-blocking-resources']?.details?.items || [];
+        charts['c4'] = new Chart(document.getElementById('c4'), {
+            type: 'bar',
+            indexAxis: 'y',
+            data: {
+                labels: items.slice(0, 5).map(i => i.url.substring(i.url.lastIndexOf('/')+1).substring(0, 15)),
+                datasets: [{ label:'지연(ms)', data: items.slice(0, 5).map(i => i.wastedMs), backgroundColor: '#f87171', borderRadius: 4 }]
+            },
+            options: { ...commonOpt, scales: { x: {grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, y: {ticks:{color:'#94a3b8'}} } }
+        });
+    }
+
+    function drawC5(audits) { // Web Vitals Polar
+        destroyChart('c5');
+        // 정규화된 점수 (0~100)
+        const s_lcp = Math.max(0, 100 - (audits['largest-contentful-paint'].numericValue - 2500)/50);
+        const s_tbt = Math.max(0, 100 - (audits['total-blocking-time'].numericValue - 200)/10);
+        const s_cls = Math.max(0, 100 - (audits['cumulative-layout-shift'].numericValue * 1000));
+        const s_si = audits['speed-index'].score * 100;
+
+        charts['c5'] = new Chart(document.getElementById('c5'), {
+            type: 'polarArea',
+            data: {
+                labels: ['LCP', 'TBT', 'CLS', 'SI'],
+                datasets: [{ data: [s_lcp, s_tbt, s_cls, s_si], backgroundColor: ['rgba(56, 189, 248, 0.6)','rgba(16, 185, 129, 0.6)','rgba(251, 191, 36, 0.6)','rgba(248, 113, 113, 0.6)'], borderWidth: 0 }]
+            },
+            options: { ...commonOpt, scales: { r: { grid: {color:'#334155'}, ticks: {display: false} } } }
+        });
+    }
+
+    function drawC6(audits) { // Network Requests Count
+        destroyChart('c6');
+        const items = audits['resource-summary']?.details?.items || [];
+        const labels = [], data = [];
+        items.forEach(i => { if(i.resourceType !== 'total' && i.requestCount > 0) { labels.push(i.label); data.push(i.requestCount); }});
+
+        charts['c6'] = new Chart(document.getElementById('c6'), {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label:'요청 수', data: data, backgroundColor: '#10b981', borderRadius: 4 }] },
+            options: { ...commonOpt, scales: { x: {ticks:{color:'#94a3b8', font:{size:10}}}, y: {grid:{color:'#334155'}, ticks:{color:'#94a3b8'}} } }
+        });
+    }
+
+    function drawC7(audits) { // JS Efficiency
+        destroyChart('c7');
+        const totalJS = audits['resource-summary'].details.items.find(i => i.resourceType === 'script')?.transferSize || 1;
+        const unusedJS = audits['unused-javascript']?.details?.overallSavingsBytes || 0;
+        const usedJS = Math.max(0, totalJS - unusedJS);
+
+        charts['c7'] = new Chart(document.getElementById('c7'), {
+            type: 'pie',
+            data: {
+                labels: ['사용됨', '미사용(낭비)'],
+                datasets: [{ data: [usedJS, unusedJS], backgroundColor: ['#38bdf8', '#334155'], borderWidth: 0 }]
+            },
+            options: { ...commonOpt, plugins: { legend: { display: true, position: 'bottom', labels: {color:'#94a3b8'} } } }
+        });
+    }
+
+    function drawC8(audits) { // Speed Index Gauge
+        destroyChart('c8');
+        const score = audits['speed-index'].score * 100;
+        charts['c8'] = new Chart(document.getElementById('c8'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Score', 'Left'],
+                datasets: [{ data: [score, 100-score], backgroundColor: ['#f43f5e', '#1e293b'], borderWidth: 0, circumference: 180, rotation: -90 }]
+            },
+            options: { ...commonOpt, cutout: '80%', plugins: { tooltip: {enabled: false} } }
+        });
     }
 
     function drawTable(audits) {
@@ -218,58 +428,26 @@
             audits['unused-css-rules'],
             audits['offscreen-images'],
             audits['render-blocking-resources'],
-            audits['modern-image-formats']
-        ].filter(i => i && i.score < 1);
+            audits['modern-image-formats'],
+            audits['uses-optimized-images']
+        ].filter(i => i && i.score < 0.9); // 점수 낮은 것만
 
         if(opps.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--success)">🎉 완벽합니다! 개선할 항목이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#10b981;">발견된 문제점이 없습니다. 완벽합니다!</td></tr>';
             return;
         }
 
         opps.forEach(op => {
             const save = op.wastedMs ? `${Math.round(op.wastedMs)}ms 단축` : `${(op.overallSavingsBytes/1024).toFixed(0)}KB 절약`;
+            let detail = '';
+            if(op.details?.items?.length > 0) {
+                detail = `<span class="url-cell">${op.details.items[0].url}</span>`;
+            }
             tbody.innerHTML += `<tr>
-                <td>${op.title}<div style="font-size:12px; color:#666;">${op.description.substring(0,50)}...</div></td>
-                <td style="color:var(--danger); font-weight:bold;">${save}</td>
-                <td><span class="bad-tag">확인필요</span></td>
+                <td style="color:#fff; font-weight:600;">${op.title}</td>
+                <td>${detail}</td>
+                <td><span class="badge-save">${save}</span></td>
             </tr>`;
-        });
-    }
-
-    // 차트 (Radar & Doughnut)
-    let radarC, doughC;
-    function drawCharts(res) {
-        const ctxR = document.getElementById('radarChart');
-        const ctxD = document.getElementById('doughnutChart');
-        if(radarC) radarC.destroy();
-        if(doughC) doughC.destroy();
-
-        // 레이더
-        const scores = [
-            res.categories.performance.score * 100,
-            res.categories.accessibility.score * 100,
-            res.categories['best-practices'].score * 100,
-            res.categories.seo.score * 100,
-            Math.min(100, (res.audits['interactive'].score * 100))
-        ];
-        radarC = new Chart(ctxR, {
-            type: 'radar',
-            data: {
-                labels: ['성능', '접근성', '모범', 'SEO', '상호작용'],
-                datasets: [{ label: '점수', data: scores, backgroundColor: 'rgba(99, 102, 241, 0.2)', borderColor: '#6366f1', borderWidth: 2 }]
-            },
-            options: { scales: { r: { min: 0, max: 100, grid: {color:'#333'}, pointLabels:{color:'#aaa', font:{size:10}} } }, plugins: { legend: {display:false} } }
-        });
-
-        // 도넛
-        const items = res.audits['resource-summary'].details.items.filter(i => i.resourceType !== 'total' && i.transferSize > 0);
-        doughC = new Chart(ctxD, {
-            type: 'doughnut',
-            data: {
-                labels: items.map(i => i.label),
-                datasets: [{ data: items.map(i => i.transferSize), backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'], borderWidth: 0 }]
-            },
-            options: { plugins: { legend: {display:false} }, cutout: '70%' }
         });
     }
 </script>
