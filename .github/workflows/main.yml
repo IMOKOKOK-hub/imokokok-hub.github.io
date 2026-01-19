@@ -1,34 +1,33 @@
-<table>
-    <thead>
-        <tr>
-            <th>순위</th>
-            <th>블로그 주소</th>
-            <th>SEO</th>
-            <th>속도(성능)</th>
-            <th>접근성</th>
-            <th>표준준수</th>
-        </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-</table>
+name: AdSense Blog Ranker
 
-<script>
-    fetch('data.json')
-        .then(response => response.json())
-        .then(data => {
-            const body = document.getElementById('table-body');
-            // SEO 점수 기준으로 일단 정렬
-            data.sort((a, b) => b.seo - a.seo); 
-            data.forEach((item, index) => {
-                const row = `<tr>
-                    <td>${index + 1}</td>
-                    <td>${item.url}</td>
-                    <td class="score">${item.seo}</td>
-                    <td class="score">${item.performance}</td>
-                    <td class="score">${item.accessibility}</td>
-                    <td class="score">${item.best_practices}</td>
-                </tr>`;
-                body.innerHTML += row;
-            });
-        });
-</script>
+on:
+  schedule:
+    - cron: '0 15 * * *' # 한국 시간 매일 자정
+  workflow_dispatch: # 수동 실행 버튼 활성화
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Analysis
+        env:
+          MY_API_KEY: ${{ secrets.MY_API_KEY }}
+        run: python update_rank.py
+
+      - name: Save Results
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add data.json
+          git commit -m "Update Detailed Rankings" || exit 0
+          git push
