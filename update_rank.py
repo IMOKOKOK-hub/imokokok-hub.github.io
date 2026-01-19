@@ -3,27 +3,25 @@ import os
 import json
 
 API_KEY = os.environ.get('MY_API_KEY')
-# 분석할 블로그 리스트
-BLOGS = ["https://huedor2.tistory.com/1725", "https://mkkrw.tistory.com/"]
+# 샘플로 딱 하나만 깊게 파보겠습니다.
+BLOG_URL = "https://moneystory1981.tistory.com/entry/%ED%95%9C%EC%A0%84%EA%B8%B0%EC%88%A0-%EC%A3%BC%EA%B0%80-%EC%A0%84%EB%A7%9D-%EB%AA%A9%ED%91%9C%EC%A3%BC%EA%B0%80-15%EB%A7%8C%EC%9B%90-%EC%83%81%ED%96%A5-2026%EB%85%84-%EC%8B%A4%EC%A0%81-%ED%8F%AD%EB%B0%9C-%EC%A0%84-%EA%BC%AD-%EB%B4%90%EC%95%BC-%ED%95%A0-%EB%B6%84%EC%84%9D"
 
-def get_data():
-    results = []
-    for blog in BLOGS:
-        # 모든 카테고리(성능, SEO, 접근성, 권장사항)를 요청합니다.
-        url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={blog}&category=seo&category=performance&category=accessibility&category=best-practices&key={API_KEY}"
-        res = requests.get(url)
-        if res.status_code == 200:
-            data = res.json()['lighthouseResult']['categories']
-            results.append({
-                "url": blog,
-                "seo": data['seo']['score'] * 100,             # 검색 최적화
-                "performance": data['performance']['score'] * 100, # 로딩 속도
-                "accessibility": data['accessibility']['score'] * 100, # 접근성
-                "best_practices": data['best-practices']['score'] * 100 # 권장사항
-            })
+def save_full_report():
+    # 모든 카테고리를 요청합니다.
+    url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={BLOG_URL}&category=seo&category=performance&category=accessibility&category=best-practices&key={API_KEY}"
     
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+    res = requests.get(url)
+    if res.status_code == 200:
+        full_data = res.json()
+        
+        # 'lighthouseResult' 안에 모든 세부 지표가 들어있습니다.
+        with open('full_report.json', 'w', encoding='utf-8') as f:
+            json.dump(full_data['lighthouseResult']['audits'], f, ensure_ascii=False, indent=2)
+        
+        print(f"✅ 리포트 저장 완료! 'full_report.json' 파일을 열어보세요.")
+        print(f"분석 항목 개수: {len(full_data['lighthouseResult']['audits'])}개")
+    else:
+        print(f"❌ 에러: {res.status_code}")
 
 if __name__ == "__main__":
-    get_data()
+    save_full_report()
