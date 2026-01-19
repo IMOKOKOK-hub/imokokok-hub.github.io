@@ -3,292 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini 3 Prompt Lab</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Gemini 3 Prompt Lab (Supabase)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg: #09090b;
-            --card-bg: #18181b;
-            --border: #27272a;
-            --text-main: #e4e4e7;
-            --text-sub: #a1a1aa;
-            --accent: #8b5cf6; /* 제미나이 보라색 느낌 */
-            --accent-glow: rgba(139, 92, 246, 0.3);
-        }
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Pretendard', -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        /* 1. 헤더 섹션 */
-        .header {
-            text-align: center;
-            padding: 80px 20px;
-            background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg) 70%);
-        }
-        .header h1 {
-            font-size: 3.5rem;
-            margin: 0;
-            background: linear-gradient(to right, #c4b5fd, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-        .header p { color: var(--text-sub); font-size: 1.2rem; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
-
-        /* 2. 검색 & 필터 */
-        .controls {
-            max-width: 1000px;
-            margin: 0 auto 40px auto;
-            padding: 0 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .search-bar {
-            flex: 1;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 15px 20px;
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-        .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        /* 🎨 디자인: 다크모드 + 제미나이 퍼플 */
+        :root { --bg: #09090b; --card-bg: #18181b; --border: #27272a; --text: #e4e4e7; --sub: #a1a1aa; --accent: #8b5cf6; }
+        body { background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; margin: 0; padding-bottom: 100px; }
         
-        .filter-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            padding: 10px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-weight: bold;
-        }
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
+        /* 헤더 & 네비게이션 */
+        .nav-bar { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(9,9,11,0.9); position: sticky; top: 0; z-index: 50; }
+        .nav-link { color: var(--sub); text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .nav-link:hover { color: var(--accent); }
+        
+        .header { text-align: center; padding: 60px 20px 40px; }
+        .header h1 { margin: 0; background: linear-gradient(to right, #c4b5fd, #8b5cf6); -webkit-background-clip: text; color: transparent; font-size: 3rem; letter-spacing: -1px; }
+        .header p { color: var(--sub); margin-top: 10px; }
 
-        /* 3. 프롬프트 카드 그리드 */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 80px 20px;
-        }
+        /* 카드 그리드 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 25px; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: #333; color: white; align-self: flex-start; margin-bottom: 15px; }
+        .tag.CODING { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tag.WRITING { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .tag.LOGIC { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .tag.IMAGE { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
 
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 25px;
-            transition: transform 0.2s, border-color 0.2s;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        .card-content { flex-grow: 1; }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
+        .card p { color: var(--sub); font-size: 0.9rem; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        .tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-        /* 태그 색상들 */
-        .tag-coding { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .tag-writing { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .tag-logic { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .card-footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.85rem; border-top: 1px solid #333; padding-top: 15px; }
+        .likes { display: flex; align-items: center; gap: 5px; }
+        .likes i { color: #ef4444; }
 
-        .card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
-        .card p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; flex-grow: 1; }
+        /* 업로드 버튼 (플로팅) */
+        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.4); cursor: pointer; transition: 0.2s; border: none; z-index: 100; }
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
 
-        /* 프롬프트 내용 박스 */
-        .prompt-box {
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.85rem;
-            color: #d4d4d8;
-            height: 100px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            white-space: pre-wrap; /* 줄바꿈 유지 */
-        }
-        /* 스크롤바 디자인 */
-        .prompt-box::-webkit-scrollbar { width: 6px; }
-        .prompt-box::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        /* 모달 (공통) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: none; justify-content: center; align-items: center; }
+        .modal-box { background: #18181b; width: 90%; max-width: 600px; border-radius: 20px; border: 1px solid var(--border); padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(139, 92, 246, 0.2); }
+        .close-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--sub); }
+        
+        /* 상세 보기 전용 */
+        .prompt-code { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; color: #d4d4d8; font-family: monospace; white-space: pre-wrap; margin: 20px 0; max-height: 300px; overflow-y: auto; }
+        .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; }
+        .btn-copy { background: var(--accent); color: white; }
+        .btn-copy:hover { background: #7c3aed; }
 
-        /* 복사 버튼 */
-        .copy-btn {
-            background: var(--text-main);
-            color: black;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-        .copy-btn:hover { background: var(--accent); color: white; }
-        .copy-btn:active { transform: scale(0.95); }
+        /* 글쓰기 전용 */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--sub); font-size: 0.9rem; }
+        .input-field { width: 100%; padding: 12px; background: #09090b; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .input-area { height: 120px; resize: none; font-family: monospace; }
+        .btn-submit { background: var(--accent); color: white; }
 
+        #loader { text-align: center; padding: 40px; color: var(--sub); }
     </style>
 </head>
 <body>
 
+    <nav class="nav-bar">
+        <a href="index.html" class="nav-link"><i class="fas fa-chevron-left"></i> 호들갑 LAB</a>
+        <div style="font-size:0.9rem; color:#666;">Powered by Supabase ⚡</div>
+    </nav>
+
     <header class="header">
         <h1>Gemini 3 Prompt Lab</h1>
-        <p>Advanced Prompt Engineering Archive for Next-Gen AI</p>
+        <p>Expert Prompts for Next-Gen AI</p>
     </header>
 
-    <div class="controls">
-        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 키워드 검색 (예: 코딩, 번역, 논리...)">
-        <button class="filter-btn active" onclick="filterPrompts('all')">All</button>
-        <button class="filter-btn" onclick="filterPrompts('coding')">Coding</button>
-        <button class="filter-btn" onclick="filterPrompts('writing')">Writing</button>
-        <button class="filter-btn" onclick="filterPrompts('logic')">Logic</button>
+    <div id="loader"><i class="fas fa-spinner fa-spin"></i> 프롬프트 로딩 중...</div>
+    <div class="grid" id="promptGrid"></div>
+
+    <button class="fab" onclick="openUploadModal()"><i class="fas fa-plus"></i></button>
+
+    <div id="viewModal" class="modal-overlay" onclick="closeModal(event, 'viewModal')">
+        <div class="modal-box">
+            <i class="fas fa-times close-icon" onclick="document.getElementById('viewModal').style.display='none'"></i>
+            <span id="v-tag" class="tag">TAG</span>
+            <h2 id="v-title" style="margin: 10px 0;">Title</h2>
+            <p id="v-desc" style="color:var(--sub); line-height:1.6;">Description</p>
+            
+            <div class="prompt-code" id="v-content">Prompt Content...</div>
+            
+            <button class="action-btn btn-copy" onclick="copyPrompt()">
+                <i class="fas fa-copy"></i> 프롬프트 복사
+            </button>
+        </div>
     </div>
 
-    <div class="grid" id="promptGrid">
+    <div id="uploadModal" class="modal-overlay" onclick="closeModal(event, 'uploadModal')">
+        <div class="modal-box">
+            <i class="fas fa-times close-icon" onclick="document.getElementById('uploadModal').style.display='none'"></i>
+            <h2 style="margin-top:0;">📝 프롬프트 공유</h2>
+            
+            <div class="input-group">
+                <label>제목 (Title)</label>
+                <input type="text" id="in-title" class="input-field" placeholder="예: 시니어 개발자 페르소나">
+            </div>
+            <div class="input-group">
+                <label>설명 (Description)</label>
+                <input type="text" id="in-desc" class="input-field" placeholder="이 프롬프트는 어떤 효과가 있나요?">
+            </div>
+            <div class="input-group">
+                <label>태그 (Category)</label>
+                <select id="in-tag" class="input-field">
+                    <option value="CODING">CODING</option>
+                    <option value="WRITING">WRITING</option>
+                    <option value="LOGIC">LOGIC</option>
+                    <option value="IMAGE">IMAGE</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>프롬프트 내용 (Content)</label>
+                <textarea id="in-content" class="input-field input-area" placeholder="AI에게 입력할 진짜 명령어를 적어주세요."></textarea>
+            </div>
+
+            <button class="action-btn btn-submit" onclick="uploadPrompt()">업로드 (Upload)</button>
         </div>
+    </div>
 
     <script>
-        // ✅ 여기에 프롬프트 데이터를 계속 추가하면 됩니다!
-        const prompts = [
-            {
-                title: "시니어 파이썬 개발자 모드",
-                desc: "스파게티 코드를 완벽한 클린 코드와 주석으로 리팩토링해줍니다.",
-                tag: "coding",
-                content: "You are a Senior Python Developer at Google. Review the following code. Optimize it for time complexity O(n), add docstrings following PEP-8 standards, and explain your refactoring logic step-by-step.\n\n[Code to review]:\n"
-            },
-            {
-                title: "제미나이 3.0 스토리텔러",
-                desc: "단어 몇 개만 던져주면 소름 돋는 SF 단편 소설을 써줍니다.",
-                tag: "writing",
-                content: "Act as an award-winning Sci-Fi novelist. Write a short story based on the keywords provided below. The tone should be dark, mysterious, and philosophical like 'Black Mirror'. Include a shocking plot twist at the end.\n\nKeywords: "
-            },
-            {
-                title: "복잡한 개념 5세 설명",
-                desc: "양자역학, 블록체인 같은 어려운 개념을 유치원생도 이해하게 설명합니다.",
-                tag: "logic",
-                content: "Explain the following complex topic to a 5-year-old using simple analogies (like toys, animals, or playground games). Avoid jargon completely.\n\nTopic: "
-            },
-            {
-                title: "유튜브 썸네일/제목 어그로",
-                desc: "조회수 폭발하는 유튜브 제목과 썸네일 아이디어를 5개씩 뽑아줍니다.",
-                tag: "writing",
-                content: "You represent a viral YouTube marketing agency. Generate 5 click-bait titles and 5 engaging thumbnail concepts for a video about the following topic. Maximize CTR (Click Through Rate).\n\nVideo Topic: "
-            },
-            {
-                title: "SQL 쿼리 마법사",
-                desc: "말로 대충 설명하면 복잡한 Join이 포함된 SQL 쿼리를 짜줍니다.",
-                tag: "coding",
-                content: "Act as a Database Administrator. Convert the following natural language request into a highly optimized SQL query (PostgreSQL). Explain any indexes required for performance.\n\nRequest: "
-            },
-            {
-                title: "논리적 오류 탐지기",
-                desc: "상대방의 주장이나 글에서 논리적 허점을 찾아 반박합니다.",
-                tag: "logic",
-                content: "Analyze the argument below for logical fallacies (e.g., straw man, ad hominem). Identify the weak points and provide a counter-argument based on facts and logic.\n\nArgument: "
+        // ✅ 사용자님이 주신 키를 여기에 정확히 넣었습니다!
+        const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
+
+        // 수퍼베이스 클라이언트 생성
+        const { createClient } = supabase;
+        const _supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 1. 프롬프트 불러오기 (Read)
+        async function loadPrompts() {
+            const grid = document.getElementById('promptGrid');
+            const loader = document.getElementById('loader');
+            
+            try {
+                // DB에서 데이터 가져오기 (최신순 정렬)
+                let { data: prompts, error } = await _supabase
+                    .from('prompts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                loader.style.display = 'none';
+                grid.innerHTML = '';
+
+                if (!prompts || prompts.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">아직 등록된 프롬프트가 없습니다. 첫 글을 남겨보세요!</p>';
+                    return;
+                }
+
+                prompts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openViewModal(p);
+                    card.innerHTML = `
+                        <span class="tag ${p.tag}">${p.tag}</span>
+                        <div class="card-content">
+                            <h3>${p.title}</h3>
+                            <p>${p.description}</p>
+                        </div>
+                        <div class="card-footer">
+                            <span>${new Date(p.created_at).toLocaleDateString()}</span>
+                            <div class="likes"><i class="fas fa-heart"></i> ${p.likes}</div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('Error:', err);
+                loader.innerHTML = '데이터 로딩 실패 (잠시 후 다시 시도하세요)';
             }
-        ];
-
-        const grid = document.getElementById('promptGrid');
-        const searchInput = document.getElementById('searchInput');
-
-        // 초기 렌더링
-        renderCards(prompts);
-
-        // 카드 생성 함수
-        function renderCards(data) {
-            grid.innerHTML = '';
-            data.forEach(item => {
-                // 태그 색상 결정
-                let tagClass = 'tag-coding';
-                if (item.tag === 'writing') tagClass = 'tag-writing';
-                if (item.tag === 'logic') tagClass = 'tag-logic';
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <span class="tag ${tagClass}">${item.tag.toUpperCase()}</span>
-                    <h3>${item.title}</h3>
-                    <p>${item.desc}</p>
-                    <div class="prompt-box">${item.content}</div>
-                    <button class="copy-btn" onclick="copyText(this, \`${item.content.replace(/`/g, "\\`")}\`)">
-                        <i class="fas fa-copy"></i> Copy Prompt
-                    </button>
-                `;
-                grid.appendChild(card);
-            });
         }
 
-        // 복사 기능
-        function copyText(btn, text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                btn.style.background = '#8b5cf6';
-                btn.style.color = '#fff';
+        // 2. 프롬프트 업로드 (Create)
+        async function uploadPrompt() {
+            const title = document.getElementById('in-title').value;
+            const desc = document.getElementById('in-desc').value;
+            const tag = document.getElementById('in-tag').value;
+            const content = document.getElementById('in-content').value;
+
+            if (!title || !content) return alert('제목과 내용은 필수입니다!');
+
+            const btn = document.querySelector('.btn-submit');
+            const originalText = btn.innerText;
+            btn.innerText = "저장 중...";
+
+            try {
+                const { error } = await _supabase
+                    .from('prompts')
+                    .insert([
+                        { title: title, description: desc, tag: tag, content: content }
+                    ]);
+
+                if (error) throw error;
+
+                alert('업로드 완료! 🎉');
+                document.getElementById('uploadModal').style.display = 'none';
                 
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.style.background = '';
-                    btn.style.color = '';
-                }, 2000);
+                // 입력창 초기화
+                document.getElementById('in-title').value = '';
+                document.getElementById('in-desc').value = '';
+                document.getElementById('in-content').value = '';
+                
+                // 목록 새로고침
+                loadPrompts();
+
+            } catch (err) {
+                console.error('Error:', err);
+                alert('업로드 실패: ' + err.message);
+            } finally {
+                btn.innerText = originalText;
+            }
+        }
+
+        // 3. UI 제어 함수들
+        function openViewModal(data) {
+            const modal = document.getElementById('viewModal');
+            document.getElementById('v-title').innerText = data.title;
+            document.getElementById('v-tag').innerText = data.tag;
+            document.getElementById('v-tag').className = `tag ${data.tag}`;
+            document.getElementById('v-desc').innerText = data.description;
+            document.getElementById('v-content').innerText = data.content;
+            modal.style.display = 'flex';
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function closeModal(e, modalId) {
+            if (e.target.id === modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+        }
+
+        function copyPrompt() {
+            const text = document.getElementById('v-content').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.innerHTML = '<i class="fas fa-check"></i> 복사 완료!';
+                setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> 프롬프트 복사', 2000);
             });
         }
 
-        // 검색 기능
-        searchInput.addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const filtered = prompts.filter(p => 
-                p.title.toLowerCase().includes(keyword) || 
-                p.desc.toLowerCase().includes(keyword) ||
-                p.tag.toLowerCase().includes(keyword)
-            );
-            renderCards(filtered);
-        });
+        // 실행
+        loadPrompts();
 
-        // 필터 버튼 기능
-        function filterPrompts(category) {
-            // 버튼 활성화 스타일 변경
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            if (category === 'all') {
-                renderCards(prompts);
-            } else {
-                const filtered = prompts.filter(p => p.tag === category);
-                renderCards(filtered);
-            }
-        }
     </script>
 </body>
 </html>
