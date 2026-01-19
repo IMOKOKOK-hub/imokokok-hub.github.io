@@ -7,86 +7,31 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- [1] 사용자님이 원하신 디자인 원본 --- */
+        /* --- [1] 디자인 스타일 --- */
         :root {
-            --bg: #09090b;
-            --card-bg: #18181b;
-            --border: #27272a;
-            --text-main: #e4e4e7;
-            --text-sub: #a1a1aa;
-            --accent: #8b5cf6; /* 제미나이 보라색 느낌 */
-            --accent-glow: rgba(139, 92, 246, 0.3);
+            --bg: #09090b; --card-bg: #18181b; --border: #27272a;
+            --text-main: #e4e4e7; --text-sub: #a1a1aa;
+            --accent: #8b5cf6; --accent-glow: rgba(139, 92, 246, 0.3);
         }
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Pretendard', -apple-system, sans-serif;
-            margin: 0; padding: 0; overflow-x: hidden;
-        }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-        /* 헤더 섹션 */
-        .header {
-            text-align: center; padding: 80px 20px;
-            background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg) 70%);
-            position: relative;
-        }
-        .header h1 {
-            font-size: 3.5rem; margin: 0;
-            background: linear-gradient(to right, #c4b5fd, #8b5cf6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 800; letter-spacing: -1px;
-        }
-        .header p { color: var(--text-sub); font-size: 1.2rem; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
-
-        /* 뒤로가기 버튼 (디자인 안 해치게 추가) */
-        .back-nav {
-            position: absolute; top: 20px; left: 20px;
-            color: var(--text-sub); text-decoration: none; font-weight: bold; font-size: 0.9rem;
-            display: flex; align-items: center; gap: 5px; transition: 0.2s;
-        }
+        .header { text-align: center; padding: 80px 20px; background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg) 70%); position: relative; }
+        .header h1 { font-size: 3.5rem; margin: 0; background: linear-gradient(to right, #c4b5fd, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: -1px; }
+        .header p { color: var(--text-sub); font-size: 1.2rem; margin-top: 10px; max-width: 600px; margin: 10px auto; }
+        .back-nav { position: absolute; top: 20px; left: 20px; color: var(--text-sub); text-decoration: none; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .back-nav:hover { color: var(--accent); }
 
-        /* 검색 & 필터 */
-        .controls {
-            max-width: 1000px; margin: 0 auto 40px auto; padding: 0 20px;
-            display: flex; gap: 10px; flex-wrap: wrap;
-        }
-        .search-bar {
-            flex: 1; background: var(--card-bg); border: 1px solid var(--border);
-            padding: 15px 20px; border-radius: 12px; color: white; font-size: 1rem;
-            outline: none; transition: 0.3s;
-        }
+        .controls { max-width: 1000px; margin: 0 auto 40px auto; padding: 0 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .search-bar { flex: 1; background: var(--card-bg); border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; color: white; font-size: 1rem; outline: none; transition: 0.3s; }
         .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-        
-        .filter-btn {
-            background: var(--card-bg); border: 1px solid var(--border);
-            color: var(--text-sub); padding: 10px 20px; border-radius: 12px;
-            cursor: pointer; transition: 0.2s; font-weight: bold;
-        }
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent); color: white; border-color: var(--accent);
-        }
+        .filter-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-sub); padding: 10px 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-        /* 프롬프트 카드 그리드 */
-        .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px; max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 25px; transition: transform 0.2s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        .card {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 16px; padding: 25px; transition: transform 0.2s, border-color 0.2s;
-            position: relative; display: flex; flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-5px); border-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .tag {
-            display: inline-block; padding: 4px 10px; border-radius: 20px;
-            font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 15px;
-        }
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
         .tag-coding { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-writing { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .tag-logic { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
@@ -94,86 +39,36 @@
 
         .card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
         .card p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; flex-grow: 1; }
-
-        .prompt-box {
-            background: #000; padding: 15px; border-radius: 8px;
-            font-family: 'Consolas', monospace; font-size: 0.85rem; color: #d4d4d8;
-            height: 100px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #333;
-            white-space: pre-wrap;
-        }
+        
+        .prompt-box { background: #000; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #d4d4d8; height: 100px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #333; white-space: pre-wrap; }
         .prompt-box::-webkit-scrollbar { width: 6px; }
         .prompt-box::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-        .copy-btn {
-            background: var(--text-main); color: black; border: none; padding: 12px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; display: flex;
-            align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
-        }
+        .copy-btn { background: var(--text-main); color: black; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; width: 100%; }
         .copy-btn:hover { background: var(--accent); color: white; }
-        .copy-btn:active { transform: scale(0.95); }
 
-        /* --- [2] 기능 추가용 스타일 (업로드 버튼 & 모달) --- */
-        .fab {
-            position: fixed; bottom: 40px; right: 40px;
-            background: var(--accent); color: white; width: 60px; height: 60px;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.5rem; box-shadow: 0 0 20px var(--accent-glow);
-            cursor: pointer; transition: 0.3s; border: none; z-index: 100;
-        }
+        .fab { position: fixed; bottom: 40px; right: 40px; background: var(--accent); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 0 20px var(--accent-glow); cursor: pointer; transition: 0.3s; border: none; z-index: 100; }
         .fab:hover { transform: scale(1.1) rotate(90deg); }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 200;
-        }
-        .modal-box {
-            background: #18181b; width: 90%; max-width: 500px; padding: 30px;
-            border-radius: 20px; border: 1px solid var(--border);
-            position: relative; box-shadow: 0 0 50px rgba(139, 92, 246, 0.2);
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 200; }
+        .modal-box { background: #18181b; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; border: 1px solid var(--border); position: relative; box-shadow: 0 0 50px rgba(139, 92, 246, 0.2); max-height: 90vh; overflow-y: auto; }
         .close-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
-        
+
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 8px; color: var(--text-sub); font-size: 0.9rem; }
-        .input-field {
-            width: 100%; padding: 12px; background: #09090b; border: 1px solid #333;
-            color: white; border-radius: 8px; box-sizing: border-box; outline: none;
-        }
+        .input-field { width: 100%; padding: 12px; background: #09090b; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
         .input-field:focus { border-color: var(--accent); }
         .input-area { height: 120px; resize: none; font-family: monospace; }
         .btn-submit { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
-        #loader { text-align: center; color: var(--text-sub); margin-bottom: 20px; display: none; }
+        .btn-delete { position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.5); color: #ef4444; border: 1px solid #ef4444; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; }
+        .card:hover .btn-delete { opacity: 1; }
+        .btn-delete:hover { background: #ef4444; color: white; }
 
-        /* 삭제 버튼 스타일 (카드 우측 상단에 숨겨둠) */
-        .btn-delete {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            color: #ef4444; /* 빨간색 */
-            border: 1px solid #ef4444;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            opacity: 0; /* 평소엔 안 보임 */
-            transition: 0.2s;
-            z-index: 10;
-        }
-        /* 카드에 마우스 올리면 삭제 버튼 보임 */
-        .card:hover .btn-delete {
-            opacity: 1;
-        }
-        .btn-delete:hover {
-            background: #ef4444;
-            color: white;
-        }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; color: var(--text-sub); font-size: 0.85rem; }
+        .likes-count { font-weight: bold; color: #e4e4e7; display: flex; align-items: center; gap: 5px; }
         
+        #loader { text-align: center; color: var(--text-sub); margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
@@ -203,7 +98,6 @@
         <div class="modal-box">
             <i class="fas fa-times close-icon" onclick="document.getElementById('uploadModal').style.display='none'"></i>
             <h2 style="margin-top:0; color:white;">✨ New Prompt</h2>
-            
             <div class="input-group">
                 <label>제목 (Title)</label>
                 <input type="text" id="in-title" class="input-field" placeholder="예: 시니어 개발자 페르소나">
@@ -225,13 +119,25 @@
                 <label>프롬프트 내용 (Content)</label>
                 <textarea id="in-content" class="input-field input-area" placeholder="AI에게 입력할 명령어를 적어주세요."></textarea>
             </div>
-
             <button class="btn-submit" onclick="uploadPrompt()">업로드 (Upload)</button>
         </div>
     </div>
 
-   <script>
-        // ✅ DB 설정
+    <div id="viewModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-box">
+            <i class="fas fa-times close-icon" onclick="document.getElementById('viewModal').style.display='none'"></i>
+            <span id="v-tag" class="tag">TAG</span>
+            <h2 id="v-title" style="margin: 10px 0; color:white;">Title</h2>
+            <p id="v-desc" style="color:#aaa; line-height:1.6;">Description</p>
+            <div class="prompt-box" id="v-content" style="height:auto; max-height:300px;">Prompt Content...</div>
+            <button class="copy-btn" style="margin-top:15px;">
+                <i class="fas fa-copy"></i> Copy Prompt
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ✅ DB 설정 (사장님 키값 유지)
         const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
 
@@ -285,7 +191,7 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // 👇 [핵심] 복사 버튼에도 'index'만 넘겨줍니다. (내용을 직접 안 넣음)
+                // 👇 [핵심] 번호표(index)만 넘김
                 card.innerHTML = `
                     <button class="btn-delete" onclick="deletePrompt(${item.id}, event)" title="관리자 삭제">
                         <i class="fas fa-trash"></i>
@@ -313,9 +219,9 @@
             });
         }
 
-        // 🔥 [NEW] 번호표로 안전하게 복사하는 함수
+        // 🔥 [NEW] 안전 복사 함수
         function copyPromptByIndex(index, btn) {
-            const data = allPrompts[index]; // 메모리에서 원본을 가져옴 (깨짐 방지)
+            const data = allPrompts[index]; // 메모리에서 원본 가져옴
             
             navigator.clipboard.writeText(data.content).then(() => {
                 const originalHtml = btn.innerHTML;
@@ -334,7 +240,7 @@
         async function deletePrompt(id, event) {
             event.stopPropagation();
             const password = prompt("관리자 비밀번호를 입력하세요:");
-            if (password !== "1234") return alert("비밀번호 오류!"); // 비번 1234
+            if (password !== "1234") return alert("비밀번호 오류!"); 
             if (!confirm("정말 삭제하시겠습니까?")) return;
 
             try {
@@ -355,7 +261,6 @@
             const content = document.getElementById('in-content').value;
 
             if (!title || !content) return alert('내용을 입력하세요!');
-            
             const btn = document.querySelector('.btn-submit');
             btn.innerText = "저장 중...";
 
@@ -377,7 +282,7 @@
             }
         }
 
-        // 5. 기타 UI 함수들
+        // 5. 필터 및 UI 함수
         function filterData(category) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -400,18 +305,20 @@
             const data = allPrompts[index];
             const modal = document.getElementById('viewModal');
             document.getElementById('v-title').innerText = data.title;
-            document.getElementById('v-tag').innerText = data.tag;
             
             let tagClass = 'tag-coding';
             if (data.tag === 'WRITING') tagClass = 'tag-writing';
             if (data.tag === 'LOGIC') tagClass = 'tag-logic';
             if (data.tag === 'IMAGE') tagClass = 'tag-image';
-            document.getElementById('v-tag').className = `tag ${tagClass}`;
+            
+            const tagEl = document.getElementById('v-tag');
+            tagEl.innerText = data.tag;
+            tagEl.className = `tag ${tagClass}`;
             
             document.getElementById('v-desc').innerText = data.description;
             document.getElementById('v-content').innerText = data.content;
             
-            // 모달 안의 복사 버튼도 번호표 방식으로 연결
+            // 모달 안의 복사 버튼도 안전하게 연결
             const modalCopyBtn = modal.querySelector('.copy-btn');
             modalCopyBtn.onclick = function() { copyPromptByIndex(index, this); };
 
@@ -421,7 +328,6 @@
         function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal(e) { if(e.target.id === 'uploadModal' || e.target.id === 'viewModal') e.target.style.display = 'none'; }
         
-        // 실행
         loadPrompts();
     </script>
 </body>
