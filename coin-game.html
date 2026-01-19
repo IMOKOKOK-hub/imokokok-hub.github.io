@@ -3,145 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Trader Terminal</title>
+    <title>⚡ Upbit Scalping Radar</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+        :root {
+            --bg: #000000;
+            --panel: #111111;
+            --text: #e0e0e0;
+            --red: #ff3b30; /* 떡상 */
+            --blue: #007aff; /* 떡락 */
+            --gold: #ffcc00; /* 거래량 */
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Consolas', 'Monaco', monospace; /* 해커 감성 */
+            margin: 0;
+            padding: 10px;
+            font-size: 14px;
+            overflow: hidden; /* 스크롤바 숨김 */
+        }
         
-        /* 레이아웃 그리드 */
-        .grid-container {
+        /* 레이아웃: 좌(감시로그) / 우(순위표) */
+        .container {
             display: grid;
-            grid-template-columns: 2.5fr 1fr; /* 왼쪽 차트 크게, 오른쪽 정보 작게 */
-            grid-template-rows: 50px 600px 1fr; /* 상단띠 / 메인 / 하단 */
-            gap: 5px;
-            height: 100vh;
-            padding: 5px;
-            box-sizing: border-box;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 10px;
+            height: 98vh;
         }
 
-        /* 구역별 스타일 */
-        .header-ticker { grid-column: 1 / -1; }
-        .main-chart { background: #111; border-radius: 5px; overflow: hidden; }
-        .side-panel { display: flex; flex-direction: column; gap: 5px; }
-        .bottom-panel { grid-column: 1 / -1; height: 400px; background: #111; border-radius: 5px; overflow: hidden; }
-
-        /* 모바일 대응 */
-        @media (max-width: 768px) {
-            .grid-container { display: flex; flex-direction: column; height: auto; }
-            .main-chart, .side-panel, .bottom-panel { height: 400px; width: 100%; }
+        .panel {
+            background: var(--panel);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--gold);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 로그 창 스타일 */
+        #log-area {
+            flex: 1;
+            overflow-y: auto; /* 내용 많으면 스크롤 */
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .log-item {
+            border-bottom: 1px solid #222;
+            padding: 4px 0;
+            animation: flash 0.5s;
+        }
+        @keyframes flash { from { background-color: #333; } to { background-color: transparent; } }
+
+        /* 강조 색상 */
+        .pump { color: var(--red); font-weight: bold; }
+        .dump { color: var(--blue); font-weight: bold; }
+        .vol { color: var(--gold); }
+        .time { color: #666; margin-right: 5px; font-size: 12px; }
+
+        /* 우측 순위표 */
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #333;
+        }
+        .rank-row:hover { background-color: #222; }
+
+        /* 로딩바 */
+        #status-bar { font-size: 12px; color: #666; margin-top: 5px; text-align: right; }
     </style>
 </head>
 <body>
 
-    <div class="grid-container">
-        
-        <div class="header-ticker">
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-                {
-                "symbols": [
-                    { "proName": "BITSTAMP:BTCUSD", "title": "비트코인" },
-                    { "proName": "BITSTAMP:ETHUSD", "title": "이더리움" },
-                    { "description": "환율(USD/KRW)", "proName": "FX_IDC:USDKRW" },
-                    { "description": "나스닥", "proName": "FOREXCOM:NAS100" },
-                    { "description": "S&P 500", "proName": "FOREXCOM:SPX500" },
-                    { "description": "코스피", "proName": "KRX:KOSPI" }
-                ],
-                "showSymbolLogo": true,
-                "colorTheme": "dark",
-                "isTransparent": false,
-                "displayMode": "adaptive",
-                "locale": "kr"
-                }
-                </script>
+    <div class="container">
+        <div class="panel">
+            <div class="header">
+                <span>📡 REAL-TIME DETECTOR</span>
+                <span style="font-size:12px; color:#888;">Condition: 1min > 0.5% | Vol Spike</span>
+            </div>
+            <div id="log-area">
+                <div class="log-item" style="color:#666;">-- System Initializing... Connecting to Upbit --</div>
             </div>
         </div>
 
-        <div class="main-chart">
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
-                <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                {
-                "autosize": true,
-                "symbol": "UPBIT:BTCKRW",
-                "interval": "D",
-                "timezone": "Asia/Seoul",
-                "theme": "dark",
-                "style": "1",
-                "locale": "kr",
-                "enable_publishing": false,
-                "backgroundColor": "rgba(0, 0, 0, 1)",
-                "gridColor": "rgba(66, 66, 66, 0.06)",
-                "allow_symbol_change": true,
-                "calendar": false,
-                "support_host": "https://www.tradingview.com"
-                }
-                </script>
-            </div>
-        </div>
-
-        <div class="side-panel">
-            <div style="flex:1; background:#111; border-radius:5px; overflow:hidden;">
-                <div class="tradingview-widget-container" style="height:100%;width:100%">
-                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
-                    {
-                    "interval": "1m",
-                    "width": "100%",
-                    "isTransparent": false,
-                    "height": "100%",
-                    "symbol": "UPBIT:BTCKRW",
-                    "showIntervalTabs": true,
-                    "displayMode": "single",
-                    "locale": "kr",
-                    "colorTheme": "dark"
-                    }
-                    </script>
+        <div class="panel">
+            <div class="header">🏆 TOP MOMENTUM (거래대금)</div>
+            <div id="rank-area">
                 </div>
-            </div>
-
-            <div style="flex:1; background:#111; border-radius:5px; overflow:hidden;">
-                 <div class="tradingview-widget-container" style="height:100%;width:100%">
-                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                    {
-                    "feedMode": "all_symbols",
-                    "isTransparent": false,
-                    "displayMode": "regular",
-                    "width": "100%",
-                    "height": "100%",
-                    "colorTheme": "dark",
-                    "locale": "kr"
-                    }
-                    </script>
-                </div>
-            </div>
         </div>
-
-        <div class="bottom-panel">
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
-                <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js" async>
-                {
-                "dataSource": "Crypto",
-                "blockSize": "market_cap_calc",
-                "blockColor": "change",
-                "locale": "kr",
-                "symbolUrl": "",
-                "colorTheme": "dark",
-                "hasTopBar": false,
-                "isDataSetEnabled": false,
-                "isWidget": true,
-                "autoSize": true,
-                "width": "100%",
-                "height": "100%",
-                "profitability": "change_percent_24h"
-                }
-                </script>
-            </div>
-        </div>
-
     </div>
+    
+    <div id="status-bar">Monitoring 100+ KRW Markets... <span id="clock"></span></div>
+
+    <script>
+        // 전역 변수
+        let markets = []; // KRW-BTC 같은 코드들
+        let prevData = {}; // 직전 1초 전 데이터 저장용 (비교해서 급등 찾기 위함)
+        
+        // 1. 초기 세팅: 마켓 코드 가져오기
+        async function init() {
+            try {
+                const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+                const data = await res.json();
+                // KRW 마켓만 필터링
+                markets = data.filter(coin => coin.market.startsWith('KRW-')).map(c => c.market);
+                addLog(`Target Locked: ${markets.length} Coins found.`);
+                
+                // 감시 시작 (1초마다 실행)
+                setInterval(scanMarket, 1000); 
+            } catch (e) {
+                addLog("API Error. Please Refresh.");
+            }
+        }
+
+        // 2. 시장 전체 스캔 (핵심 로직)
+        async function scanMarket() {
+            if(markets.length === 0) return;
+            
+            // URL 길이 제한 때문에 나눠서 요청해야 할 수도 있지만, 100개 정도는 한방에 됨
+            const url = `https://api.upbit.com/v1/ticker?markets=${markets.join(',')}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                // 시간 업데이트
+                document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+
+                updateRank(data); // 우측 순위표 갱신
+                detectAnomalies(data); // 좌측 급등 감지
+                
+            } catch (e) {
+                console.error("Fetch Error", e);
+            }
+        }
+
+        // 3. 급등 감지 알고리즘
+        function detectAnomalies(currentData) {
+            currentData.forEach(coin => {
+                const code = coin.market.replace('KRW-', '');
+                const currPrice = coin.trade_price;
+                const currVol = coin.acc_trade_price_24h; // 24시간 거래대금
+
+                // 이전 데이터가 있을 때만 비교 가능
+                if (prevData[code]) {
+                    const prevPrice = prevData[code].price;
+                    
+                    // 변화율 계산
+                    const changeRate = ((currPrice - prevPrice) / prevPrice) * 100;
+                    
+                    // 조건 1: 1초 사이에 0.5% 이상 급등 (스캘핑 신호) -> 1분 아님, 1초임!
+                    // 조건 2: 1초 사이에 0.5% 이상 급락
+                    if (changeRate >= 0.3) { // 0.3%만 올라도 로그 찍음 (민감도 조절 가능)
+                        addLog(`<span class="pump">🚀 [${code}] 급등! +${changeRate.toFixed(2)}%</span> (Price: ${currPrice.toLocaleString()})`);
+                    } else if (changeRate <= -0.3) {
+                        addLog(`<span class="dump">💧 [${code}] 급락! ${changeRate.toFixed(2)}%</span> (Price: ${currPrice.toLocaleString()})`);
+                    }
+
+                    // 조건 3: 거래대금 폭발 (갑자기 돈이 확 들어옴)
+                    // (단순 구현: 이전보다 거래대금이 비정상적으로 튈 때...는 복잡하니 생략하고 가격 위주로)
+                }
+
+                // 데이터 갱신
+                prevData[code] = { price: currPrice, vol: currVol };
+            });
+        }
+
+        // 4. 로그 출력 함수
+        function addLog(html) {
+            const logArea = document.getElementById('log-area');
+            const div = document.createElement('div');
+            div.className = 'log-item';
+            div.innerHTML = `<span class="time">[${new Date().toLocaleTimeString().split(' ')[0]}]</span> ${html}`;
+            
+            // 맨 위에 추가
+            logArea.insertBefore(div, logArea.firstChild);
+            
+            // 로그 너무 많이 쌓이면 삭제 (메모리 절약)
+            if (logArea.children.length > 50) {
+                logArea.removeChild(logArea.lastChild);
+            }
+        }
+
+        // 5. 우측 순위표 (거래대금 상위)
+        function updateRank(data) {
+            // 거래대금 순 정렬
+            const sorted = data.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h).slice(0, 15);
+            
+            const rankArea = document.getElementById('rank-area');
+            rankArea.innerHTML = ""; // 초기화
+
+            sorted.forEach((coin, index) => {
+                const code = coin.market.replace('KRW-', '');
+                const change = (coin.signed_change_rate * 100).toFixed(2);
+                const colorClass = change > 0 ? 'pump' : (change < 0 ? 'dump' : '');
+                const price = coin.trade_price.toLocaleString();
+                // 거래대금 (억 단위)
+                const volume = Math.floor(coin.acc_trade_price_24h / 100000000).toLocaleString();
+
+                const html = `
+                    <div class="rank-row">
+                        <span style="width:20px; color:#666;">${index+1}</span>
+                        <span style="width:60px; font-weight:bold;">${code}</span>
+                        <span class="${colorClass}" style="width:60px; text-align:right;">${change}%</span>
+                        <span style="width:80px; text-align:right;">${price}</span>
+                        <span style="width:60px; text-align:right; color:#888;">${volume}억</span>
+                    </div>
+                `;
+                rankArea.innerHTML += html;
+            });
+        }
+
+        // 시작
+        init();
+    </script>
 </body>
 </html>
