@@ -6,7 +6,7 @@ import json
 # 깃허브 비밀 금고에서 키를 가져옵니다 (보안 완벽!)
 API_KEY = os.environ.get('MY_API_KEY')
 # 분석하고 싶은 블로그 리스트 (여기에 주소를 추가하세요!)
-BLOGS = ["https://tistory.com", "https://google.com"]
+BLOGS = ["https://huedor2.tistory.com/1725", "https://mkkrw.tistory.com/"]
 
 def get_data():
     results = []
