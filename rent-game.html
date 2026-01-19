@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월세 맞히기 챌린지 - 호들갑 랩</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { margin-bottom: 10px; color: #ffcc00; }
+        .score-board { font-size: 1.2rem; margin-bottom: 20px; }
+        
+        /* 이미지 스타일 */
+        .room-img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 15px;
+        }
+        
+        .location-badge {
+            background: #ff4757;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        /* 버튼 스타일 */
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2개씩 배치 */
+            gap: 10px;
+        }
+        button {
+            background: #333;
+            border: 2px solid #555;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #444; }
+        button:active { transform: scale(0.98); }
+
+        /* 정답/오답 효과 */
+        .correct { background: #2ed573 !important; border-color: #2ed573 !important; color: black !important; }
+        .wrong { background: #ff4757 !important; border-color: #ff4757 !important; }
+
+        .result-msg {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        #next-btn {
+            background: #ffcc00;
+            color: black;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+            display: none; /* 처음엔 숨김 */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>💰 월세 맞히기</h1>
+        <p>이 방의 한 달 월세는 얼마일까요?</p>
+        <div class="score-board">점수: <span id="score">0</span>점</div>
+
+        <div id="game-area">
+            <img id="room-image" class="room-img" src="" alt="방 사진">
+            <div>
+                <span id="location-text" class="location-badge">위치 로딩중...</span>
+            </div>
+            
+            <div id="options-container" class="options">
+                </div>
+        </div>
+
+        <div id="result-message" class="result-msg"></div>
+        <button id="next-btn" onclick="nextProblem()">다음 문제 ➡</button>
+    </div>
+
+    <script>
+        // 여기에 데이터를 추가하면 문제가 늘어납니다!
+        // 실제 서비스할 때는 무료 이미지 사이트(Unsplash) 링크를 넣으면 됩니다.
+        const problems = [
+            {
+                location: "🇺🇸 뉴욕, 맨해튼 (스튜디오)",
+                img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80", 
+                price: 3800, // 정답 가격 (달러)
+                options: [2200, 3800, 5500, 1500], // 보기
+                desc: "뉴욕 물가는 살인적입니다. 이 좁은 방이 한화 약 500만원!"
+            },
+            {
+                location: "🇻🇳 베트남, 호치민 (고급 아파트)",
+                img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80",
+                price: 600,
+                options: [600, 1200, 2500, 300],
+                desc: "베트남에서는 80만원이면 수영장 딸린 곳에 삽니다."
+            },
+            {
+                location: "🇰🇷 서울, 강남 (오피스텔)",
+                img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80",
+                price: 1000,
+                options: [600, 1000, 1500, 2000],
+                desc: "보증금에 따라 다르지만, 월세 130만원 정도가 평균입니다."
+            },
+            {
+                location: "🇫🇷 프랑스, 파리 (다락방)",
+                img: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=600&q=80",
+                price: 1200,
+                options: [800, 1200, 1800, 2500],
+                desc: "에밀리 파리에 가다 보셨나요? 뷰가 좋으면 엄청 비쌉니다."
+            }
+        ];
+
+        let currentProblem = {};
+        let score = 0;
+        let isAnswered = false;
+
+        function initGame() {
+            nextProblem();
+        }
+
+        function nextProblem() {
+            isAnswered = false;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('result-message').innerText = '';
+            
+            // 랜덤으로 문제 뽑기
+            const randomIndex = Math.floor(Math.random() * problems.length);
+            currentProblem = problems[randomIndex];
+
+            // 화면 업데이트
+            document.getElementById('room-image').src = currentProblem.img;
+            document.getElementById('location-text').innerText = currentProblem.location;
+
+            // 보기 버튼 만들기
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = ''; // 기존 버튼 삭제
+
+            // 보기를 섞어서 출력 (정답이 항상 같은 자리에 있지 않게)
+            let shuffledOptions = [...currentProblem.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.innerText = `$${opt}`;
+                btn.onclick = () => checkAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedPrice, btnElement) {
+            if (isAnswered) return; // 이미 눌렀으면 무시
+            isAnswered = true;
+
+            const correctPrice = currentProblem.price;
+            
+            if (selectedPrice === correctPrice) {
+                // 정답!
+                btnElement.classList.add('correct');
+                document.getElementById('result-message').innerText = "✅ 정답! " + currentProblem.desc;
+                score += 100;
+                document.getElementById('score').innerText = score;
+            } else {
+                // 오답!
+                btnElement.classList.add('wrong');
+                document.getElementById('result-message').innerText = `❌ 땡! 정답은 $${correctPrice} 입니다.`;
+                
+                // 정답 버튼을 초록색으로 알려줌
+                const buttons = document.querySelectorAll('.options button');
+                buttons.forEach(b => {
+                    if (parseInt(b.innerText.replace('$','')) === correctPrice) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        // 게임 시작
+        initGame();
+    </script>
+</body>
+</html>
