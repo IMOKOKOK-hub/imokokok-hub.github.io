@@ -145,6 +145,35 @@
         .btn-submit { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         #loader { text-align: center; color: var(--text-sub); margin-bottom: 20px; display: none; }
+
+        /* 삭제 버튼 스타일 (카드 우측 상단에 숨겨둠) */
+        .btn-delete {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ef4444; /* 빨간색 */
+            border: 1px solid #ef4444;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0; /* 평소엔 안 보임 */
+            transition: 0.2s;
+            z-index: 10;
+        }
+        /* 카드에 마우스 올리면 삭제 버튼 보임 */
+        .card:hover .btn-delete {
+            opacity: 1;
+        }
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
     </style>
 </head>
 <body>
@@ -202,7 +231,7 @@
     </div>
 
     <script>
-        // ✅ DB 설정 (사장님 키값 그대로)
+        // ✅ DB 설정 (사장님 키값 유지)
         const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
 
@@ -234,7 +263,7 @@
             }
         }
 
-        // 2. 카드 렌더링 (사용자님 디자인에 맞춤)
+        // 2. 카드 렌더링 (삭제 버튼 추가됨!)
         function renderCards(data) {
             const grid = document.getElementById('promptGrid');
             grid.innerHTML = '';
@@ -245,7 +274,6 @@
             }
 
             data.forEach(item => {
-                // 태그 클래스 매핑
                 let tagClass = 'tag-coding';
                 if (item.tag === 'WRITING') tagClass = 'tag-writing';
                 if (item.tag === 'LOGIC') tagClass = 'tag-logic';
@@ -253,17 +281,52 @@
 
                 const card = document.createElement('div');
                 card.className = 'card';
+                
+                // 카드 HTML 조립
                 card.innerHTML = `
-                    <span class="tag ${tagClass}">${item.tag}</span>
-                    <h3>${item.title}</h3>
-                    <p>${item.description}</p>
-                    <div class="prompt-box">${item.content}</div>
+                    <button class="btn-delete" onclick="deletePrompt(${item.id}, event)" title="관리자 삭제">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div onclick='openViewModal(${JSON.stringify(item)})'> <span class="tag ${tagClass}">${item.tag}</span>
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <div class="prompt-box">${item.content}</div>
+                    </div>
                     <button class="copy-btn" onclick="copyText(this, \`${item.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)">
                         <i class="fas fa-copy"></i> Copy Prompt
                     </button>
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        // 🔥 [NEW] 삭제 기능 (비밀번호 확인)
+        async function deletePrompt(id, event) {
+            event.stopPropagation(); // 카드 클릭 이벤트 막기 (상세보기 안 열리게)
+            
+            // 관리자 비밀번호 물어보기
+            const password = prompt("관리자 비밀번호를 입력하세요 (삭제하려면):");
+            
+            // 비밀번호 : 1234 (원하는 걸로 바꾸세요)
+            if (password !== "1234") {
+                return alert("비밀번호가 틀렸습니다! 관리자만 삭제할 수 있습니다.");
+            }
+
+            if (!confirm("정말 이 프롬프트를 삭제하시겠습니까?")) return;
+
+            try {
+                const { error } = await _supabase
+                    .from('prompts')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert("삭제되었습니다! 🗑️");
+                loadPrompts(); // 목록 새로고침
+            } catch (err) {
+                alert("삭제 실패: " + err.message);
+            }
         }
 
         // 3. 업로드 기능
@@ -288,7 +351,6 @@
                 alert('업로드 성공! 🎉');
                 document.getElementById('uploadModal').style.display = 'none';
                 
-                // 초기화
                 document.getElementById('in-title').value = '';
                 document.getElementById('in-desc').value = '';
                 document.getElementById('in-content').value = '';
@@ -301,7 +363,7 @@
             }
         }
 
-        // 4. 기능 함수들 (복사, 검색, 모달)
+        // 4. 기타 함수들
         function copyText(btn, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalHtml = btn.innerHTML;
@@ -335,7 +397,18 @@
         });
 
         function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
-        function closeModal(e) { if(e.target.id === 'uploadModal') document.getElementById('uploadModal').style.display = 'none'; }
+        function closeModal(e) { if(e.target.id === 'uploadModal' || e.target.id === 'viewModal') e.target.style.display = 'none'; }
+        
+        // 상세보기 모달 열기
+        function openViewModal(data) {
+            const modal = document.getElementById('viewModal');
+            document.getElementById('v-title').innerText = data.title;
+            document.getElementById('v-tag').innerText = data.tag;
+            document.getElementById('v-tag').className = `tag tag-${data.tag.toLowerCase()}`;
+            document.getElementById('v-desc').innerText = data.description;
+            document.getElementById('v-content').innerText = data.content;
+            modal.style.display = 'flex';
+        }
 
         // 실행
         loadPrompts();
