@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블로그 수익 최적화 진단기</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 800px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #3498db; }
+        button { padding: 15px 30px; background: #3498db; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #2980b9; }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+        #loading { display: none; text-align: center; color: #7f8c8d; font-size: 18px; margin: 50px 0; }
+        
+        #resultArea { display: none; animation: fadeIn 0.5s; }
+        .score-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .grade-badge { background: #2ecc71; color: white; padding: 10px 30px; border-radius: 50px; font-size: 32px; font-weight: bold; display: inline-block; }
+        
+        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-label { font-size: 13px; color: #7f8c8d; margin-bottom: 5px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #2c3e50; }
+
+        .advice-box { background: #fff3cd; color: #856404; padding: 20px; border-radius: 10px; margin-top: 25px; line-height: 1.6; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="text-align: center; color: #2c3e50;">🩺 블로그 수익 최적화 진단기</h1>
+    <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px;">구글 알고리즘으로 당신의 블로그 건강 상태를 분석합니다.</p>
+
+    <div class="search-box">
+        <input type="text" id="blogUrl" placeholder="https://블로그주소.tistory.com 입력" value="https://mkkrw.tistory.com">
+        <button onclick="runDiagnosis()" id="btnAnalyze">진단하기</button>
+    </div>
+
+    <div id="loading">
+        ⏳ 구글 서버에서 데이터를 분석하고 있습니다...<br>(약 10~20초 소요)
+    </div>
+
+    <div id="resultArea">
+        <div class="score-header">
+            <div id="gradeBadge" class="grade-badge">A 등급</div>
+            <p id="totalScore" style="margin-top: 10px; font-size: 18px; color: #555;">종합 점수: 85점</p>
+        </div>
+
+        <div style="max-width: 500px; margin: 0 auto;">
+            <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="grid-stats">
+            <div class="stat-card">
+                <div class="stat-label">⏱️ 로딩 속도 (LCP)</div>
+                <div class="stat-value" id="valLcp">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🖱️ 반응 지연 (TBT)</div>
+                <div class="stat-value" id="valTbt">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💾 페이지 무게</div>
+                <div class="stat-value" id="valBytes">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📡 광고/서버 요청</div>
+                <div class="stat-value" id="valReq">-</div>
+            </div>
+        </div>
+
+        <div class="advice-box" id="adviceBox"></div>
+    </div>
+</div>
+
+<script>
+    // ★ 성준님의 키를 여기에 직접 넣었습니다! (숨김 처리 X)
+    const API_KEY = "AIzaSyD8yjouvSUcS0MNPwhos9B3JRDn2hnrRgA"; 
+
+    async function runDiagnosis() {
+        const urlInput = document.getElementById('blogUrl').value.trim();
+        if (!urlInput) { alert("주소를 입력해주세요!"); return; }
+
+        // UI 상태 변경
+        document.getElementById('btnAnalyze').disabled = true;
+        document.getElementById('btnAnalyze').innerText = "분석 중...";
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('resultArea').style.display = 'none';
+
+        // 구글 API 호출
+        const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${urlInput}&category=seo&category=performance&category=accessibility&category=best-practices&key=${API_KEY}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.error) {
+                alert("분석 실패! " + data.error.message);
+                resetUI();
+                return;
+            }
+
+            const audits = data.lighthouseResult.audits;
+            analyzeAndRender(audits);
+
+        } catch (error) {
+            console.error(error);
+            alert("오류가 발생했습니다. 개발자 도구(F12)를 확인하세요.");
+            resetUI();
+        }
+    }
+
+    function analyzeAndRender(audits) {
+        // 데이터 추출
+        const getVal = (key) => audits[key] ? audits[key].numericValue : 0;
+        const getScore = (key) => audits[key] ? (audits[key].score * 100) : 0;
+
+        const lcp = getVal('largest-contentful-paint');
+        const tbt = getVal('total-blocking-time');
+        const cls = getVal('cumulative-layout-shift');
+        const bytes = getVal('total-byte-weight');
+        const reqs = audits['network-requests'].details.items.length;
+
+        // 점수 계산
+        const s_lcp = Math.max(0, Math.min(100, 100 - (lcp - 2500) / 50));
+        const s_tbt = Math.max(0, Math.min(100, 100 - (tbt - 200) / 10));
+        const s_cls = Math.max(0, Math.min(100, 100 - (cls * 1000)));
+        const s_seo = getScore('seo') || 90;
+        const s_byte = Math.max(0, Math.min(100, 100 - (bytes - 2000000) / 50000));
+        const s_ad = Math.max(0, Math.min(100, 100 - (reqs - 50) * 1.5));
+
+        // 종합 등급
+        const avg = (s_lcp + s_tbt + s_cls + s_seo + s_byte + s_ad) / 6;
+        let grade = "F (심각)";
+        let color = "#e74c3c";
+        if (avg >= 90) { grade = "S (신)"; color = "#8e44ad"; }
+        else if (avg >= 80) { grade = "A (최우수)"; color = "#2ecc71"; }
+        else if (avg >= 70) { grade = "B (양호)"; color = "#3498db"; }
+        else if (avg >= 50) { grade = "C (보통)"; color = "#f1c40f"; }
+
+        // 화면 업데이트
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'block';
+        resetUI();
+
+        const badge = document.getElementById('gradeBadge');
+        badge.innerText = grade;
+        badge.style.backgroundColor = color;
+        document.getElementById('totalScore').innerText = `종합 점수: ${Math.round(avg)}점`;
+
+        document.getElementById('valLcp').innerText = (lcp/1000).toFixed(2) + "초";
+        document.getElementById('valTbt').innerText = Math.round(tbt) + "ms";
+        document.getElementById('valBytes').innerText = (bytes/1024/1024).toFixed(2) + "MB";
+        document.getElementById('valReq').innerText = reqs + " 회";
+
+        let adviceHtml = "<strong>💡 닥터의 처방전:</strong><ul>";
+        if (s_byte < 50) adviceHtml += "<li>❌ <strong>이미지 용량 초과!</strong> 글 하나에 사진이 너무 많거나 큽니다. TinyPNG로 압축하세요.</li>";
+        if (s_ad < 50) adviceHtml += "<li>❌ <strong>광고/플러그인 과다!</strong> 로딩 속도를 잡아먹고 있습니다. 불필요한 배너를 줄이세요.</li>";
+        if (s_lcp < 60) adviceHtml += "<li>⚠️ <strong>초기 로딩이 느립니다.</strong> 방문자가 글을 보기도 전에 나갈 확률이 높습니다.</li>";
+        if (avg >= 80) adviceHtml += "<li>✅ <strong>아주 훌륭합니다!</strong> 지금 상태를 유지하며 포스팅에 집중하세요.</li>";
+        adviceHtml += "</ul>";
+        document.getElementById('adviceBox').innerHTML = adviceHtml;
+
+        renderChart([s_lcp, s_tbt, s_cls, s_seo, s_byte, s_ad]);
+    }
+
+    let myChart = null;
+    function renderChart(dataArr) {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['로딩속도', '반응성', '시각안정성', 'SEO', '데이터효율', '광고최적화'],
+                datasets: [{
+                    label: '내 블로그 점수',
+                    data: dataArr,
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)'
+                }]
+            },
+            options: { scales: { r: { min: 0, max: 100 } } }
+        });
+    }
+
+    function resetUI() {
+        document.getElementById('btnAnalyze').disabled = false;
+        document.getElementById('btnAnalyze').innerText = "진단하기";
+    }
+</script>
+
+</body>
+</html>
