@@ -3,104 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini 3 Prompt Lab (Supabase)</title>
+    <title>Gemini 3 Prompt Lab</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 🎨 디자인: 다크모드 + 제미나이 퍼플 */
-        :root { --bg: #09090b; --card-bg: #18181b; --border: #27272a; --text: #e4e4e7; --sub: #a1a1aa; --accent: #8b5cf6; }
-        body { background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; margin: 0; padding-bottom: 100px; }
-        
-        /* 헤더 & 네비게이션 */
-        .nav-bar { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(9,9,11,0.9); position: sticky; top: 0; z-index: 50; }
-        .nav-link { color: var(--sub); text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .nav-link:hover { color: var(--accent); }
-        
-        .header { text-align: center; padding: 60px 20px 40px; }
-        .header h1 { margin: 0; background: linear-gradient(to right, #c4b5fd, #8b5cf6); -webkit-background-clip: text; color: transparent; font-size: 3rem; letter-spacing: -1px; }
-        .header p { color: var(--sub); margin-top: 10px; }
+        /* 🎨 디자인 복구: 다크모드 + 제미나이 퍼플 그라데이션 */
+        :root {
+            --bg: #09090b;
+            --card-bg: #18181b;
+            --border: #27272a;
+            --text-main: #e4e4e7;
+            --text-sub: #a1a1aa;
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
 
-        /* 카드 그리드 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        /* 1. 네비게이션 */
+        .nav-bar {
+            padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border);
+        }
+        .nav-link { color: var(--text-main); text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .nav-link:hover { color: var(--accent); }
+
+        /* 2. 헤더 (그 예쁜 그라데이션 타이틀) */
+        .header { text-align: center; padding: 80px 20px 50px; }
+        .header h1 {
+            font-size: 3.5rem; margin: 0;
+            background: linear-gradient(to right, #c4b5fd, #8b5cf6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 800; letter-spacing: -1px;
+        }
+        .header p { color: var(--text-sub); font-size: 1.2rem; margin-top: 10px; }
+
+        /* 3. 검색 & 필터 (다시 추가됨!) */
+        .controls {
+            max-width: 1000px; margin: 0 auto 40px auto; padding: 0 20px;
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+        }
+        .search-bar {
+            flex: 1; min-width: 200px; max-width: 500px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 15px 20px; border-radius: 12px;
+            color: white; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
         
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 25px; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: #333; color: white; align-self: flex-start; margin-bottom: 15px; }
+        .filter-btn {
+            background: var(--card-bg); border: 1px solid var(--border);
+            color: var(--text-sub); padding: 10px 20px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; font-weight: bold;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+
+        /* 4. 카드 그리드 */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px; max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 25px; transition: transform 0.2s, border-color 0.2s;
+            position: relative; display: flex; flex-direction: column; cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px); border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* 태그 스타일 */
+        .tag {
+            display: inline-block; padding: 4px 10px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: bold; text-transform: uppercase;
+            margin-bottom: 15px; align-self: flex-start;
+        }
         .tag.CODING { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag.WRITING { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .tag.LOGIC { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
         .tag.IMAGE { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
 
-        .card-content { flex-grow: 1; }
-        .card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
-        .card p { color: var(--sub); font-size: 0.9rem; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
+        .card p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; flex-grow: 1; }
 
-        .card-footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.85rem; border-top: 1px solid #333; padding-top: 15px; }
-        .likes { display: flex; align-items: center; gap: 5px; }
-        .likes i { color: #ef4444; }
+        /* 미리보기용 박스 */
+        .preview-box {
+            background: #000; padding: 15px; border-radius: 8px;
+            font-family: 'Consolas', monospace; font-size: 0.85rem; color: #777;
+            height: 80px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333;
+            white-space: pre-wrap; mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
 
-        /* 업로드 버튼 (플로팅) */
-        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.4); cursor: pointer; transition: 0.2s; border: none; z-index: 100; }
-        .fab:hover { transform: scale(1.1) rotate(90deg); }
+        /* 카드 하단 정보 */
+        .card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid #333; padding-top: 15px; color: #666; font-size: 0.8rem;
+        }
 
-        /* 모달 (공통) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: none; justify-content: center; align-items: center; }
-        .modal-box { background: #18181b; width: 90%; max-width: 600px; border-radius: 20px; border: 1px solid var(--border); padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(139, 92, 246, 0.2); }
-        .close-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--sub); }
-        
-        /* 상세 보기 전용 */
-        .prompt-code { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; color: #d4d4d8; font-family: monospace; white-space: pre-wrap; margin: 20px 0; max-height: 300px; overflow-y: auto; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; }
-        .btn-copy { background: var(--accent); color: white; }
-        .btn-copy:hover { background: #7c3aed; }
+        /* 플로팅 업로드 버튼 (우측 하단) */
+        .fab {
+            position: fixed; bottom: 40px; right: 40px;
+            background: var(--accent); color: white; width: 60px; height: 60px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; box-shadow: 0 0 20px var(--accent-glow);
+            cursor: pointer; transition: 0.3s; border: none; z-index: 100;
+        }
+        .fab:hover { transform: scale(1.1) rotate(90deg); background: #7c3aed; }
 
-        /* 글쓰기 전용 */
+        /* 5. 모달 (글쓰기 & 상세보기) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 200;
+        }
+        .modal-box {
+            background: #18181b; width: 90%; max-width: 600px;
+            border-radius: 20px; border: 1px solid var(--border); padding: 30px;
+            position: relative; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.2);
+        }
+        .close-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
+
+        /* 입력창 스타일 */
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 8px; color: var(--sub); font-size: 0.9rem; }
-        .input-field { width: 100%; padding: 12px; background: #09090b; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
-        .input-area { height: 120px; resize: none; font-family: monospace; }
-        .btn-submit { background: var(--accent); color: white; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--text-sub); font-size: 0.9rem; }
+        .input-field {
+            width: 100%; padding: 12px; background: #09090b; border: 1px solid #333;
+            color: white; border-radius: 8px; box-sizing: border-box; outline: none;
+        }
+        .input-field:focus { border-color: var(--accent); }
+        .input-area { height: 150px; resize: none; font-family: monospace; }
+        
+        .btn-submit, .btn-copy {
+            width: 100%; padding: 15px; background: var(--accent); color: white;
+            border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+            margin-top: 10px; font-size: 1rem; transition: 0.2s;
+        }
+        .btn-submit:hover, .btn-copy:hover { background: #7c3aed; }
 
-        #loader { text-align: center; padding: 40px; color: var(--sub); }
+        /* 상세보기 프롬프트 박스 */
+        .prompt-full {
+            background: #000; padding: 20px; border-radius: 10px;
+            font-family: 'Consolas', monospace; color: #d4d4d8; line-height: 1.6;
+            border: 1px solid #333; white-space: pre-wrap; margin: 20px 0;
+            max-height: 400px; overflow-y: auto;
+        }
+
+        #loader { text-align: center; padding: 40px; color: var(--text-sub); display: none; }
     </style>
 </head>
 <body>
 
     <nav class="nav-bar">
         <a href="index.html" class="nav-link"><i class="fas fa-chevron-left"></i> 호들갑 LAB</a>
-        <div style="font-size:0.9rem; color:#666;">Powered by Supabase ⚡</div>
+        <div style="font-size:0.85rem; color:#666;">
+            <i class="fas fa-database"></i> Live DB Connected
+        </div>
     </nav>
 
     <header class="header">
         <h1>Gemini 3 Prompt Lab</h1>
-        <p>Expert Prompts for Next-Gen AI</p>
+        <p>Advanced Prompt Engineering Archive for Next-Gen AI</p>
     </header>
 
-    <div id="loader"><i class="fas fa-spinner fa-spin"></i> 프롬프트 로딩 중...</div>
+    <div class="controls">
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 키워드 검색 (예: 코딩, 번역, 논리...)">
+        <button class="filter-btn active" onclick="filterData('ALL')">All</button>
+        <button class="filter-btn" onclick="filterData('CODING')">Coding</button>
+        <button class="filter-btn" onclick="filterData('WRITING')">Writing</button>
+        <button class="filter-btn" onclick="filterData('LOGIC')">Logic</button>
+    </div>
+
+    <div id="loader"><i class="fas fa-spinner fa-spin"></i> 데이터 불러오는 중...</div>
     <div class="grid" id="promptGrid"></div>
 
-    <button class="fab" onclick="openUploadModal()"><i class="fas fa-plus"></i></button>
-
-    <div id="viewModal" class="modal-overlay" onclick="closeModal(event, 'viewModal')">
-        <div class="modal-box">
-            <i class="fas fa-times close-icon" onclick="document.getElementById('viewModal').style.display='none'"></i>
-            <span id="v-tag" class="tag">TAG</span>
-            <h2 id="v-title" style="margin: 10px 0;">Title</h2>
-            <p id="v-desc" style="color:var(--sub); line-height:1.6;">Description</p>
-            
-            <div class="prompt-code" id="v-content">Prompt Content...</div>
-            
-            <button class="action-btn btn-copy" onclick="copyPrompt()">
-                <i class="fas fa-copy"></i> 프롬프트 복사
-            </button>
-        </div>
-    </div>
+    <button class="fab" onclick="openUploadModal()" title="새 프롬프트 등록">
+        <i class="fas fa-plus"></i>
+    </button>
 
     <div id="uploadModal" class="modal-overlay" onclick="closeModal(event, 'uploadModal')">
         <div class="modal-box">
             <i class="fas fa-times close-icon" onclick="document.getElementById('uploadModal').style.display='none'"></i>
-            <h2 style="margin-top:0;">📝 프롬프트 공유</h2>
+            <h2 style="margin-top:0;">✨ 프롬프트 공유</h2>
+            <p style="color:#666; font-size:0.9rem; margin-bottom:20px;">로그인 없이 누구나 공유할 수 있습니다. 좋은 지식을 나눠주세요!</p>
             
             <div class="input-group">
                 <label>제목 (Title)</label>
@@ -121,69 +218,123 @@
             </div>
             <div class="input-group">
                 <label>프롬프트 내용 (Content)</label>
-                <textarea id="in-content" class="input-field input-area" placeholder="AI에게 입력할 진짜 명령어를 적어주세요."></textarea>
+                <textarea id="in-content" class="input-field input-area" placeholder="AI에게 입력할 실제 명령어를 적어주세요."></textarea>
             </div>
 
-            <button class="action-btn btn-submit" onclick="uploadPrompt()">업로드 (Upload)</button>
+            <button class="btn-submit" onclick="uploadPrompt()">업로드 (Upload)</button>
+        </div>
+    </div>
+
+    <div id="viewModal" class="modal-overlay" onclick="closeModal(event, 'viewModal')">
+        <div class="modal-box">
+            <i class="fas fa-times close-icon" onclick="document.getElementById('viewModal').style.display='none'"></i>
+            <span id="v-tag" class="tag">TAG</span>
+            <h2 id="v-title" style="margin: 10px 0;">Title</h2>
+            <p id="v-desc" style="color:#aaa; line-height:1.6;">Description</p>
+            
+            <div class="prompt-full" id="v-content">Loading...</div>
+            
+            <button class="btn-copy" onclick="copyPrompt()">
+                <i class="fas fa-copy"></i> 프롬프트 복사
+            </button>
         </div>
     </div>
 
     <script>
-        // ✅ 사용자님이 주신 키를 여기에 정확히 넣었습니다!
+        // ✅ 사장님이 주신 키, 제가 딱 박아놨습니다!
         const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
 
-        // 수퍼베이스 클라이언트 생성
         const { createClient } = supabase;
         const _supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 1. 프롬프트 불러오기 (Read)
+        let allPrompts = []; // 검색/필터용으로 데이터를 담아둘 변수
+
+        // 1. 데이터 불러오기 (Read)
         async function loadPrompts() {
             const grid = document.getElementById('promptGrid');
             const loader = document.getElementById('loader');
             
+            loader.style.display = 'block';
+            grid.innerHTML = '';
+
             try {
-                // DB에서 데이터 가져오기 (최신순 정렬)
-                let { data: prompts, error } = await _supabase
+                let { data, error } = await _supabase
                     .from('prompts')
                     .select('*')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                loader.style.display = 'none';
-                grid.innerHTML = '';
-
-                if (!prompts || prompts.length === 0) {
-                    grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">아직 등록된 프롬프트가 없습니다. 첫 글을 남겨보세요!</p>';
-                    return;
-                }
-
-                prompts.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.onclick = () => openViewModal(p);
-                    card.innerHTML = `
-                        <span class="tag ${p.tag}">${p.tag}</span>
-                        <div class="card-content">
-                            <h3>${p.title}</h3>
-                            <p>${p.description}</p>
-                        </div>
-                        <div class="card-footer">
-                            <span>${new Date(p.created_at).toLocaleDateString()}</span>
-                            <div class="likes"><i class="fas fa-heart"></i> ${p.likes}</div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
+                allPrompts = data; // 전체 데이터 저장
+                renderPrompts(allPrompts); // 화면에 그리기
 
             } catch (err) {
                 console.error('Error:', err);
-                loader.innerHTML = '데이터 로딩 실패 (잠시 후 다시 시도하세요)';
+                grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">데이터 로딩 실패 (새로고침 해주세요)</p>';
+            } finally {
+                loader.style.display = 'none';
             }
         }
 
-        // 2. 프롬프트 업로드 (Create)
+        // 2. 화면 그리기 (렌더링) 함수
+        function renderPrompts(data) {
+            const grid = document.getElementById('promptGrid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; color:#666; width:100%;">조건에 맞는 프롬프트가 없습니다.</p>';
+                return;
+            }
+
+            data.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openViewModal(p);
+                
+                // 날짜 포맷팅
+                const dateStr = new Date(p.created_at).toLocaleDateString();
+
+                card.innerHTML = `
+                    <span class="tag ${p.tag}">${p.tag}</span>
+                    <h3>${p.title}</h3>
+                    <p>${p.description}</p>
+                    <div class="preview-box">${p.content}</div>
+                    <div class="card-footer">
+                        <span><i class="far fa-clock"></i> ${dateStr}</span>
+                        <span><i class="fas fa-heart" style="color:#ef4444;"></i> ${p.likes}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 3. 필터 기능 (All, Coding...)
+        function filterData(category) {
+            // 버튼 스타일 변경
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (category === 'ALL') {
+                renderPrompts(allPrompts);
+            } else {
+                const filtered = allPrompts.filter(p => p.tag === category);
+                renderPrompts(filtered);
+            }
+        }
+
+        // 4. 검색 기능
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allPrompts.filter(p => 
+                p.title.toLowerCase().includes(keyword) || 
+                p.description.toLowerCase().includes(keyword) ||
+                p.content.toLowerCase().includes(keyword)
+            );
+            renderPrompts(filtered);
+        });
+
+        // 5. 업로드 기능 (Create)
         async function uploadPrompt() {
             const title = document.getElementById('in-title').value;
             const desc = document.getElementById('in-desc').value;
@@ -199,32 +350,30 @@
             try {
                 const { error } = await _supabase
                     .from('prompts')
-                    .insert([
-                        { title: title, description: desc, tag: tag, content: content }
-                    ]);
+                    .insert([{ title, description: desc, tag, content }]);
 
                 if (error) throw error;
 
-                alert('업로드 완료! 🎉');
+                alert('업로드 성공! 🎉');
                 document.getElementById('uploadModal').style.display = 'none';
                 
                 // 입력창 초기화
                 document.getElementById('in-title').value = '';
                 document.getElementById('in-desc').value = '';
                 document.getElementById('in-content').value = '';
-                
-                // 목록 새로고침
-                loadPrompts();
+
+                loadPrompts(); // 목록 갱신
 
             } catch (err) {
-                console.error('Error:', err);
                 alert('업로드 실패: ' + err.message);
             } finally {
                 btn.innerText = originalText;
             }
         }
 
-        // 3. UI 제어 함수들
+        // 6. 모달 관련 함수
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        
         function openViewModal(data) {
             const modal = document.getElementById('viewModal');
             document.getElementById('v-title').innerText = data.title;
@@ -235,14 +384,8 @@
             modal.style.display = 'flex';
         }
 
-        function openUploadModal() {
-            document.getElementById('uploadModal').style.display = 'flex';
-        }
-
         function closeModal(e, modalId) {
-            if (e.target.id === modalId) {
-                document.getElementById(modalId).style.display = 'none';
-            }
+            if (e.target.id === modalId) document.getElementById(modalId).style.display = 'none';
         }
 
         function copyPrompt() {
@@ -254,7 +397,7 @@
             });
         }
 
-        // 실행
+        // 초기 실행
         loadPrompts();
 
     </script>
