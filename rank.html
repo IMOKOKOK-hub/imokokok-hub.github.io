@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상세 수익 잠재력 분석</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f8f9fa; padding: 40px; color: #333; }
+        .dashboard { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th { background: #e8f0fe; color: #1967d2; padding: 15px; border-bottom: 2px solid #d2e3fc; }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+        .url-link { text-align: left; color: #5f6368; text-decoration: none; font-size: 0.9em; }
+        /* 점수별 색상 강조 */
+        .score-box { display: inline-block; width: 50px; padding: 5px; border-radius: 5px; font-weight: bold; }
+        .high { background: #e6f4ea; color: #1e8e3e; } /* 90점 이상 */
+        .mid { background: #fef7e0; color: #f9ab00; }  /* 50-89점 */
+        .low { background: #fce8e6; color: #d93025; }  /* 50점 미만 */
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>📈 블로그 상세 지표 리포트</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>순위</th>
+                    <th>분석 대상 주소</th>
+                    <th>SEO</th>
+                    <th>성능</th>
+                    <th>접근성</th>
+                    <th>표준준수</th>
+                </tr>
+            </thead>
+            <tbody id="rank-data">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        function getScoreClass(score) {
+            if (score >= 90) return 'high';
+            if (score >= 50) return 'mid';
+            return 'low';
+        }
+
+        fetch('data.json')
+            .then(res => res.json())
+            .then(data => {
+                const tableBody = document.getElementById('rank-data');
+                // SEO 점수 기준으로 정렬
+                data.sort((a, b) => b.seo - a.seo);
+
+                data.forEach((item, index) => {
+                    const row = `<tr>
+                        <td>${index + 1}</td>
+                        <td class="url-link">${item.url}</td>
+                        <td><span class="score-box ${getScoreClass(item.seo)}">${item.seo.toFixed(0)}</span></td>
+                        <td><span class="score-box ${getScoreClass(item.performance)}">${item.performance.toFixed(0)}</span></td>
+                        <td><span class="score-box ${getScoreClass(item.accessibility)}">${item.accessibility.toFixed(0)}</span></td>
+                        <td><span class="score-box ${getScoreClass(item.best_practices)}">${item.best_practices.toFixed(0)}</span></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            });
+    </script>
+</body>
+</html>
