@@ -3,208 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global CCTV Guesser</title>
+    <title>Global Dog Guesser</title>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #000;
-            color: #fff;
+            background-color: #2d3436;
+            color: #dfe6e9;
             text-align: center;
             margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        
-        h1 { color: #ff0000; letter-spacing: 2px; text-transform: uppercase; }
-        .live-badge { 
-            background: red; color: white; padding: 2px 8px; 
-            border-radius: 4px; font-size: 0.8rem; vertical-align: middle; 
-            animation: blink 1.5s infinite;
-        }
+        h1 { color: #ffeaa7; margin-bottom: 5px; font-size: 2rem; }
+        p { color: #b2bec3; margin-bottom: 20px; }
 
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* 비디오 화면 스타일 */
-        .video-frame {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 비율 유지 */
-            height: 0;
-            overflow: hidden;
+        /* 이미지 카드 */
+        .card {
+            background: #fff;
+            padding: 10px;
             border-radius: 15px;
-            border: 2px solid #333;
-            margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
-        }
-        .video-frame iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            max-width: 500px;
             width: 100%;
-            height: 100%;
+        }
+        
+        .dog-img {
+            width: 100%;
+            height: 350px;
+            object-fit: contain; /* 사진 비율 유지 */
+            border-radius: 10px;
+            background-color: #eee;
         }
 
-        /* 가림막 (정답 공개 전 힌트 방지용 - 선택사항) */
-        .overlay {
-            display: none; /* 지금은 끔 */
-        }
-
-        /* 버튼 */
+        /* 버튼들 */
         .options {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
         }
+
         button {
-            background: #222;
-            border: 1px solid #444;
+            background: #636e72;
+            border: none;
             color: white;
-            padding: 20px;
-            font-size: 1.2rem;
+            padding: 15px;
+            font-size: 1.1rem;
             cursor: pointer;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: 0.2s;
+            text-transform: capitalize; /* 첫 글자 대문자 */
         }
-        button:hover { background: #333; border-color: #fff; }
+        button:hover { background: #b2bec3; color: #2d3436; }
+        button:active { transform: scale(0.98); }
 
-        .correct { background: #00b894 !important; border-color: #00b894 !important; }
-        .wrong { background: #d63031 !important; border-color: #d63031 !important; }
+        .correct { background: #00b894 !important; color: white !important; }
+        .wrong { background: #d63031 !important; color: white !important; }
 
-        #result-msg { margin-top: 20px; font-size: 1.5rem; font-weight: bold; min-height: 40px; }
-        #next-btn { 
-            background: #fff; color: #000; font-weight: bold; 
-            display: none; margin-top: 20px; width: 100%; 
+        #result-msg {
+            margin-top: 20px;
+            height: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        #next-btn {
+            background: #ffeaa7;
+            color: #2d3436;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1><span class="live-badge">LIVE</span> City Guesser</h1>
-        <p>Where is this live camera located?</p>
-        
-        <div class="video-frame">
-            <div id="player"></div>
-        </div>
+    <h1>🐶 Dog Breed Guesser</h1>
+    <p>What is the breed of this dog?</p>
 
-        <div id="options-container" class="options"></div>
+    <div class="card">
+        <img id="dog-image" class="dog-img" src="" alt="Loading dog...">
         
+        <div id="options-container" class="options">
+            </div>
+
         <div id="result-msg"></div>
-        <button id="next-btn" onclick="nextRound()">Next City ➡</button>
+        <button id="next-btn" onclick="nextRound()">Next Dog ➡</button>
     </div>
 
     <script>
-        // 1. 유튜브 API 로드
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        // ✅ 100% 무료 Dog API 사용
+        const API_URL = "https://dog.ceo/api/breeds/image/random";
+        const ALL_BREEDS_URL = "https://dog.ceo/api/breeds/list/all";
 
-        var player;
-        
-        // 2. 데이터 (유튜브 영상 ID만 있으면 무한 확장 가능)
-        // 영상이 짤리면 'videoId'만 다른 걸로 갈아끼우면 됨
-        // 100% 작동하는 4K 산책 영상 리스트 (라이브보다 화질 좋고 안정적)
-        const cams = [
-            { 
-                id: "F8MN0o6RS9o", // 뉴욕 맨해튼 4K 산책
-                city: "New York, USA", 
-                options: ["New York, USA", "Chicago, USA", "Toronto, Canada", "London, UK"] 
-            },
-            { 
-                id: "Et7O5-teNzY", // 도쿄 시부야 비오는 날
-                city: "Tokyo, Japan", 
-                options: ["Seoul, Korea", "Tokyo, Japan", "Hong Kong", "Shanghai, China"] 
-            },
-            { 
-                id: "Vo6s5A8mN0g", // 베니스 운하 투어
-                city: "Venice, Italy", 
-                options: ["Paris, France", "Venice, Italy", "Amsterdam, Netherlands", "Rome, Italy"] 
-            },
-            { 
-                id: "7Nb-J_Y3mQk", // 서울 강남 밤거리
-                city: "Seoul, Korea", 
-                options: ["Busan, Korea", "Seoul, Korea", "Bangkok, Thailand", "Tokyo, Japan"] 
-            },
-            {
-                id: "21MwTizKIBk", // 런던 2층 버스 투어
-                city: "London, UK",
-                options: ["London, UK", "Dublin, Ireland", "Berlin, Germany", "Melbourne, Australia"]
-            },
-            {
-                id: "P2l0lbnQCAg", // 스위스 기차 풍경
-                city: "Switzerland",
-                options: ["Switzerland", "New Zealand", "Norway", "Canada"]
+        let correctBreed = "";
+        let allBreeds = []; // 모든 견종 리스트 저장
+
+        // 게임 시작 전, 모든 견종 리스트를 한 번 가져옴
+        async function fetchBreedsList() {
+            try {
+                const response = await fetch(ALL_BREEDS_URL);
+                const data = await response.json();
+                allBreeds = Object.keys(data.message); // 견종 이름만 추출
+                nextRound(); // 리스트 다 가져오면 게임 시작
+            } catch (error) {
+                alert("API Error! Please refresh.");
             }
-        ];
-
-        let currentRound = {};
-        let isAnswered = false;
-
-        function onYouTubeIframeAPIReady() {
-            nextRound(); // API 준비되면 게임 시작
         }
 
-        function nextRound() {
-            isAnswered = false;
+        async function nextRound() {
+            // 초기화
             document.getElementById('result-msg').innerText = '';
             document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('dog-image').src = ""; // 이미지 깜빡임 방지
+            const optionsDiv = document.getElementById('options-container');
+            optionsDiv.innerHTML = '<div style="grid-column:span 2; text-align:center; color:#333;">Fetching random dog...</div>';
 
-            // 랜덤 선택
-            const randIdx = Math.floor(Math.random() * cams.length);
-            currentRound = cams[randIdx];
+            try {
+                // 1. 랜덤 강아지 사진 가져오기
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const imgUrl = data.message;
 
-            // 플레이어가 없으면 생성, 있으면 영상 로드
-            if (!player) {
-                player = new YT.Player('player', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: currentRound.id,
-                    playerVars: { 
-                        'autoplay': 1, 
-                        'mute': 1, // 자동재생을 위해 음소거 필수
-                        'controls': 0, // 컨트롤바 숨김
-                        'showinfo': 0 
-                    },
-                    events: {
-                        'onReady': onPlayerReady
+                // 2. URL에서 정답(견종) 추출 (예: .../breeds/beagle/...)
+                // URL 구조: https://images.dog.ceo/breeds/beagle/n02088364_123.jpg
+                const splitUrl = imgUrl.split('/');
+                correctBreed = splitUrl[4]; // 'beagle' 부분 추출
+
+                // 3. 이미지 화면에 표시
+                document.getElementById('dog-image').src = imgUrl;
+
+                // 4. 오답 보기 3개 만들기
+                let options = [correctBreed];
+                while (options.length < 4) {
+                    const randomBreed = allBreeds[Math.floor(Math.random() * allBreeds.length)];
+                    // 중복 아니면 추가, 서브 견종(spaniel-cocker 등)은 깔끔하게 정리
+                    if (!options.includes(randomBreed)) {
+                        options.push(randomBreed);
                     }
+                }
+
+                // 5. 보기 섞기
+                options.sort(() => Math.random() - 0.5);
+
+                // 6. 버튼 그리기
+                optionsDiv.innerHTML = ''; // 로딩 텍스트 삭제
+                options.forEach(breed => {
+                    const btn = document.createElement('button');
+                    // 이름 좀 예쁘게 (하이픈 제거)
+                    btn.innerText = breed.replace('-', ' '); 
+                    btn.onclick = () => checkAnswer(breed, btn);
+                    optionsDiv.appendChild(btn);
                 });
-            } else {
-                player.loadVideoById(currentRound.id);
+
+            } catch (err) {
+                console.error(err);
             }
-
-            // 보기 버튼 생성
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            
-            // 보기 섞기
-            let shuffled = [...currentRound.options].sort(() => Math.random() - 0.5);
-
-            shuffled.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, btn);
-                container.appendChild(btn);
-            });
-        }
-
-        function onPlayerReady(event) {
-            event.target.playVideo();
         }
 
         function checkAnswer(selected, btn) {
-            if (isAnswered) return;
-            isAnswered = true;
+            // 정답 확인 로직
+            const buttons = document.querySelectorAll('.options button');
+            buttons.forEach(b => b.disabled = true); // 중복 클릭 방지
 
-            if (selected === currentRound.city) {
+            if (selected === correctBreed) {
                 btn.classList.add('correct');
-                document.getElementById('result-msg').innerText = "✅ Correct! Welcome to " + currentRound.city.split(',')[0];
+                document.getElementById('result-msg').innerHTML = "✅ Correct! Good Boy!";
             } else {
                 btn.classList.add('wrong');
-                document.getElementById('result-msg').innerText = "❌ No! This is " + currentRound.city;
+                document.getElementById('result-msg').innerHTML = `❌ Oops! It's a <b>${correctBreed.replace('-', ' ')}</b>`;
+                
+                // 정답 버튼 초록색으로 보여주기
+                buttons.forEach(b => {
+                    if (b.innerText.toLowerCase() === correctBreed.replace('-', ' ')) {
+                        b.classList.add('correct');
+                    }
+                });
             }
             document.getElementById('next-btn').style.display = 'block';
         }
+
+        // 실행
+        fetchBreedsList();
+
     </script>
 </body>
 </html>
