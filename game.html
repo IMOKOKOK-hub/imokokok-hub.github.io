@@ -2,482 +2,520 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Chroma-Evo: Genetic Simulator</title>
+    <title>Color Conquest: Evolution</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Consolas', monospace; }
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Segoe UI', sans-serif; user-select: none; }
         canvas { display: block; }
 
-        /* UI Overlay */
+        /* HUD */
         #hud {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 20px; padding: 15px 30px;
-            background: rgba(20, 20, 20, 0.8); border-radius: 50px;
-            border: 1px solid #444; backdrop-filter: blur(5px);
+            position: absolute; top: 0; left: 0; width: 100%; pointer-events: none;
+            display: flex; flex-direction: column; align-items: center; padding-top: 20px;
         }
-
-        .dna-btn {
-            width: 70px; height: 70px; border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.1); cursor: pointer;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-        .dna-btn:active { transform: scale(0.9); }
-        .dna-btn.active { transform: scale(1.15); border-color: white; box-shadow: 0 0 20px currentColor; }
-
-        .icon { font-size: 24px; margin-bottom: 2px; }
-        .label { font-size: 10px; font-weight: bold; color: rgba(255,255,255,0.7); text-transform: uppercase; }
-
-        /* Specific Colors */
-        #btn-atk { color: #ff0055; background: radial-gradient(circle, #330011, #110005); box-shadow: 0 0 10px #ff0055; }
-        #btn-exp { color: #00ffaa; background: radial-gradient(circle, #003322, #001105); box-shadow: 0 0 10px #00ffaa; }
-        #btn-def { color: #00aaff; background: radial-gradient(circle, #002233, #000511); box-shadow: 0 0 10px #00aaff; }
-
-        #stats {
-            position: absolute; top: 20px; left: 20px;
-            color: #888; font-size: 12px; line-height: 1.6;
-            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; pointer-events: none;
-        }
-        b { color: white; }
         
-        #message {
-            position: absolute; top: 20%; width: 100%; text-align: center;
-            font-size: 14px; color: #666; pointer-events: none; opacity: 0.8;
+        #xp-bar-container {
+            width: 400px; height: 20px; background: #333; border: 2px solid #555;
+            border-radius: 10px; overflow: hidden; position: relative;
         }
+        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #fff, #ddd); transition: width 0.2s; }
+        #level-text {
+            color: white; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px black; margin-bottom: 5px;
+        }
+
+        /* Level Up Modal (Upgrade Cards) */
+        #upgrade-modal {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        #upgrade-title { color: #fff; font-size: 32px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 3px; }
+        
+        .card-container { display: flex; gap: 20px; }
+        .card {
+            width: 200px; height: 280px; background: #222; border: 2px solid #444; border-radius: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 20px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .card:hover { transform: translateY(-10px); border-color: white; background: #2a2a2a; }
+        .card-icon { font-size: 50px; margin-top: 20px; }
+        .card-name { color: #fff; font-weight: bold; font-size: 18px; text-align: center; }
+        .card-desc { color: #aaa; font-size: 13px; text-align: center; line-height: 1.4; }
+        .card-type { font-size: 10px; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; color:black; font-weight:bold;}
+
+        /* Type Colors */
+        .type-atk { background: #ff5252; }
+        .type-spd { background: #ffeb3b; }
+        .type-def { background: #448aff; }
+        .type-util { background: #e040fb; }
+
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="stats">
-        <div>GEN: <b id="gen-count">0</b> 세대</div>
-        <div>CELLS: <b id="cell-count">0</b></div>
-        <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px;">
-            <span style="color:#ff0055">● 공격성</span> : 적에게 입히는 피해<br>
-            <span style="color:#00ffaa">● 번식력</span> : 빈 땅으로 퍼지는 속도<br>
-            <span style="color:#00aaff">● 생존력</span> : 적의 공격을 버티는 힘
-        </div>
+    <div id="hud">
+        <div id="level-text">Lv.1 투명한 세포</div>
+        <div id="xp-bar-container"><div id="xp-bar"></div></div>
+        <div style="color:#666; font-size:12px; margin-top:5px;">회색 타일을 클릭/드래그하여 점령하세요.</div>
     </div>
 
-    <div id="message">▼ DNA를 주입하여 검은 역병에 대항하는 생명체를 만드세요 ▼</div>
-
-    <div id="hud">
-        <div id="btn-atk" class="dna-btn" onclick="setMode('r')">
-            <span class="icon">⚔️</span>
-            <span class="label">Attack</span>
-        </div>
-        <div id="btn-exp" class="dna-btn active" onclick="setMode('g')">
-            <span class="icon">🌱</span>
-            <span class="label">Growth</span>
-        </div>
-        <div id="btn-def" class="dna-btn" onclick="setMode('b')">
-            <span class="icon">🛡️</span>
-            <span class="label">Defense</span>
-        </div>
+    <div id="upgrade-modal">
+        <div id="upgrade-title">진화 선택 (Mutation)</div>
+        <div class="card-container" id="cards">
+            </div>
     </div>
 
 <script>
 /**
- * Chroma-Evo: Genetic Simulator
- * Logic: RGB blending dictates cell behavior.
+ * Color Conquest: Evolution
+ * Core Idea: Active Conquest + Roguelike Upgrades
  */
 
 const CONFIG = {
-    HEX_SIZE: 16,     // 셀 크기
-    MAP_RADIUS: 20,   // 맵 크기
-    TICK_RATE: 50,    // 시뮬레이션 속도 (빠름)
-    PLAGUE_RATE: 0.03, // 적 생성 확률
-    MUTATION_RATE: 0.05 // 돌연변이 확률
+    HEX_SIZE: 25,
+    MAP_RADIUS: 12,
+    ENEMY_SPAWN_INTERVAL: 400, // Frames
 };
 
-// RGB Helper
-const Color = {
-    toStr: (r, g, b) => `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`,
-    mix: (c1, c2) => ({
-        r: Math.min(255, (c1.r + c2.r)/2 + (Math.random()*20-10)), // 약간의 돌연변이 추가
-        g: Math.min(255, (c1.g + c2.g)/2 + (Math.random()*20-10)),
-        b: Math.min(255, (c1.b + c2.b)/2 + (Math.random()*20-10))
-    }),
-    brightness: (c) => (c.r + c.g + c.b) / 3
+// --- Game State ---
+const player = {
+    level: 1,
+    xp: 0,
+    maxXp: 10,
+    color: { r: 200, g: 200, b: 200, a: 0.2 }, // Start transparent/white
+    stats: {
+        captureSpeed: 1.0, // 점령 속도
+        spreadChance: 0,   // 자동 전파 확률
+        defense: 0,        // 방어력 (적 점령 저항)
+        thorns: 0          // 가시 (적 공격 시 반사)
+    },
+    ownedTiles: []
 };
 
-let state = {
-    map: {}, 
-    selectedDNA: 'g', // r, g, b
-    particles: [],
-    gen: 0,
-    camera: { x: 0, y: 0, zoom: 1 },
-    isDrag: false
-};
+let map = {}; // q,r -> Tile
+let enemies = []; // Enemy AI controllers
+let particles = [];
+let isPaused = false;
+let camera = { x: 0, y: 0, zoom: 1 };
+let mouse = { x: 0, y: 0, isDown: false };
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- Hex System ---
+// --- Upgrades Database ---
+const UPGRADES = [
+    { id: 'rush', name: '아드레날린', desc: '점령 속도가 50% 빨라집니다.', type: 'spd', color: [255, 235, 59], apply: (p) => p.stats.captureSpeed += 0.5 },
+    { id: 'virus', name: '바이러스', desc: '인접한 타일을 5% 확률로 자동 감염시킵니다.', type: 'util', color: [224, 64, 251], apply: (p) => p.stats.spreadChance += 0.05 },
+    { id: 'wall', name: '강철 껍질', desc: '적이 내 땅을 뺏는 속도가 2배 느려집니다.', type: 'def', color: [68, 138, 255], apply: (p) => p.stats.defense += 1.0 },
+    { id: 'spike', name: '가시 돌기', desc: '내 땅을 밟는 적을 제거할 확률이 생깁니다.', type: 'atk', color: [255, 82, 82], apply: (p) => p.stats.thorns += 0.1 },
+    { id: 'range', name: '긴 촉수', desc: '클릭하지 않아도 마우스 주변 타일을 서서히 점령합니다.', type: 'util', color: [100, 255, 218], apply: (p) => p.stats.aura = true },
+    { id: 'bomb', name: '색소 폭발', desc: '레벨업 할 때마다 주변 타일을 즉시 점령합니다.', type: 'atk', color: [255, 152, 0], apply: (p) => explode() }
+];
+
+// --- Hex Math ---
 const Hex = {
+    toPixel: (q, r) => ({ x: CONFIG.HEX_SIZE * 1.5 * q, y: CONFIG.HEX_SIZE * Math.sqrt(3) * (r + q/2) }),
+    fromPixel: (x, y) => {
+        const q = (2/3 * x) / CONFIG.HEX_SIZE;
+        const r = (-1/3 * x + Math.sqrt(3)/3 * y) / CONFIG.HEX_SIZE;
+        return Hex.round(q, r);
+    },
+    round: (q, r) => {
+        let s = -q-r, rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
+        if (Math.abs(rq-q) > Math.abs(rr-r) && Math.abs(rq-q) > Math.abs(rs-s)) rq = -rr-rs;
+        else if (Math.abs(rr-r) > Math.abs(rs-s)) rr = -rq-rs;
+        return {q:rq, r:rr};
+    },
     key: (q, r) => `${q},${r}`,
-    neighbors: (q, r) => [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]].map(d => ({q:q+d[0], r:r+d[1]})),
-    toPixel: (q, r) => ({ x: 26 * q, y: 26 * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r) }), // Adjusted specific layout math
-    dist: (q1, r1, q2, r2) => (Math.abs(q1-q2) + Math.abs(q1+r1-q2-r2) + Math.abs(r1-r2)) / 2
-};
-// Override pixel math for perfect hex grid
-Hex.toPixel = (q, r) => {
-    const size = CONFIG.HEX_SIZE;
-    const x = size * (3/2 * q);
-    const y = size * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
-    return { x, y };
-};
-Hex.fromPixel = (x, y) => {
-    const size = CONFIG.HEX_SIZE;
-    const q = (2/3 * x) / size;
-    const r = (-1/3 * x + Math.sqrt(3)/3 * y) / size;
-    return Hex.round(q, r);
-};
-Hex.round = (q, r) => {
-    let s = -q-r;
-    let rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
-    if (Math.abs(rq-q) > Math.abs(rr-r) && Math.abs(rq-q) > Math.abs(rs-s)) rq = -rr-rs;
-    else if (Math.abs(rr-r) > Math.abs(rs-s)) rr = -rq-rs;
-    return {q:rq, r:rr};
+    neighbors: (q, r) => [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]].map(d => ({q:q+d[0], r:r+d[1]}))
 };
 
-// --- Core Engine ---
+// --- Core Functions ---
 function init() {
     resize();
     window.addEventListener('resize', resize);
-    createMap();
+    generateMap();
     setupInput();
-    setInterval(tick, CONFIG.TICK_RATE);
-    requestAnimationFrame(render);
+    
+    // Start Enemy Spawner
+    setInterval(() => { if(!isPaused) spawnEnemy(); }, 5000); // 5초마다 적 생성
+
+    loop();
 }
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    state.camera.x = canvas.width/2;
-    state.camera.y = canvas.height/2;
+    camera.x = canvas.width / 2;
+    camera.y = canvas.height / 2;
 }
 
-function createMap() {
+function generateMap() {
     for (let q = -CONFIG.MAP_RADIUS; q <= CONFIG.MAP_RADIUS; q++) {
         let r1 = Math.max(-CONFIG.MAP_RADIUS, -q - CONFIG.MAP_RADIUS);
         let r2 = Math.min(CONFIG.MAP_RADIUS, -q + CONFIG.MAP_RADIUS);
         for (let r = r1; r <= r2; r++) {
-            state.map[Hex.key(q, r)] = {
+            map[Hex.key(q, r)] = {
                 q, r,
-                type: 'empty', // empty, cell, plague
-                color: { r:0, g:0, b:0 }, // DNA
-                hp: 0,
-                maxHp: 0,
-                age: 0
+                owner: 'neutral', // neutral, player, enemy
+                captureProgress: 0, // 0 to 100
+                color: '#222'
             };
         }
     }
-    // Plague Seed in center
-    // spawnPlague(0, 0);
+    // Player Start
+    const start = map["0,0"];
+    start.owner = 'player';
+    start.captureProgress = 100;
+    player.ownedTiles.push("0,0");
 }
 
-function spawnPlague(q, r) {
-    const key = Hex.key(q, r);
-    if(state.map[key]) {
-        const cell = state.map[key];
-        cell.type = 'plague';
-        cell.hp = 500;
-        cell.color = {r:30, g:30, b:30};
-    }
-}
-
-function spawnCell(q, r, dnaType) {
-    const key = Hex.key(q, r);
-    if (!state.map[key]) return;
-    const cell = state.map[key];
-
-    // Base DNA Injection
-    let rVal=0, gVal=0, bVal=0;
-    if (dnaType === 'r') rVal = 255;
-    if (dnaType === 'g') gVal = 255;
-    if (dnaType === 'b') bVal = 255;
-
-    // 만약 이미 세포가 있다면? DNA 혼합 (Evolution)
-    if (cell.type === 'cell') {
-        cell.color.r = Math.min(255, cell.color.r + rVal * 0.5);
-        cell.color.g = Math.min(255, cell.color.g + gVal * 0.5);
-        cell.color.b = Math.min(255, cell.color.b + bVal * 0.5);
-        spawnParticles(q, r, `rgb(${rVal},${gVal},${bVal})`);
-    } else if (cell.type === 'empty') {
-        cell.type = 'cell';
-        cell.color = { r: rVal, g: gVal, b: bVal };
-        cell.hp = 100;
-        spawnParticles(q, r, `rgb(${rVal},${gVal},${bVal})`);
-    }
-}
-
-// --- Simulation Logic (The Soul of the Game) ---
-function tick() {
-    state.gen++;
-    const nextState = {}; // Delta changes
-    let activeCells = 0;
-
-    // Plague Spawner Logic (Dynamic Enemy)
-    if (Math.random() < CONFIG.PLAGUE_RATE) {
-        // Spawn plague at random edge
-        const angle = Math.random() * Math.PI * 2;
-        const dist = CONFIG.MAP_RADIUS;
-        const q = Math.round(Math.cos(angle) * dist);
-        const r = Math.round(Math.sin(angle) * dist);
-        spawnPlague(q, r);
-    }
-
-    for (let key in state.map) {
-        const cell = state.map[key];
-        if (cell.type === 'empty') continue;
-        
-        activeCells++;
-        
-        // 1. Stats based on DNA (Color)
-        // Red = Attack Dmg, Green = Reproduction Chance, Blue = MaxHP/Defense
-        const dna = cell.color;
-        const stats = {
-            atk: 5 + (dna.r / 255) * 45,       // 5 ~ 50 damage
-            repro: 0.01 + (dna.g / 255) * 0.2, // 1% ~ 21% chance
-            maxHp: 50 + (dna.b / 255) * 450    // 50 ~ 500 HP
-        };
-
-        // Regulate HP cap
-        if (cell.hp > stats.maxHp) cell.hp = stats.maxHp;
-
-        const neighbors = Hex.neighbors(cell.q, cell.r);
-
-        // --- PLAGUE LOGIC ---
-        if (cell.type === 'plague') {
-            // Plague just eats and spreads slowly
-            neighbors.forEach(n => {
-                const nKey = Hex.key(n.q, n.r);
-                const target = state.map[nKey];
-                if (!target) return;
-
-                if (target.type === 'cell') {
-                    // Battle: Plague attacks Cell
-                    target.hp -= 10; // Base plague damage
-                    // Cell strikes back (Thorns damage based on Red DNA)
-                    // If cell has high Red, it hurts plague to touch it
-                    const thorns = (target.color.r / 255) * 20;
-                    if (thorns > 0) {
-                        cell.hp -= thorns;
-                        if(Math.random()<0.1) spawnParticles(n.q, n.r, '#ff0055'); // Blood effect
-                    }
-                    if (target.hp <= 0) nextState[nKey] = { type: 'plague', hp: 200, color: {r:30,g:30,b:30} };
-                } else if (target.type === 'empty' && Math.random() < 0.05) {
-                    nextState[nKey] = { type: 'plague', hp: 200, color: {r:30,g:30,b:30} };
-                }
-            });
-            
-            // Plague death
-            if (cell.hp <= 0) nextState[key] = { type: 'empty' };
-            continue;
-        }
-
-        // --- CELL LOGIC ---
-        if (cell.type === 'cell') {
-            cell.age++;
-            // Natural Death (if too old and overcrowded, preventing stagnation)
-            // But let's keep it simple: mainly die by Plague or Starvation logic if we added it.
-            
-            neighbors.forEach(n => {
-                const nKey = Hex.key(n.q, n.r);
-                const target = state.map[nKey];
-                if (!target) return;
-
-                // 1. Attack Plague (Red DNA)
-                if (target.type === 'plague') {
-                    target.hp -= stats.atk;
-                    spawnParticles(n.q, n.r, '#fff', 1); // Spark
-                    if (target.hp <= 0) {
-                         nextState[nKey] = { type: 'empty' }; // Kill plague
-                    }
-                }
-
-                // 2. Reproduction (Green DNA)
-                if (target.type === 'empty') {
-                    if (Math.random() < stats.repro) {
-                        // Mutate color slightly
-                        const childColor = Color.mix(cell.color, cell.color); 
-                        nextState[nKey] = { 
-                            type: 'cell', 
-                            color: childColor, 
-                            hp: 50 + (childColor.b/255)*450,
-                            age: 0
-                        };
-                    }
-                }
-                
-                // 3. Horizontal Gene Transfer (Sharing DNA with neighbors)
-                // If neighbor is also cell, they average out colors slowly (Community Adaptation)
-                if (target.type === 'cell' && Math.random() < 0.05) {
-                    // Very subtle blending
-                    const blended = Color.mix(cell.color, target.color);
-                    nextState[key] = { ...cell, color: blended }; // Update self
-                }
-            });
-
-            // Heal over time (Blue DNA helps regen)
-            if (cell.hp < stats.maxHp) {
-                cell.hp += (dna.b / 255) * 2;
-            }
-        }
-    }
-
-    // Apply Updates
-    for (let key in nextState) {
-        Object.assign(state.map[key], nextState[key]);
-    }
+function spawnEnemy() {
+    // 맵 가장자리 랜덤 위치에서 적(Eraser) 생성
+    let angle = Math.random() * Math.PI * 2;
+    let dist = CONFIG.MAP_RADIUS; // -1 to be safe
+    let q = Math.round(dist * Math.cos(angle));
+    let r = Math.round(dist * Math.sin(angle));
+    let startHex = Hex.round(q, r); // Ensure valid hex coords
     
-    document.getElementById('cell-count').innerText = activeCells;
-    document.getElementById('gen-count').innerText = state.gen;
+    // Find valid tile closest to calculated coords
+    let key = Hex.key(startHex.q, startHex.r);
+    if (!map[key]) return; // retry later
+
+    enemies.push({
+        q: startHex.q, r: startHex.r,
+        target: {q:0, r:0}, // Move towards center
+        color: '#ff3333', // Red enemy
+        speed: 0.05 + (player.level * 0.01) // Gets faster as player levels up
+    });
 }
 
+// --- Logic Loop ---
+function update() {
+    if (isPaused) return;
 
-// --- Rendering ---
-function render() {
-    ctx.fillStyle = '#050505';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 1. Mouse Interaction (Conquest)
+    if (mouse.isDown) {
+        const h = Hex.fromPixel((mouse.x - camera.x), (mouse.y - camera.y));
+        const key = Hex.key(h.q, h.r);
+        const tile = map[key];
 
-    ctx.save();
-    ctx.translate(state.camera.x, state.camera.y);
-    ctx.scale(state.camera.zoom, state.camera.zoom);
+        if (tile) {
+            // Can capture if adjacent to owned
+            const neighbors = Hex.neighbors(h.q, h.r);
+            const isAdjacent = neighbors.some(n => {
+                const nk = Hex.key(n.q, n.r);
+                return map[nk] && map[nk].owner === 'player' && map[nk].captureProgress >= 100;
+            });
 
-    for (let key in state.map) {
-        const cell = state.map[key];
-        // Optimization: Don't draw empty cells
-        if (cell.type === 'empty') {
-            // Draw faint grid
-            /*
-            const p = Hex.toPixel(cell.q, cell.r);
-            ctx.strokeStyle = '#111';
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
-            ctx.stroke();
-            */
-            continue;
-        }
+            if (isAdjacent || (tile.owner === 'player' && tile.captureProgress < 100)) {
+                if (tile.owner !== 'player') {
+                    // Taking over
+                    if (tile.owner === 'enemy') tile.captureProgress -= player.stats.captureSpeed * 2; // Harder to take enemy
+                    else tile.captureProgress += player.stats.captureSpeed * 5; // Taking neutral is fast
 
-        const pos = Hex.toPixel(cell.q, cell.r);
-        const size = CONFIG.HEX_SIZE - 0.5;
-
-        // Draw Hex
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            const angle = Math.PI / 3 * i;
-            ctx.lineTo(pos.x + size * Math.cos(angle), pos.y + size * Math.sin(angle));
-        }
-        ctx.closePath();
-
-        if (cell.type === 'plague') {
-            ctx.fillStyle = '#222';
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            ctx.fill();
-            ctx.stroke();
-            // Spiky inner
-            ctx.fillStyle = '#111';
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, size*0.4, 0, Math.PI*2);
-            ctx.fill();
-        } else {
-            // Cell Color
-            const col = Color.toStr(cell.color.r, cell.color.g, cell.color.b);
-            ctx.fillStyle = col;
-            
-            // Glow based on intensity
-            const intensity = Color.brightness(cell.color);
-            if (intensity > 150) {
-                ctx.shadowColor = col;
-                ctx.shadowBlur = 10;
-            } else {
-                ctx.shadowBlur = 0;
+                    if (tile.owner === 'enemy' && tile.captureProgress <= 0) {
+                        tile.owner = 'neutral';
+                        tile.captureProgress = 0;
+                    }
+                    if (tile.owner === 'neutral' && tile.captureProgress >= 100) {
+                        tile.owner = 'player';
+                        gainXp(1);
+                        spawnParticle(h.q, h.r, 'white');
+                        player.ownedTiles.push(key);
+                    }
+                } else if (tile.owner === 'player' && tile.captureProgress < 100) {
+                    // Repairing
+                    tile.captureProgress += 5;
+                }
             }
-            
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // HP Indicator (Inner Circle Size)
-            /*
-            const hpPct = cell.hp / (50 + (cell.color.b/255)*450);
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, size * (1-hpPct), 0, Math.PI*2);
-            ctx.fill();
-            */
         }
     }
 
-    // Particles
-    state.particles.forEach((p, i) => {
+    // 2. Passive Effects (Virus)
+    if (player.stats.spreadChance > 0) {
+        player.ownedTiles.forEach(key => {
+            if (Math.random() < 0.01) { // Tick rate regulation
+                const t = map[key];
+                const ns = Hex.neighbors(t.q, t.r);
+                const target = ns[Math.floor(Math.random() * ns.length)];
+                const tk = Hex.key(target.q, target.r);
+                if (map[tk] && map[tk].owner !== 'player' && Math.random() < player.stats.spreadChance) {
+                    map[tk].owner = 'player';
+                    map[tk].captureProgress = 100;
+                    gainXp(1);
+                    spawnParticle(target.q, target.r, 'lime');
+                    player.ownedTiles.push(tk);
+                }
+            }
+        });
+    }
+
+    // 3. Enemies Logic
+    enemies.forEach((e, idx) => {
+        // Move towards 0,0
+        // Simple distinct movement logic roughly towards center
+        if (Math.random() < e.speed) {
+            const neighbors = Hex.neighbors(e.q, e.r);
+            // Sort by distance to center
+            neighbors.sort((a,b) => {
+                const d1 = Hex.fromPixel(Hex.toPixel(a.q, a.r).x, Hex.toPixel(a.q, a.r).y); // simplified
+                // Just use hex distance
+                return (Math.abs(a.q)+Math.abs(a.r)) - (Math.abs(b.q)+Math.abs(b.r));
+            });
+            
+            // Pick the one closer to center
+            const next = neighbors[0];
+            
+            // Interaction
+            const nk = Hex.key(next.q, next.r);
+            if (map[nk]) {
+                if (map[nk].owner === 'player') {
+                    // Attack Player Tile
+                    // Thorns check
+                    if (Math.random() < player.stats.thorns) {
+                        spawnParticle(e.q, e.r, 'red');
+                        enemies.splice(idx, 1); // Enemy dies
+                        return;
+                    }
+                    
+                    // Damage tile
+                    let dmg = 10 / (1 + player.stats.defense);
+                    map[nk].captureProgress -= dmg;
+                    spawnParticle(next.q, next.r, 'orange');
+                    
+                    if (map[nk].captureProgress <= 0) {
+                        map[nk].owner = 'enemy';
+                        map[nk].captureProgress = 100;
+                        player.ownedTiles = player.ownedTiles.filter(k => k !== nk);
+                        e.q = next.q; e.r = next.r; // Move in
+                    }
+                } else {
+                    // Move to neutral
+                    e.q = next.q; e.r = next.r;
+                }
+            }
+        }
+    });
+
+    // 4. Particles
+    particles.forEach((p, i) => {
         p.life--;
         p.x += p.vx;
         p.y += p.vy;
+        if (p.life <= 0) particles.splice(i, 1);
+    });
+}
+
+function gainXp(amount) {
+    player.xp += amount;
+    if (player.xp >= player.maxXp) {
+        levelUp();
+    }
+    updateHud();
+}
+
+function updateHud() {
+    const pct = (player.xp / player.maxXp) * 100;
+    document.getElementById('xp-bar').style.width = pct + '%';
+    document.getElementById('level-text').innerText = `Lv.${player.level} ${getColorName()}`;
+    
+    // Update player color alpha based on level (becomes more solid)
+    player.color.a = Math.min(0.9, 0.2 + (player.level * 0.05));
+}
+
+function getColorName() {
+    if(player.level < 3) return "투명한 세포";
+    if(player.level < 6) return "진화하는 생명체";
+    if(player.level < 10) return "각성한 지배자";
+    return "행성 포식자";
+}
+
+// --- Roguelike Level Up ---
+function levelUp() {
+    isPaused = true;
+    player.level++;
+    player.xp = 0;
+    player.maxXp = Math.floor(player.maxXp * 1.3);
+    
+    // Show Modal
+    const modal = document.getElementById('upgrade-modal');
+    const container = document.getElementById('cards');
+    container.innerHTML = '';
+    
+    // Pick 3 random upgrades
+    const choices = [];
+    while(choices.length < 3) {
+        const u = UPGRADES[Math.floor(Math.random() * UPGRADES.length)];
+        if(!choices.includes(u)) choices.push(u);
+    }
+
+    choices.forEach(u => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-type type-${u.type}">${u.type}</div>
+            <div class="card-icon">🧬</div>
+            <div class="card-name">${u.name}</div>
+            <div class="card-desc">${u.desc}</div>
+        `;
+        card.onclick = () => selectUpgrade(u);
+        container.appendChild(card);
+    });
+
+    modal.style.display = 'flex';
+}
+
+function selectUpgrade(upgrade) {
+    upgrade.apply(player);
+    
+    // Mix Color
+    const c = upgrade.color;
+    // Blend current color with upgrade color
+    player.color.r = Math.floor((player.color.r + c[0]) / 2);
+    player.color.g = Math.floor((player.color.g + c[1]) / 2);
+    player.color.b = Math.floor((player.color.b + c[2]) / 2);
+
+    document.getElementById('upgrade-modal').style.display = 'none';
+    isPaused = false;
+    updateHud();
+}
+
+function explode() {
+    // Bomb effect: Capture all neighbors of owned tiles
+    // To prevent lag, just capture radius 2 around 0,0 or random spots
+    const targets = [];
+    player.ownedTiles.forEach(k => {
+        const t = map[k];
+        Hex.neighbors(t.q, t.r).forEach(n => {
+            const nk = Hex.key(n.q, n.r);
+            if(map[nk] && map[nk].owner !== 'player') targets.push(nk);
+        });
+    });
+    
+    // Capture random 10 neighbors
+    for(let i=0; i<10; i++) {
+        if(targets.length === 0) break;
+        const idx = Math.floor(Math.random()*targets.length);
+        const k = targets[idx];
+        map[k].owner = 'player';
+        map[k].captureProgress = 100;
+        player.ownedTiles.push(k);
+        spawnParticle(map[k].q, map[k].r, 'gold');
+        targets.splice(idx, 1);
+    }
+}
+
+// --- Draw ---
+function loop() {
+    requestAnimationFrame(loop);
+    draw();
+    update();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.translate(camera.x, camera.y);
+    // ctx.scale(camera.zoom, camera.zoom); // No zoom needed for simple io style
+
+    // Draw Map
+    for (let key in map) {
+        const t = map[key];
+        const p = Hex.toPixel(t.q, t.r);
+        
+        drawHex(p.x, p.y, CONFIG.HEX_SIZE - 1, t);
+    }
+
+    // Draw Enemies
+    enemies.forEach(e => {
+        const p = Hex.toPixel(e.q, e.r);
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, CONFIG.HEX_SIZE * 0.4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
+    });
+
+    // Draw Particles
+    particles.forEach(p => {
         ctx.fillStyle = p.col;
         ctx.globalAlpha = p.life / 20;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
         ctx.fill();
-        if(p.life <= 0) state.particles.splice(i, 1);
     });
     ctx.globalAlpha = 1;
 
     ctx.restore();
-    requestAnimationFrame(render);
 }
 
-function spawnParticles(q, r, col, count=3) {
-    const pos = Hex.toPixel(q, r);
-    for(let i=0; i<count; i++) {
-        state.particles.push({
-            x: pos.x, y: pos.y,
-            vx: (Math.random()-0.5)*3,
-            vy: (Math.random()-0.5)*3,
-            life: 20 + Math.random()*10,
-            col: col,
-            size: Math.random()*2 + 1
+function drawHex(x, y, size, tile) {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle = Math.PI / 3 * i;
+        ctx.lineTo(x + size * Math.cos(angle), y + size * Math.sin(angle));
+    }
+    ctx.closePath();
+
+    // Color Logic
+    if (tile.owner === 'player') {
+        // Player color with opacity based on capture progress
+        const alpha = player.color.a * (tile.captureProgress / 100);
+        ctx.fillStyle = `rgba(${player.color.r}, ${player.color.g}, ${player.color.b}, ${alpha})`;
+        // Inner core
+        if (tile.captureProgress >= 100) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = `rgb(${player.color.r}, ${player.color.g}, ${player.color.b})`;
+        }
+    } else if (tile.owner === 'enemy') {
+        ctx.fillStyle = '#330000'; // Dark red territory
+    } else {
+        ctx.fillStyle = '#1a1a1a'; // Neutral
+    }
+    
+    // Fill
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Stroke
+    if (tile.owner === 'player') ctx.strokeStyle = `rgba(${player.color.r},${player.color.g},${player.color.b}, 0.5)`;
+    else ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Progress Indicator (Capture ring)
+    if (tile.captureProgress > 0 && tile.captureProgress < 100) {
+        ctx.beginPath();
+        ctx.arc(x, y, size/2, 0, Math.PI * 2 * (tile.captureProgress/100));
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+}
+
+function spawnParticle(q, r, col) {
+    const p = Hex.toPixel(q, r);
+    for(let i=0; i<5; i++) {
+        particles.push({
+            x: p.x, y: p.y,
+            vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
+            life: 20, size: Math.random()*3, col: col
         });
     }
 }
 
-// --- Inputs ---
 function setupInput() {
     canvas.addEventListener('mousedown', e => {
-        state.isDrag = true;
-        const h = getHex(e);
-        spawnCell(h.q, h.r, state.selectedDNA);
+        mouse.x = e.clientX; mouse.y = e.clientY; mouse.isDown = true;
     });
     canvas.addEventListener('mousemove', e => {
-        if(state.isDrag) {
-            const h = getHex(e);
-            spawnCell(h.q, h.r, state.selectedDNA);
-        }
+        mouse.x = e.clientX; mouse.y = e.clientY;
     });
-    window.addEventListener('mouseup', () => state.isDrag = false);
-    
-    canvas.addEventListener('wheel', e => {
-        state.camera.zoom += e.deltaY * -0.001;
-        state.camera.zoom = Math.min(Math.max(0.3, state.camera.zoom), 3);
-    });
-}
-
-function getHex(e) {
-    const rect = canvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left - state.camera.x) / state.camera.zoom;
-    const my = (e.clientY - rect.top - state.camera.y) / state.camera.zoom;
-    return Hex.fromPixel(mx, my);
-}
-
-function setMode(mode) {
-    state.selectedDNA = mode;
-    document.querySelectorAll('.dna-btn').forEach(b => b.classList.remove('active'));
-    let id = mode === 'r' ? 'btn-atk' : (mode === 'g' ? 'btn-exp' : 'btn-def');
-    document.getElementById(id).classList.add('active');
+    window.addEventListener('mouseup', () => mouse.isDown = false);
 }
 
 // Start
