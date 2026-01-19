@@ -137,7 +137,7 @@
     </div>
 
     <script>
-        // ✅ DB 설정 (사장님 키값 유지)
+        // ✅ DB 설정
         const supabaseUrl = 'https://sqbxawmpzknseksnicne.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxYnhhd21wemtuc2Vrc25pY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Nzg0NjQsImV4cCI6MjA4NDM1NDQ2NH0.NsRS31_yv-eHbrpu4_dSo-xcC3zXl6NTIH3OiZrJz6U'; 
 
@@ -170,7 +170,7 @@
             }
         }
 
-        // 2. 카드 렌더링 (번호표 방식 적용 -> 버그 해결!)
+        // 2. 카드 렌더링 (좋아요 버튼 활성화!)
         function renderCards(data) {
             const grid = document.getElementById('promptGrid');
             grid.innerHTML = '';
@@ -188,10 +188,14 @@
 
                 const date = new Date(item.created_at).toLocaleDateString();
 
+                // 🔥 내 브라우저에서 이미 좋아요 눌렀는지 확인
+                const isLiked = localStorage.getItem(`liked_${item.id}`);
+                const heartColor = isLiked ? '#ef4444' : '#666'; // 눌렀으면 빨강, 아니면 회색
+                const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart'; // 꽉 찬 하트 vs 빈 하트
+
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // 👇 [핵심] 번호표(index)만 넘김
                 card.innerHTML = `
                     <button class="btn-delete" onclick="deletePrompt(${item.id}, event)" title="관리자 삭제">
                         <i class="fas fa-trash"></i>
@@ -205,8 +209,9 @@
                         
                         <div class="card-footer">
                             <span><i class="far fa-clock"></i> ${date}</span>
-                            <span class="likes-count">
-                                <i class="fas fa-heart" style="color:#ef4444;"></i> ${item.likes}
+                            
+                            <span class="likes-count" onclick="toggleLike(${item.id}, ${index}, event)" style="cursor:pointer; transition:0.2s; color:${heartColor};">
+                                <i class="${heartIcon}"></i> ${item.likes}
                             </span>
                         </div>
                     </div>
@@ -219,10 +224,43 @@
             });
         }
 
-        // 🔥 [NEW] 안전 복사 함수
+        // 🔥 [NEW] 좋아요 기능 (실시간 DB 반영 + 중복 방지)
+        async function toggleLike(id, index, event) {
+            event.stopPropagation(); // 카드 클릭(상세보기) 방지
+
+            // 1. 이미 눌렀는지 체크 (localStorage 사용)
+            if (localStorage.getItem(`liked_${id}`)) {
+                return alert("이미 좋아요를 누르셨습니다! ❤️");
+            }
+
+            // 2. 화면에서 먼저 숫자 올려주기 (빠른 반응 속도)
+            allPrompts[index].likes += 1;
+            renderCards(allPrompts); // 화면 갱신 (빨간 하트로 변함)
+
+            // 3. 진짜 DB에 +1 저장하기
+            try {
+                const { error } = await _supabase
+                    .from('prompts')
+                    .update({ likes: allPrompts[index].likes })
+                    .eq('id', id);
+
+                if (error) throw error;
+                
+                // 4. "나 이거 눌렀음" 기록 남기기
+                localStorage.setItem(`liked_${id}`, "true");
+
+            } catch (err) {
+                console.error("좋아요 실패:", err);
+                alert("오류가 발생했습니다.");
+                // 에러나면 숫자 다시 내림
+                allPrompts[index].likes -= 1;
+                renderCards(allPrompts);
+            }
+        }
+
+        // 기존 기능들 (복사, 삭제, 업로드 등) ---
         function copyPromptByIndex(index, btn) {
-            const data = allPrompts[index]; // 메모리에서 원본 가져옴
-            
+            const data = allPrompts[index];
             navigator.clipboard.writeText(data.content).then(() => {
                 const originalHtml = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
@@ -236,7 +274,6 @@
             });
         }
 
-        // 3. 삭제 기능
         async function deletePrompt(id, event) {
             event.stopPropagation();
             const password = prompt("관리자 비밀번호를 입력하세요:");
@@ -253,7 +290,6 @@
             }
         }
 
-        // 4. 업로드 기능
         async function uploadPrompt() {
             const title = document.getElementById('in-title').value;
             const desc = document.getElementById('in-desc').value;
@@ -282,7 +318,6 @@
             }
         }
 
-        // 5. 필터 및 UI 함수
         function filterData(category) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -300,7 +335,6 @@
             renderCards(filtered);
         });
 
-        // 상세보기 모달 (번호표 방식)
         function openViewModal(index) {
             const data = allPrompts[index];
             const modal = document.getElementById('viewModal');
@@ -318,7 +352,6 @@
             document.getElementById('v-desc').innerText = data.description;
             document.getElementById('v-content').innerText = data.content;
             
-            // 모달 안의 복사 버튼도 안전하게 연결
             const modalCopyBtn = modal.querySelector('.copy-btn');
             modalCopyBtn.onclick = function() { copyPromptByIndex(index, this); };
 
