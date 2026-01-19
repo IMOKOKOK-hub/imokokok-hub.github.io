@@ -2,428 +2,772 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bug Survivor: Roguelike v2.0</title>
+    <title>CivHex: Planetary Defense</title>
     <style>
-        /* 기본 스타일 */
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Courier New', monospace; touch-action: none; user-select: none; }
+        :root { --bg-color: #1a1a1a; --ui-bg: rgba(0, 0, 0, 0.8); --accent: #ffd700; }
+        body { margin: 0; overflow: hidden; background: var(--bg-color); font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
         canvas { display: block; }
+        
+        /* UI Layout */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .pointer-events-auto { pointer-events: auto; }
+        
+        /* Top Bar: Resources */
+        #top-bar { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px; background: var(--ui-bg); backdrop-filter: blur(5px); border-bottom: 1px solid #444; justify-content: center; font-size: 14px; }
+        .res-item { display: flex; align-items: center; gap: 5px; }
+        .res-val { font-weight: bold; color: var(--accent); }
 
-        /* UI 오버레이 */
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .bar-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 300px; height: 20px; background: #333; border-radius: 10px; border: 2px solid #555; overflow: hidden; }
-        #xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #facc15, #eab308); transition: width 0.2s; }
-        #score-board { position: absolute; top: 50px; width: 100%; text-align: center; color: white; font-weight: bold; text-shadow: 0 0 5px black; }
+        /* Bottom Bar: Build Menu */
+        #bottom-bar { position: absolute; bottom: 0; width: 100%; background: var(--ui-bg); padding: 10px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #444; transition: transform 0.3s; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tab-btn { padding: 5px 15px; background: #333; border: 1px solid #555; color: #ccc; cursor: pointer; }
+        .tab-btn.active { background: #555; color: white; border-color: var(--accent); }
+        .build-grid { display: flex; gap: 10px; overflow-x: auto; max-width: 90%; padding-bottom: 5px; }
+        .build-btn { min-width: 100px; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; cursor: pointer; text-align: center; font-size: 12px; position: relative; }
+        .build-btn:hover { background: #3a3a3a; border-color: white; }
+        .build-btn.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        
+        /* Right Bar: Tech Tree */
+        #tech-panel { position: absolute; right: 10px; top: 80px; width: 220px; background: var(--ui-bg); padding: 15px; border-radius: 8px; border: 1px solid #444; }
+        #tech-panel h3 { margin: 0 0 10px 0; font-size: 16px; color: var(--accent); text-align: center; }
+        .tech-step { margin-bottom: 10px; padding: 8px; background: #333; border-radius: 4px; font-size: 12px; }
+        .tech-step.completed { border-left: 3px solid #4caf50; }
+        .tech-step.current { border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
+        .tech-step.locked { opacity: 0.5; }
 
-        /* 레벨업 선택창 (모달) */
-        #levelup-screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); display: none; 
-            flex-direction: column; justify-content: center; align-items: center; 
-            pointer-events: auto; z-index: 100;
-        }
-        .card-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding: 20px; }
-        .card { 
-            background: #1a1a1a; border: 2px solid #8b5cf6; border-radius: 15px; 
-            width: 140px; height: 200px; padding: 20px; text-align: center; color: white; 
-            cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .card:hover { transform: scale(1.05); background: #2e1065; border-color: #c4b5fd; }
-        .card h3 { margin: 0 0 10px 0; color: #facc15; font-size: 1.1rem; }
-        .card p { font-size: 0.8rem; color: #ddd; line-height: 1.4; }
-        .card-icon { font-size: 2.5rem; margin-bottom: 15px; }
+        /* Notifications & Overlay */
+        #invasion-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, rgba(255, 0, 0, 0.5)); opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 99; }
+        #modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 40px; text-align: center; border: 2px solid var(--accent); border-radius: 10px; z-index: 100; max-width: 500px; }
+        #modal h1 { color: var(--accent); margin-top: 0; }
+        button.action-btn { padding: 10px 20px; font-size: 16px; background: var(--accent); color: black; border: none; cursor: pointer; font-weight: bold; margin-top: 20px; }
 
-        /* 게임 오버 */
-        #gameover-screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(50, 0, 0, 0.9); display: none; 
-            flex-direction: column; justify-content: center; align-items: center; 
-            color: white; pointer-events: auto; z-index: 200;
-        }
-        button { 
-            background: white; color: black; border: none; padding: 15px 30px; 
-            font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 50px; margin-top: 20px;
-        }
+        /* Tooltip */
+        #tooltip { position: absolute; background: rgba(0,0,0,0.9); padding: 8px; border: 1px solid #666; font-size: 12px; pointer-events: none; display: none; z-index: 50; white-space: pre-line; }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div class="bar-container"><div id="xp-bar"></div></div>
-        <div id="score-board">LV <span id="lv-disp">1</span> | KILLS <span id="kill-disp">0</span></div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="invasion-flash"></div>
+
+    <div id="ui-layer">
+        <div id="top-bar" class="pointer-events-auto">
+            <div class="res-item">🪵 <span id="res-wood" class="res-val">0</span></div>
+            <div class="res-item">🪨 <span id="res-stone" class="res-val">0</span></div>
+            <div class="res-item">🌾 <span id="res-food" class="res-val">0</span></div>
+            <div class="res-item">⛏️ <span id="res-iron" class="res-val">0</span></div>
+            <div class="res-item">🪙 <span id="res-gold" class="res-val">0</span></div>
+            <div class="res-item">⚡ <span id="res-energy" class="res-val">0</span></div>
+            <div class="res-item">🧪 <span id="res-science" class="res-val">0</span></div>
+            <div class="res-item" style="border:1px solid #f44336; padding:0 5px; background:#300;">⚔️ <span id="res-military" class="res-val">0</span></div>
+        </div>
+
+        <div id="tech-panel" class="pointer-events-auto">
+            <h3>🔬 연구 (Era: <span id="era-name">고대</span>)</h3>
+            <div id="tech-list"></div>
+            <button id="research-btn" class="action-btn" style="width:100%; margin-top:10px; font-size:12px;">연구하기</button>
+        </div>
+
+        <div id="bottom-bar" class="pointer-events-auto">
+            <div class="tabs">
+                <div class="tab-btn active" onclick="switchTab('eco')">경제 건물</div>
+                <div class="tab-btn" onclick="switchTab('mil')">군사/방어</div>
+            </div>
+            <div id="build-eco" class="build-grid"></div>
+            <div id="build-mil" class="build-grid" style="display:none;"></div>
+            <div style="font-size: 11px; color: #888; margin-top:5px;">클릭하여 선택 후 맵의 내 영토에 건설 (파괴된 건물 위엔 재건설)</div>
+        </div>
     </div>
 
-    <div id="levelup-screen">
-        <h2 style="color:#facc15; font-size: 2rem; margin-bottom: 10px;">LEVEL UP!</h2>
-        <p style="color:#aaa;">Choose an Upgrade</p>
-        <div class="card-container" id="cards"></div>
+    <div id="tooltip"></div>
+
+    <div id="modal" class="pointer-events-auto">
+        <h1 id="modal-title">승리!</h1>
+        <p id="modal-desc">행성 방어 시스템이 가동되었습니다.</p>
+        <button class="action-btn" onclick="location.reload()">다시 하기</button>
     </div>
 
-    <div id="gameover-screen">
-        <h1 style="font-size: 3rem; margin:0; color: #ef4444;">YOU DIED</h1>
-        <p>Survived Lv.<span id="final-lv">0</span></p>
-        <button onclick="startGame()">TRY AGAIN</button>
-    </div>
+<script>
+/**
+ * 4X Hex Strategy Game Engine
+ * Written for Vanilla JS + HTML5 Canvas
+ */
 
-    <canvas id="canvas"></canvas>
+// --- Constants & Config ---
+const CONFIG = {
+    HEX_SIZE: 30,
+    MAP_RADIUS: 12,
+    TICK_RATE: 1000, // Resource tick every 1s
+    ENEMY_SPAWN_RATE: 15000, // Enemies spawn every 15s
+    ZOOM_SENSITIVITY: 0.001
+};
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+const RESOURCES = ['wood', 'stone', 'food', 'iron', 'gold', 'energy', 'science', 'military'];
+const COLORS = {
+    bg: '#1a1a1a', grid: '#333', fog: '#111',
+    grass: '#2e7d32', water: '#1565c0', mountain: '#5d4037', desert: '#e65100', snow: '#eceff1',
+    player: '#42a5f5', enemy: '#d32f2f', neutral: '#757575'
+};
 
-        // 게임 상태 변수
-        let state = 'start'; // start, playing, levelup, gameover
-        let width, height;
-        let player, enemies, bullets, particles, xpOrbs, texts;
-        let frame = 0;
-        let kills = 0;
-        
-        // 마우스
-        let mouse = { x: 0, y: 0 };
+const ERAS = [
+    { name: '고대', techCost: 0, unlock: [] },
+    { name: '중세', techCost: 300, unlock: ['wall', 'knight'], desc: '기사/성벽 해금' },
+    { name: '산업', techCost: 1500, unlock: ['bunker', 'tank'], desc: '탱크/벙커 해금' },
+    { name: '정보화', techCost: 5000, unlock: ['laser', 'missile'], desc: '미사일/레이저 해금' },
+    { name: '우주', techCost: 15000, unlock: ['wonder'], desc: '우주 승리 가능' }
+];
 
-        // 플레이어 스탯 (업그레이드 가능)
-        const stats = {
-            hp: 100, maxHp: 100,
-            speed: 3,
-            dmg: 10,
-            fireRate: 30, // 낮을수록 빠름
-            bulletCount: 1,
-            bulletSpeed: 10,
-            pierce: 0 // 관통력
-        };
+const BUILDINGS = {
+    // Economy
+    'farm': { name: '농장', cost: { wood: 10 }, prod: { food: 5 }, icon: '🌾', type: 'eco' },
+    'lumber': { name: '제재소', cost: { gold: 10 }, prod: { wood: 5 }, icon: '🪵', type: 'eco' },
+    'quarry': { name: '채석장', cost: { wood: 20 }, prod: { stone: 3 }, icon: '🪨', type: 'eco' },
+    'mine': { name: '광산', cost: { wood: 50, stone: 20 }, prod: { iron: 2, gold: 2 }, icon: '⛏️', type: 'eco' },
+    'lab': { name: '연구소', cost: { stone: 50, iron: 10 }, prod: { science: 3 }, icon: '🧪', type: 'eco' },
+    'plant': { name: '발전소', cost: { iron: 100, gold: 100 }, prod: { energy: 5 }, icon: '⚡', type: 'eco' },
+    
+    // Military & Defense
+    'barracks': { name: '병영', cost: { wood: 50, food: 50 }, prod: { military: 5 }, icon: '⛺', type: 'mil' },
+    'wall': { name: '성벽', cost: { stone: 100 }, defense: 50, icon: '🧱', type: 'mil', era: 1 },
+    'bunker': { name: '벙커', cost: { iron: 200, stone: 200 }, defense: 150, icon: '🛡️', type: 'mil', era: 2 },
+    'tower': { name: '포탑', cost: { wood: 100, stone: 50 }, damage: 10, range: 2, icon: '🏹', type: 'mil' },
+    'laser': { name: '레이저', cost: { energy: 200, iron: 200 }, damage: 50, range: 4, icon: '🔦', type: 'mil', era: 3 },
+    'wonder': { name: '행성방어', cost: { science: 10000, energy: 5000, iron: 5000 }, win: true, icon: '🚀', type: 'mil', era: 4 }
+};
 
-        // 레벨 시스템
-        let level = 1;
-        let xp = 0;
-        let xpToNext = 100;
+// --- Game State ---
+const state = {
+    resources: { wood: 50, stone: 0, food: 50, iron: 0, gold: 0, energy: 0, science: 0, military: 10 },
+    eraIndex: 0,
+    map: {}, // key: "q,r", value: Tile
+    enemies: [], // Array of enemy unit objects
+    particles: [],
+    selectedBuilding: null,
+    camera: { x: 0, y: 0, zoom: 1 },
+    isGameOver: false,
+    lastTick: 0,
+    lastEnemySpawn: 0
+};
 
-        // 업그레이드 목록 (로그라이크의 핵심!)
-        const upgradePool = [
-            { id: 'multi', name: '멀티샷', icon: '🔫', desc: '총알 개수 +1 증가', func: () => stats.bulletCount++ },
-            { id: 'rapid', name: '광속 연사', icon: '⚡', desc: '공격 속도 15% 증가', func: () => stats.fireRate = Math.max(5, stats.fireRate * 0.85) },
-            { id: 'dmg', name: '파워 업', icon: '💥', desc: '데미지 30% 증가', func: () => stats.dmg = Math.floor(stats.dmg * 1.3) },
-            { id: 'speed', name: '스피드', icon: '🏃', desc: '이동 속도 10% 증가', func: () => stats.speed *= 1.1 },
-            { id: 'hp', name: '체력 돼지', icon: '❤️', desc: '최대 체력 +30 & 회복', func: () => { stats.maxHp += 30; stats.hp = stats.maxHp; } },
-            { id: 'pierce', name: '관통탄', icon: '🏹', desc: '적을 1명 더 뚫음', func: () => stats.pierce++ },
-            { id: 'bulletSpeed', name: '스나이퍼', icon: '🚀', desc: '탄속 증가', func: () => stats.bulletSpeed *= 1.2 }
-        ];
+// --- Hex Math (Axial Coordinates) ---
+const Hex = {
+    toPixel: (q, r) => {
+        const x = CONFIG.HEX_SIZE * (3/2 * q);
+        const y = CONFIG.HEX_SIZE * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+        return { x, y };
+    },
+    fromPixel: (x, y) => {
+        const q = (2/3 * x) / CONFIG.HEX_SIZE;
+        const r = (-1/3 * x + Math.sqrt(3)/3 * y) / CONFIG.HEX_SIZE;
+        return Hex.round(q, r);
+    },
+    round: (q, r) => {
+        let s = -q - r;
+        let rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
+        const q_diff = Math.abs(rq - q), r_diff = Math.abs(rr - r), s_diff = Math.abs(rs - s);
+        if (q_diff > r_diff && q_diff > s_diff) rq = -rr - rs;
+        else if (r_diff > s_diff) rr = -rq - rs;
+        return { q: rq, r: rr };
+    },
+    dist: (h1, h2) => (Math.abs(h1.q - h2.q) + Math.abs(h1.q + h1.r - h2.q - h2.r) + Math.abs(h1.r - h2.r)) / 2,
+    neighbors: (q, r) => [
+        {q:q+1, r:r}, {q:q+1, r:r-1}, {q:q, r:r-1},
+        {q:q-1, r:r}, {q:q-1, r:r+1}, {q:q, r:r+1}
+    ],
+    key: (q, r) => `${q},${r}`
+};
 
-        // 초기화
-        function init() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            mouse.x = width/2; mouse.y = height/2;
+// --- Initialization ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function init() {
+    resize();
+    window.addEventListener('resize', resize);
+    generateMap();
+    setupUI();
+    setupInput();
+    requestAnimationFrame(loop);
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    state.camera.x = canvas.width / 2;
+    state.camera.y = canvas.height / 2;
+}
+
+function generateMap() {
+    // Generate Hex Grid
+    for (let q = -CONFIG.MAP_RADIUS; q <= CONFIG.MAP_RADIUS; q++) {
+        let r1 = Math.max(-CONFIG.MAP_RADIUS, -q - CONFIG.MAP_RADIUS);
+        let r2 = Math.min(CONFIG.MAP_RADIUS, -q + CONFIG.MAP_RADIUS);
+        for (let r = r1; r <= r2; r++) {
+            let type = 'grass';
+            // Simple noise for terrain
+            const noise = Math.sin(q*0.5) * Math.cos(r*0.5);
+            if (noise > 0.6) type = 'mountain';
+            else if (noise < -0.6) type = 'water';
             
-            player = { x: width/2, y: height/2, r: 10, color: '#8b5cf6' };
-            enemies = []; bullets = []; particles = []; xpOrbs = []; texts = [];
-            
-            // 스탯 초기화
-            stats.hp = 100; stats.maxHp = 100; stats.speed = 3;
-            stats.dmg = 10; stats.fireRate = 30; stats.bulletCount = 1;
-            stats.bulletSpeed = 10; stats.pierce = 0;
-
-            level = 1; xp = 0; xpToNext = 100; kills = 0; frame = 0;
-            
-            updateHUD();
+            state.map[Hex.key(q, r)] = {
+                q, r, type,
+                owner: 'neutral', // neutral, player, enemy
+                building: null,
+                hp: 100,
+                explored: false,
+                visible: false
+            };
         }
+    }
 
-        function startGame() {
-            init();
-            state = 'playing';
-            document.getElementById('gameover-screen').style.display = 'none';
-            document.getElementById('levelup-screen').style.display = 'none';
-            loop();
+    // Player Start
+    const startTile = state.map["0,0"];
+    startTile.type = 'grass';
+    startTile.owner = 'player';
+    startTile.building = { type: 'barracks', hp: 100 };
+    updateVisibility();
+
+    // Enemy Bases
+    let bases = 0;
+    while(bases < 6) {
+        let q = Math.floor(Math.random() * CONFIG.MAP_RADIUS * 1.5) - CONFIG.MAP_RADIUS * 0.75;
+        let r = Math.floor(Math.random() * CONFIG.MAP_RADIUS * 1.5) - CONFIG.MAP_RADIUS * 0.75;
+        const key = Hex.key(q, r);
+        if (state.map[key] && Hex.dist({q:0,r:0}, {q,r}) > 6 && state.map[key].type !== 'water') {
+            state.map[key].owner = 'enemy';
+            state.map[key].type = 'mountain'; // Harder to take
+            state.map[key].hp = 500; // Strong base
+            bases++;
         }
+    }
+}
 
-        // 메인 루프
-        function loop() {
-            if (state !== 'playing') return;
-            requestAnimationFrame(loop);
-            frame++;
+// --- Game Logic ---
+function update(dt) {
+    if (state.isGameOver) return;
 
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.3)'; // 잔상 효과
-            ctx.fillRect(0, 0, width, height);
+    const now = Date.now();
 
-            updatePlayer();
-            updateBullets();
-            updateEnemies();
-            updateXP();
-            updateParticles();
-            
-            drawPlayer();
-        }
+    // 1. Resources Tick
+    if (now - state.lastTick > CONFIG.TICK_RATE) {
+        processEconomy();
+        processTowers();
+        state.lastTick = now;
+        updateUI();
+    }
 
-        // --- 업데이트 로직 ---
+    // 2. Enemy Spawning & Logic
+    if (now - state.lastEnemySpawn > CONFIG.ENEMY_SPAWN_RATE) {
+        spawnEnemy();
+        state.lastEnemySpawn = now;
+    }
+    
+    // Enemy Movement (smooth interpolation for visual, logic discrete)
+    moveEnemies(dt);
+    
+    // Particles
+    state.particles.forEach(p => { p.life -= dt; p.x += p.vx; p.y += p.vy; });
+    state.particles = state.particles.filter(p => p.life > 0);
+}
 
-        function updatePlayer() {
-            // 이동
-            let dx = mouse.x - player.x;
-            let dy = mouse.y - player.y;
-            let dist = Math.hypot(dx, dy);
-            
-            if (dist > 5) {
-                player.x += (dx / dist) * stats.speed;
-                player.y += (dy / dist) * stats.speed;
+function processEconomy() {
+    for (let key in state.map) {
+        const tile = state.map[key];
+        if (tile.owner === 'player' && tile.building) {
+            const bStats = BUILDINGS[tile.building.type];
+            if (bStats.prod) {
+                for (let res in bStats.prod) state.resources[res] += bStats.prod[res];
             }
-
-            // 발사 (자동)
-            if (frame % Math.floor(stats.fireRate) === 0) {
-                fireBullet();
-            }
-
-            // 체력바 (플레이어 밑에)
-            ctx.fillStyle = 'red';
-            ctx.fillRect(player.x - 15, player.y + 15, 30, 4);
-            ctx.fillStyle = '#22c55e';
-            ctx.fillRect(player.x - 15, player.y + 15, 30 * (stats.hp / stats.maxHp), 4);
         }
+    }
+}
 
-        function fireBullet() {
-            // 가장 가까운 적 찾기
-            let target = null;
-            let minD = Infinity;
-            enemies.forEach(e => {
-                let d = Math.hypot(e.x - player.x, e.y - player.y);
-                if (d < minD) { minD = d; target = e; }
-            });
-
-            if (!target) return; // 적 없으면 안 쏨
-
-            let angle = Math.atan2(target.y - player.y, target.x - player.x);
-            
-            // 멀티샷 처리 (부채꼴)
-            let cnt = stats.bulletCount;
-            let startAngle = angle - (cnt - 1) * 0.1;
-            
-            for (let i = 0; i < cnt; i++) {
-                bullets.push({
-                    x: player.x, y: player.y,
-                    vx: Math.cos(startAngle + i * 0.2) * stats.bulletSpeed,
-                    vy: Math.sin(startAngle + i * 0.2) * stats.bulletSpeed,
-                    pierce: stats.pierce,
-                    life: 100
-                });
-            }
-        }
-
-        function updateBullets() {
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx; b.y += b.vy;
-                b.life--;
-
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI*2);
-                ctx.fillStyle = '#facc15';
-                ctx.fill();
-
-                if (b.life <= 0 || b.x < 0 || b.x > width || b.y < 0 || b.y > height) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                // 적 충돌
-                for (let j = enemies.length - 1; j >= 0; j--) {
-                    let e = enemies[j];
-                    let d = Math.hypot(b.x - e.x, b.y - e.y);
-                    if (d < e.r + 4) {
-                        // 명중
-                        e.hp -= stats.dmg;
-                        createParticles(e.x, e.y, e.color, 3);
-                        
-                        if (b.pierce > 0) {
-                            b.pierce--; // 관통력 감소하고 총알 유지
-                        } else {
-                            bullets.splice(i, 1); // 총알 삭제
-                            break; 
-                        }
-
-                        if (e.hp <= 0) {
-                            killEnemy(j);
-                        }
-                        break; 
+function processTowers() {
+    // Towers shoot at enemies
+    for (let key in state.map) {
+        const tile = state.map[key];
+        if (tile.owner === 'player' && tile.building) {
+            const stats = BUILDINGS[tile.building.type];
+            if (stats.damage) {
+                // Find target
+                const target = state.enemies.find(e => Hex.dist(e.hex, tile) <= stats.range);
+                if (target) {
+                    target.hp -= stats.damage;
+                    spawnProjectile(tile, target.hex, 'yellow');
+                    if (target.hp <= 0) {
+                        spawnExplosion(target.x, target.y, 'red');
                     }
                 }
             }
         }
+    }
+    // Clean dead enemies
+    state.enemies = state.enemies.filter(e => e.hp > 0);
+}
 
-        function killEnemy(idx) {
-            let e = enemies[idx];
-            // 경험치 구슬 드롭
-            xpOrbs.push({ x: e.x, y: e.y, val: e.xpVal });
-            enemies.splice(idx, 1);
-            kills++;
-            updateHUD();
+function spawnEnemy() {
+    const enemyBases = Object.values(state.map).filter(t => t.owner === 'enemy');
+    if (enemyBases.length === 0) return;
+
+    const base = enemyBases[Math.floor(Math.random() * enemyBases.length)];
+    const pixel = Hex.toPixel(base.q, base.r);
+    
+    state.enemies.push({
+        hex: {q: base.q, r: base.r},
+        x: pixel.x, y: pixel.y,
+        hp: 50 + (state.eraIndex * 50),
+        maxHp: 50 + (state.eraIndex * 50),
+        speed: 0.5 // pixels per frame approx
+    });
+
+    // Alert UI
+    const flash = document.getElementById('invasion-flash');
+    flash.style.opacity = 1;
+    setTimeout(() => flash.style.opacity = 0, 1000);
+}
+
+function moveEnemies(dt) {
+    state.enemies.forEach(e => {
+        // Simple AI: Move towards 0,0 (Player Base)
+        const currentHex = Hex.round(Hex.fromPixel(e.x, e.y).q, Hex.fromPixel(e.x, e.y).r);
+        e.hex = currentHex; // Update logical hex position
+
+        // Target: 0,0
+        const targetPixel = Hex.toPixel(0, 0);
+        const dx = targetPixel.x - e.x;
+        const dy = targetPixel.y - e.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist > 5) {
+            e.x += (dx / dist) * e.speed;
+            e.y += (dy / dist) * e.speed;
         }
 
-        function updateEnemies() {
-            // 스폰
-            if (frame % Math.max(10, 60 - level * 2) === 0) {
-                let r = Math.random() > 0.5 ? width : height;
-                let angle = Math.random() * Math.PI * 2;
-                enemies.push({
-                    x: width/2 + Math.cos(angle) * (width/1.5),
-                    y: height/2 + Math.sin(angle) * (width/1.5),
-                    r: 10 + Math.random() * 5,
-                    hp: 10 + level * 5,
-                    speed: 1 + Math.random() + level * 0.1,
-                    color: `hsl(${Math.random()*50}, 70%, 50%)`, // 빨강~주황 계열
-                    xpVal: 10 + level * 2
-                });
+        // Interaction with player tiles
+        const tileKey = Hex.key(currentHex.q, currentHex.r);
+        const tile = state.map[tileKey];
+        
+        if (tile && tile.owner === 'player') {
+            // Attack building/tile
+            if (tile.building) {
+                 // Damage building (simplified: building takes 1 hit to destroy unless fortified)
+                 const def = BUILDINGS[tile.building.type].defense || 10;
+                 if (Math.random() * 100 > def) {
+                     tile.building = null;
+                     spawnExplosion(e.x, e.y, 'orange');
+                     // Enemy dies after suicide attack
+                     e.hp = 0; 
+                 } else {
+                     e.hp -= 10; // Building fights back slightly
+                 }
+            } else {
+                // Steal empty territory
+                tile.owner = 'neutral'; 
+                e.hp = 0; // Enemy used up
             }
+            updateVisibility();
+        }
+    });
+}
 
-            // 이동
-            enemies.forEach(e => {
-                let angle = Math.atan2(player.y - e.y, player.x - e.x);
-                e.x += Math.cos(angle) * e.speed;
-                e.y += Math.sin(angle) * e.speed;
+function updateVisibility() {
+    // Reset visible
+    for (let k in state.map) state.map[k].visible = false;
 
-                ctx.beginPath();
-                ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
-                ctx.fillStyle = e.color;
-                ctx.fill();
-
-                // 플레이어 피격
-                let d = Math.hypot(player.x - e.x, player.y - e.y);
-                if (d < player.r + e.r) {
-                    stats.hp -= 0.5; // 지속 데미지
-                    if (stats.hp <= 0) gameOver();
+    // Reveal around owned tiles
+    for (let k in state.map) {
+        const t = state.map[k];
+        if (t.owner === 'player') {
+            t.explored = true;
+            t.visible = true;
+            // Reveal neighbors range 2
+            const range = 2;
+            for (let dx = -range; dx <= range; dx++) {
+                for (let dy = Math.max(-range, -dx-range); dy <= Math.min(range, -dx+range); dy++) {
+                    const nk = Hex.key(t.q + dx, t.r + dy);
+                    if (state.map[nk]) {
+                        state.map[nk].explored = true;
+                        state.map[nk].visible = true;
+                    }
                 }
-            });
+            }
+        }
+    }
+}
+
+// --- Interaction ---
+function setupInput() {
+    let isDragging = false, lastX, lastY;
+
+    canvas.addEventListener('mousedown', e => {
+        if (e.button === 0) { // Left Click
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+    });
+
+    canvas.addEventListener('mousemove', e => {
+        // Camera Pan
+        if (isDragging) {
+            state.camera.x += (e.clientX - lastX);
+            state.camera.y += (e.clientY - lastY);
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+        
+        // Tooltip logic
+        const hex = getHexFromMouse(e);
+        const tile = state.map[Hex.key(hex.q, hex.r)];
+        const tooltip = document.getElementById('tooltip');
+        
+        if (tile && tile.explored) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY + 15) + 'px';
+            
+            let txt = `좌표: ${tile.q},${tile.r}\n지형: ${tile.type}`;
+            if (tile.owner === 'player') txt += `\n소유: 플레이어`;
+            else if (tile.owner === 'enemy') txt += `\n소유: 야만인 (HP:${tile.hp})`;
+            else txt += `\n소유: 중립`;
+
+            if (tile.building) txt += `\n건물: ${BUILDINGS[tile.building.type].name}`;
+            tooltip.innerText = txt;
+        } else {
+            tooltip.style.display = 'none';
+        }
+    });
+
+    canvas.addEventListener('mouseup', e => {
+        isDragging = false;
+        if (Math.abs(e.clientX - lastX) < 5 && Math.abs(e.clientY - lastY) < 5) {
+            handleCklick(e);
+        }
+    });
+
+    canvas.addEventListener('wheel', e => {
+        const zoomSpeed = 0.001;
+        state.camera.zoom += e.deltaY * -zoomSpeed;
+        state.camera.zoom = Math.min(Math.max(0.5, state.camera.zoom), 3);
+    });
+}
+
+function getHexFromMouse(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left - state.camera.x) / state.camera.zoom;
+    const my = (e.clientY - rect.top - state.camera.y) / state.camera.zoom;
+    return Hex.fromPixel(mx, my);
+}
+
+function handleCklick(e) {
+    const hex = getHexFromMouse(e);
+    const key = Hex.key(hex.q, hex.r);
+    const tile = state.map[key];
+
+    if (!tile || !tile.visible) return;
+
+    // 1. Build Logic
+    if (state.selectedBuilding && tile.owner === 'player') {
+        const bType = state.selectedBuilding;
+        const bInfo = BUILDINGS[bType];
+        
+        // Check cost
+        let canAfford = true;
+        for (let res in bInfo.cost) {
+            if (state.resources[res] < bInfo.cost[res]) canAfford = false;
         }
 
-        function updateXP() {
-            for (let i = xpOrbs.length - 1; i >= 0; i--) {
-                let orb = xpOrbs[i];
-                
-                // 자석 효과 (플레이어 가까우면 빨려옴)
-                let dx = player.x - orb.x;
-                let dy = player.y - orb.y;
-                let dist = Math.hypot(dx, dy);
+        if (canAfford) {
+            // Deduct cost
+            for (let res in bInfo.cost) state.resources[res] -= bInfo.cost[res];
+            
+            // Build
+            tile.building = { type: bType, hp: 100 };
+            
+            // Check Win
+            if (bType === 'wonder') victory();
+            
+            state.selectedBuilding = null;
+            document.querySelectorAll('.build-btn').forEach(b => b.style.border = '1px solid #444');
+            updateUI();
+            spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'cyan');
+        } else {
+            alert("자원이 부족합니다!");
+        }
+        return;
+    }
 
-                if (dist < 150) {
-                    orb.x += dx * 0.08;
-                    orb.y += dy * 0.08;
+    // 2. Expansion / Attack Logic
+    if (tile.owner !== 'player') {
+        const neighbors = Hex.neighbors(hex.q, hex.r);
+        const isAdjacent = neighbors.some(n => {
+            const t = state.map[Hex.key(n.q, n.r)];
+            return t && t.owner === 'player';
+        });
+
+        if (isAdjacent) {
+            const conquestCost = tile.owner === 'enemy' ? 150 : 30; // Cost MP
+            if (state.resources.military >= conquestCost) {
+                // Battle Calculation
+                if (tile.owner === 'enemy') {
+                    // Reduce Base HP
+                    tile.hp -= 50;
+                    state.resources.military -= 20; // Attack cost
+                    spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'red');
+                    
+                    if (tile.hp <= 0) {
+                        tile.owner = 'player';
+                        tile.type = 'grass'; // Raze base
+                        tile.hp = 100;
+                        state.resources.military -= conquestCost;
+                    }
+                } else {
+                    // Neutral - instant take
+                    state.resources.military -= conquestCost;
+                    tile.owner = 'player';
+                    spawnExplosion(Hex.toPixel(hex.q, hex.r).x, Hex.toPixel(hex.q, hex.r).y, 'green');
                 }
-
-                // 먹음
-                if (dist < 20) {
-                    xp += orb.val;
-                    xpOrbs.splice(i, 1);
-                    checkLevelUp();
-                }
-
-                ctx.beginPath();
-                ctx.arc(orb.x, orb.y, 4, 0, Math.PI*2);
-                ctx.fillStyle = '#3b82f6'; // 파란 구슬
-                ctx.fill();
-            }
-            updateHUD();
-        }
-
-        function checkLevelUp() {
-            if (xp >= xpToNext) {
-                xp -= xpToNext;
-                level++;
-                xpToNext = Math.floor(xpToNext * 1.5);
-                showLevelUpScreen();
+                updateVisibility();
+                updateUI();
+            } else {
+                alert(`군사력이 부족합니다! (필요: ${conquestCost})`);
             }
         }
+    }
+}
 
-        function showLevelUpScreen() {
-            state = 'levelup'; // 일시정지
-            const screen = document.getElementById('levelup-screen');
-            const container = document.getElementById('cards');
-            container.innerHTML = '';
+// --- Rendering ---
+function loop() {
+    const dt = 16;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+}
 
-            // 랜덤 카드 3장 뽑기
-            let choices = [];
-            let pool = [...upgradePool];
-            for (let i = 0; i < 3; i++) {
-                if (pool.length === 0) break;
-                let idx = Math.floor(Math.random() * pool.length);
-                choices.push(pool[idx]);
-                pool.splice(idx, 1); // 중복 방지
-            }
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.translate(state.camera.x, state.camera.y);
+    ctx.scale(state.camera.zoom, state.camera.zoom);
 
-            choices.forEach(card => {
-                let div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<div class="card-icon">${card.icon}</div>
-                                 <h3>${card.name}</h3>
-                                 <p>${card.desc}</p>`;
-                div.onclick = () => {
-                    card.func(); // 능력 적용
-                    resumeGame();
-                };
-                container.appendChild(div);
-            });
+    // Draw Map
+    for (let key in state.map) {
+        const tile = state.map[key];
+        const pos = Hex.toPixel(tile.q, tile.r);
+        
+        // Fog of War
+        if (!tile.explored) continue;
 
-            screen.style.display = 'flex';
-        }
+        drawHex(pos.x, pos.y, CONFIG.HEX_SIZE, tile);
+    }
 
-        function resumeGame() {
-            state = 'playing';
-            document.getElementById('levelup-screen').style.display = 'none';
-            // 즉시 루프 재개
-            loop();
-        }
-
-        function updateParticles() {
-            for(let i=particles.length-1; i>=0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= 0.05;
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                ctx.globalAlpha = 1;
-                if(p.life <= 0) particles.splice(i, 1);
-            }
-        }
-
-        function createParticles(x, y, color, count) {
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-                    life: 1, size: Math.random()*3+2, color: color
-                });
-            }
-        }
-
-        function updateHUD() {
-            document.getElementById('lv-disp').innerText = level;
-            document.getElementById('kill-disp').innerText = kills;
-            let pct = Math.min(100, (xp / xpToNext) * 100);
-            document.getElementById('xp-bar').style.width = pct + '%';
-        }
-
-        function drawPlayer() {
+    // Draw Enemies
+    state.enemies.forEach(e => {
+        // Draw only if visible
+        const tileKey = Hex.key(e.hex.q, e.hex.r);
+        if (state.map[tileKey] && state.map[tileKey].visible) {
+            ctx.fillStyle = COLORS.enemy;
             ctx.beginPath();
-            ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
-            ctx.fillStyle = player.color;
-            ctx.shadowBlur = 15; ctx.shadowColor = player.color;
+            ctx.arc(e.x, e.y, CONFIG.HEX_SIZE * 0.4, 0, Math.PI * 2);
             ctx.fill();
-            ctx.shadowBlur = 0;
+            // Health Bar
+            ctx.fillStyle = 'red';
+            ctx.fillRect(e.x - 10, e.y - 15, 20, 4);
+            ctx.fillStyle = 'lime';
+            ctx.fillRect(e.x - 10, e.y - 15, 20 * (e.hp / e.maxHp), 4);
         }
+    });
 
-        function gameOver() {
-            state = 'gameover';
-            document.getElementById('final-lv').innerText = level;
-            document.getElementById('gameover-screen').style.display = 'flex';
+    // Draw Particles
+    state.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / 500;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+}
+
+function drawHex(x, y, size, tile) {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle_deg = 60 * i;
+        const angle_rad = Math.PI / 180 * angle_deg;
+        ctx.lineTo(x + size * Math.cos(angle_rad), y + size * Math.sin(angle_rad));
+    }
+    ctx.closePath();
+    
+    // Fill Terrain
+    if (tile.visible) {
+        ctx.fillStyle = COLORS[tile.type] || '#ccc';
+    } else {
+        ctx.fillStyle = '#222'; // Explored but not visible
+    }
+    ctx.fill();
+
+    // Stroke Owner Border
+    if (tile.visible) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = COLORS[tile.owner] || '#333';
+        ctx.stroke();
+    } else {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#444';
+        ctx.stroke();
+    }
+
+    // Draw Building / Base Info
+    if (tile.visible) {
+        if (tile.building) {
+            ctx.font = `${size}px Arial`;
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(BUILDINGS[tile.building.type].icon, x, y);
+        } else if (tile.owner === 'enemy') {
+            ctx.font = `${size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👹', x, y);
         }
+    }
+}
 
-        // 입력 리스너
-        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        window.addEventListener('touchmove', e => { 
-            e.preventDefault();
-            mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; 
-        }, {passive: false});
-        window.addEventListener('resize', () => { width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; });
+// --- Effects ---
+function spawnExplosion(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+        state.particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 500,
+            size: Math.random() * 3 + 1,
+            color: color
+        });
+    }
+}
 
-        startGame(); // 시작
-    </script>
+function spawnProjectile(fromTile, toHex, color) {
+    const from = Hex.toPixel(fromTile.q, fromTile.r);
+    const to = Hex.toPixel(toHex.q, toHex.r);
+    
+    // Simple line particle for laser/arrow
+    state.particles.push({
+        x: from.x, y: from.y,
+        vx: (to.x - from.x) / 10,
+        vy: (to.y - from.y) / 10,
+        life: 200,
+        size: 2,
+        color: color
+    });
+}
+
+// --- UI System ---
+function setupUI() {
+    renderBuildMenu();
+    updateTechUI();
+    updateUI(); // Initial update
+
+    // Tech Button Logic
+    document.getElementById('research-btn').onclick = () => {
+        const nextEra = ERAS[state.eraIndex + 1];
+        if (nextEra && state.resources.science >= nextEra.techCost) {
+            state.resources.science -= nextEra.techCost;
+            state.eraIndex++;
+            updateTechUI();
+            renderBuildMenu(); // New buildings unlocked
+            updateUI();
+            alert(`${nextEra.name} 시대로 발전했습니다!`);
+        } else if (nextEra) {
+            alert(`과학력이 부족합니다. (필요: ${nextEra.techCost})`);
+        }
+    };
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('build-eco').style.display = tab === 'eco' ? 'flex' : 'none';
+    document.getElementById('build-mil').style.display = tab === 'mil' ? 'flex' : 'none';
+}
+
+function renderBuildMenu() {
+    const containerEco = document.getElementById('build-eco');
+    const containerMil = document.getElementById('build-mil');
+    containerEco.innerHTML = '';
+    containerMil.innerHTML = '';
+
+    for (let key in BUILDINGS) {
+        const b = BUILDINGS[key];
+        
+        // Check Era Lock
+        if (b.era && b.era > state.eraIndex) continue;
+
+        const btn = document.createElement('div');
+        btn.className = 'build-btn';
+        
+        // Tooltip Text inside button
+        let costTxt = Object.entries(b.cost).map(([k, v]) => `${k.charAt(0).toUpperCase()}:${v}`).join(' ');
+        btn.innerHTML = `<div>${b.icon} ${b.name}</div><div style='font-size:10px; color:#aaa'>${costTxt}</div>`;
+        
+        btn.onclick = () => {
+            state.selectedBuilding = key;
+            document.querySelectorAll('.build-btn').forEach(bb => bb.style.border = '1px solid #444');
+            btn.style.border = '1px solid gold';
+        };
+
+        if (b.type === 'eco') containerEco.appendChild(btn);
+        else containerMil.appendChild(btn);
+    }
+}
+
+function updateTechUI() {
+    const panel = document.getElementById('tech-list');
+    const eraName = document.getElementById('era-name');
+    panel.innerHTML = '';
+    eraName.innerText = ERAS[state.eraIndex].name;
+
+    ERAS.forEach((era, idx) => {
+        if (idx === 0) return;
+        const div = document.createElement('div');
+        div.className = 'tech-step';
+        if (idx <= state.eraIndex) div.classList.add('completed');
+        else if (idx === state.eraIndex + 1) div.classList.add('current');
+        else div.classList.add('locked');
+
+        div.innerHTML = `<b>${era.name}</b> (🔬 ${era.techCost})<br>${era.desc || ''}`;
+        panel.appendChild(div);
+    });
+    
+    const nextEra = ERAS[state.eraIndex + 1];
+    const rBtn = document.getElementById('research-btn');
+    if (!nextEra) {
+        rBtn.innerText = "연구 완료";
+        rBtn.disabled = true;
+    } else {
+        rBtn.innerText = `연구하기 (비용: ${nextEra.techCost})`;
+    }
+}
+
+function updateUI() {
+    // Resources
+    RESOURCES.forEach(res => {
+        document.getElementById(`res-${res}`).innerText = Math.floor(state.resources[res]);
+    });
+}
+
+function victory() {
+    state.isGameOver = true;
+    document.getElementById('modal').style.display = 'block';
+}
+
+// Start
+init();
+
+</script>
 </body>
 </html>
