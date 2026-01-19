@@ -51,7 +51,18 @@
         .fab:hover { transform: scale(1.1) rotate(90deg); }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 200; }
-        .modal-box { background: #18181b; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; border: 1px solid var(--border); position: relative; box-shadow: 0 0 50px rgba(139, 92, 246, 0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-box {
+            background: #18181b;
+            width: 95%;
+            max-width: 1000px; /* 👈 기존 500px에서 1000px로 변경! */
+            padding: 40px;     /* 여백도 30px -> 40px로 늘리면 더 시원함 */
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            position: relative;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
         .close-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
 
         .input-group { margin-bottom: 15px; }
@@ -69,6 +80,16 @@
         .likes-count { font-weight: bold; color: #e4e4e7; display: flex; align-items: center; gap: 5px; }
         
         #loader { text-align: center; color: var(--text-sub); margin-bottom: 20px; display: none; }
+        /* 🔥 상세 보기 글씨 크기 확대 (새로 추가하세요) */
+        #v-content {
+            font-size: 1.2rem;   /* 👈 글씨 크기 (기본 0.85rem -> 1.2rem 대폭 확대) */
+            line-height: 1.8;    /* 👈 줄 간격 넓게 */
+            min-height: 400px;   /* 👈 높이도 길게 확보 */
+            background-color: #0d0d0d; /* 배경 더 어둡게 해서 가독성 UP */
+        }
+        
+        #v-title { font-size: 2.2rem; } /* 제목도 키우기 */
+        #v-desc { font-size: 1.1rem; }  /* 설명도 키우기 */
     </style>
 </head>
 <body>
