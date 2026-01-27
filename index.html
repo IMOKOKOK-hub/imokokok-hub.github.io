@@ -334,10 +334,10 @@
         // ✅ API 키 적용 완료
         // ✅ 1. 이번 주 당첨 번호 컨트롤 타워 (여기만 바꾸면 다 바뀜!)
         const LOTTO_CONFIG = {
-            baseRound: 1207,           // 현재 회차
-            baseDate: '2026-01-17',    // 추첨일 (YYYY-MM-DD)
-            winNums: [10, 22, 24, 27, 38, 45], // 이번 주 당첨번호 6개
-            bonusNum: 11               // 보너스 번호
+            baseRound: 1208,           // 현재 회차
+            baseDate: '2026-01-24',    // 추첨일 (YYYY-MM-DD)
+            winNums: [6, 27, 30, 36, 38, 42], // 이번 주 당첨번호 6개
+            bonusNum: 45               // 보너스 번호
         };
 
         // ✅ 2. 번호 숫자에 맞춰서 공 색깔(노랑, 파랑 등)을 정해주는 함수
@@ -679,6 +679,7 @@ async function checkWinningStatus() {
         window.onload = () => { fetchRecentLogs(); checkWinningStatus(); };
     </script>
 </body>
+
 
 
 
